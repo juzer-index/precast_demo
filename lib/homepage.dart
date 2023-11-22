@@ -73,22 +73,35 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            SingleChildScrollView(
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.103,
-                child: DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  child: const Text(
-                    'Sidebar Menu',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
+            Container(
+              height: MediaQuery.of(context).size.height * 0.103,
+              child: DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                ),
+                child: const Text(
+                  'Sidebar Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
                   ),
                 ),
               ),
+            ),
+            ExpansionTile(
+              leading: Icon(Icons.dashboard_sharp, color: Colors.blue.shade400,),
+              title: const Text('Dashboard'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
+                  child: ListTile(
+                    title: const Text('Element Status Viewer'),
+                    onTap: () {
+
+                    },
+                  ),
+                ),
+              ],
             ),
             ExpansionTile(
               leading: Icon(Icons.settings_outlined, color: Colors.blue.shade400,),
@@ -156,21 +169,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ]
-            ),
-            ExpansionTile(
-              leading: Icon(Icons.dashboard_sharp, color: Colors.blue.shade400,),
-                title: const Text('Dashboard'),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                  child: ListTile(
-                    title: const Text('Element Status Viewer'),
-                    onTap: () {
-
-                    },
-                  ),
-                ),
-              ],
             ),
             ExpansionTile(
               leading: Icon(Icons.note_alt_rounded, color: Colors.blue.shade400,),
