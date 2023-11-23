@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:precast_demo/indexAppBar.dart';
+import 'loginPage.dart';
 import 'main.dart';
 import 'package:http/http.dart' as http;
+import 'elementMaster.dart';
 
 class Data {
   final int userId;
@@ -48,26 +51,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox(),
-              const Text('Home Page', style: TextStyle(color: Colors.white,)),
-              ClipOval(
-                child: Image.network(
-                  'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
-                  height: 35,
-                  width: 35,
-                  
-                ),
-              )
-            ],
-          ),
-        ),
-      ),
+      appBar: IndexAppBar(title: 'Home Page',),
       drawer: Drawer(
         shadowColor: Colors.blueGrey.shade800,
         child: ListView(
@@ -112,7 +96,8 @@ class _HomePageState extends State<HomePage> {
                   child: ListTile(
                     title: const Text('Element Master'),
                     onTap: () {
-
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => ElementMaster()));
                     },
                   ),
                 ),
