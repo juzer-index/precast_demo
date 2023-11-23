@@ -1,11 +1,111 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:precast_demo/indexAppBar.dart';
+import 'package:http/http.dart' as http;
+
 
 class ElementMaster extends StatefulWidget {
   const ElementMaster({super.key});
 
   @override
   State<ElementMaster> createState() => _ElementMasterState();
+}
+
+class Data {
+  late final int id;
+  late final String elementId;
+  late final String partNum;
+  late final String elementDesc;
+  late final String project;
+  late final String status;
+  Data({required this.id, required this.elementId, required this.partNum, required this.project, required this.status, required this.elementDesc});
+
+  factory Data.fromJson(Map<String, dynamic> json) {
+    return Data(
+      id: json['Id'],
+      elementId: json['ElementId'],
+      partNum: json['PartNum'],
+      elementDesc: json['ElementDesc'],
+      project: json['Project'],
+      status: json['Status']
+    );
+  }
+}
+
+Future<List<Data>> fetchData() async {
+  var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
+  final response = await http.get(url);
+  if (response.statusCode == 200) {
+    List jsonResponse  = json.decode(response.body);
+    return jsonResponse.map((data) => Data.fromJson(data)).toList();
+  }
+  else {
+    throw Exception('unexpected error');
+  }
+}
+
+class MyDataTableSource extends DataTableSource{
+  final List<Data> _data;
+
+  MyDataTableSource(this._data);
+
+  @override
+  DataRow? getRow(int index) {
+    Color statusColor;
+    final row = _data[index];
+    if (row.status == 'Entered'){
+      statusColor = Colors.grey;
+    } else if(row.status == 'Casted') {
+      statusColor = Colors.green;
+    } else if (row.status == 'Erected'){
+      statusColor = Colors.blue;
+    } else {
+      statusColor = Colors.transparent;
+    }
+    return DataRow(cells: [
+      DataCell(
+          Text(row.id.toString())
+      ),
+      DataCell(
+          Text(row.elementId)
+      ),
+      DataCell(
+          Text(row.partNum)
+      ),
+      DataCell(
+        Text(row.elementId),
+      ),
+      DataCell(
+        Text(row.project),
+      ),
+      DataCell(
+        Container(
+          height: 20,
+          width: 50,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: statusColor),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(row.status),
+            ],
+          ),
+        ),
+
+      )
+    ]);
+  }
+
+  @override
+  bool get isRowCountApproximate => false;
+
+  @override
+  int get rowCount => _data.length;
+
+  @override
+  int get selectedRowCount => 0;
+
+
 }
 
 class _ElementMasterState extends State<ElementMaster> {
@@ -91,6 +191,36 @@ class _ElementMasterState extends State<ElementMaster> {
                         borderRadius: BorderRadius.zero
                       ),
                       color: Colors.lightBlue.shade100,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: FutureBuilder<List<Data>> (
+                          future: fetchData(),
+                          builder: (context, snapshot){
+                            if (snapshot.hasData) {
+                              return SingleChildScrollView(
+                                child: PaginatedDataTable(
+                                  headingRowColor: MaterialStateColor.resolveWith((states) {return Theme.of(context).primaryColor;}),
+                                  columnSpacing: 30,
+                                  columns: const [
+                                    DataColumn(label: Text('ID')),
+                                    DataColumn(label: Text('Element ID')),
+                                    DataColumn(label: Text('Part Num')),
+                                    DataColumn(label: Text('Element Desc')),
+                                    DataColumn(label: Text('Project')),
+                                    DataColumn(label: Text('Status')),
+                                  ],
+                                  source: MyDataTableSource(snapshot.data!),
+                                  )
+                              );
+                            }
+                            else if (snapshot.hasError) {
+                              return Text(snapshot.error.toString());
+                            }
+                            // By default show a loading spinner.
+                            return Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor,));
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ],
