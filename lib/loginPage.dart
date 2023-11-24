@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    var Imagepath = 'assets/Index-Logo.jpg';
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).secondaryHeaderColor,
@@ -36,8 +37,8 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Image.network(
-                    'https://raw.githubusercontent.com/juzer-index/precast_demo/master/assets/Index-Logo.jpg?token=GHSAT0AAAAAACKUSZIXVJCK5H6BWF3HG6CQZK7D4UA',
+                  child: Image.asset(
+                    Imagepath,
                     width: 150,
                     height: 150,
                   ),
