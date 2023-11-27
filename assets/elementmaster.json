@@ -1,0 +1,50 @@
+[
+  {
+    "Id": 1,
+    "ElementId": "1400A1",
+    "PartNum": "SL3",
+    "ElementDesc": "HC(4900x1200x200)",
+    "Project": "1400",
+    "Status": "Entered"
+  },
+  {
+    "Id": 2,
+    "ElementId": "1400A2",
+    "PartNum": "SL3",
+    "ElementDesc": "Wall External",
+    "Project": "GC002",
+    "Status": "Casted"
+  },
+  {
+    "Id": 3,
+    "ElementId": "1400A3",
+    "PartNum": "SL3",
+    "ElementDesc": "Wall Internal",
+    "Project": "GC002",
+    "Status": "Casted"
+  },
+  {
+    "Id": 4,
+    "ElementId": "1400A4",
+    "PartNum": "SL3",
+    "ElementDesc": "Wall Side",
+    "Project": "GC002",
+    "Status": "Erected"
+  },
+  {
+    "Id": 5,
+    "ElementId": "1400A5",
+    "PartNum": "SL3",
+    "ElementDesc": "Wall External",
+    "Project": "GC002",
+    "Status": "Erected"
+  },
+  {
+    "Id": 6,
+    "ElementId": "1400A6",
+    "PartNum": "SL3",
+    "ElementDesc": "Wall Side",
+    "Project": "GC002",
+    "Status": "Casted"
+  }
+]

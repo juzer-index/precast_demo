@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'loginPage.dart';
-import 'main.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 
@@ -30,7 +29,7 @@ Future<List<Data>> fetchData() async {
     List jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Data.fromJson(data)).toList();
   } else {
-    throw Exception('Unexpected error occured!');
+    throw Exception('Unexpected error occurred!');
   }
 }
 
@@ -202,12 +201,38 @@ class _HomePageState extends State<HomePage> {
                 'Welcome to the Home Page!',
                 style: Theme.of(context).textTheme.displayMedium
               ),
+              Padding(padding: EdgeInsets.fromLTRB(20, 0, 0, 20),
+                child:
+                  // Add profile information card here
+                  Card(
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                    elevation: 1,
+                    color: Colors.lightBlue.shade100,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.account_circle, color: Colors.blueGrey,),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(20, 0, 0, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Name: John Doe'),
+                                Text('Role: Admin'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ),
               const SizedBox(height: 20),
               const Divider(),
               const SizedBox(height: 20),
-              Table(
-
-              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.white)),

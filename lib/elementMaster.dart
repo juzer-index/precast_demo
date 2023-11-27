@@ -1,6 +1,6 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:http/http.dart' as http;
 
@@ -33,16 +33,27 @@ class Data {
   }
 }
 
+// Future<List<Data>> fetchData() async {
+//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
+//   final response = await http.get(url);
+//   if (response.statusCode == 200) {
+//     List jsonResponse  = json.decode(response.body);
+//     return jsonResponse.map((data) => Data.fromJson(data)).toList();
+//   }
+//   else {
+//     throw Exception('unexpected error');
+//   }
+// }
+
+// SY: 27112023: Use Local DATA in json format
+
 Future<List<Data>> fetchData() async {
-  var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
-  final response = await http.get(url);
-  if (response.statusCode == 200) {
-    List jsonResponse  = json.decode(response.body);
-    return jsonResponse.map((data) => Data.fromJson(data)).toList();
-  }
-  else {
-    throw Exception('unexpected error');
-  }
+  final String jsonString =
+  await rootBundle.loadString('elementmaster.json');
+  final List<dynamic> jsonList = json.decode(jsonString);
+
+  // Convert the JSON list to a List of Element objects
+  return jsonList.map((data) => Data.fromJson(data)).toList();
 }
 
 class MyDataTableSource extends DataTableSource{
