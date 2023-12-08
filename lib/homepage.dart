@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:precast_demo/elementStatusTracker.dart';
+import 'package:precast_demo/projectDetailTabs.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:precast_demo/sideBarMenu.dart';
 import 'loginPage.dart';
@@ -244,6 +244,7 @@ class _HomePageState extends State<HomePage> {
                             child: SingleChildScrollView(
                               scrollDirection: Axis.vertical,
                               child: DataTable(
+                                onSelectAll: null,
                                 showCheckboxColumn: true,
                                 columns: const [
                                   // DataColumn(
@@ -278,6 +279,13 @@ class _HomePageState extends State<HomePage> {
                                 rows: data!
                                     .map(
                                       (data) => DataRow(
+                                        onSelectChanged: (bool? value) {
+                                          if (value != null) {
+                                            setState(() {
+                                              // selectedRow = data;
+                                            });
+                                          }
+                                        },
                                         cells: [
                                           // DataCell(
                                           //   Text(data.transactionId.toString()),
