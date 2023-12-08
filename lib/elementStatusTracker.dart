@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:precast_demo/indexAppBar.dart';
-import 'package:precast_demo/elementStatusViewer.dart';
-import 'package:precast_demo/elementMaster.dart';
-import 'package:precast_demo/homepage.dart';
-import 'themeData.dart';
+import 'package:precast_demo/addTruckDetails.dart';
 
-class ElementStatusTracker extends StatefulWidget {
+class ProjectDetails extends StatefulWidget {
   final int initialTabIndex;
-  const ElementStatusTracker({super.key, required this.initialTabIndex});
+  const ProjectDetails({super.key, required this.initialTabIndex});
 
 
   @override
-  State<ElementStatusTracker> createState() => _ElementStatusTrackerState();
+  State<ProjectDetails> createState() => _ProjectDetailsState();
 }
 
-class _ElementStatusTrackerState extends State<ElementStatusTracker> with SingleTickerProviderStateMixin{
+class _ProjectDetailsState extends State<ProjectDetails> with SingleTickerProviderStateMixin{
 
   late TabController _tabController;
+  TextEditingController dateController = TextEditingController();
+  late DateTime _selectedDate;
 
   @override
   void initState() {
-    super.initState();
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -38,7 +42,7 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const SizedBox(),
-              const Text('Element Status Tracker', style: const TextStyle(color: Colors.white)),
+              const Text('Project Details', style: TextStyle(color: Colors.white)),
               ClipOval(
                 child: Image.network(
                   'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
@@ -49,17 +53,17 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
             ],
           ),
         ),
-        bottom: const TabBar(
-          tabs: [
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
             Tab(
-
-              text: 'Tab 1',
+              text: 'Project Details',
             ),
             Tab(
-              text: 'Tab 2',
+              text: 'Element Details',
             ),
             Tab(
-              text: 'Tab 3',
+              text: 'Summary',
             ),
           ],
         ),
@@ -67,36 +71,37 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
         body: Padding(
             padding: const EdgeInsets.all(8.0),
             child: TabBarView(
-              controller: _tabController, children: [
+              controller: _tabController,
+                children: [
                 //First Tab widget
               Center(
                 child: Column(
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        value: 'Project ID',
-                        icon: const Icon(Icons.arrow_downward),
-                        iconSize: 24,
-                        elevation: 16,
-                        style: const TextStyle(color: Colors.black),
-                        underline: Container(
-                          height: 2,
-                          color: Colors.blue,
-                        ),
-                        onChanged: (String? newValue) {
+                      child: DropdownButtonFormField(
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                            labelText: "Project ID"),
+                        items: const [
+                          DropdownMenuItem(
+                            child: Text('Project 1'),
+                            value: 'Project 1',
+                          ),
+                          DropdownMenuItem(
+                            child: Text('Project 2'),
+                            value: 'Project 2',
+                          ),
+                          DropdownMenuItem(
+                            child: Text('Project 3'),
+                            value: 'Project 3',
+                          ),
+                        ],
+                        onChanged: (value) {
                           setState(() {
-                            // dropdownValue = newValue!;
+                            //value handler here
                           });
                         },
-                        items: <String>['Project ID', 'Element ID', 'Part Number', 'Element Type']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value, style: const TextStyle(color: Colors.black)),
-                          );
-                        }).toList(),
                       ),
                     ),
                     Row(
@@ -105,23 +110,23 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
-                              onTap: () {
-                                showDialog(context: context, builder: (BuildContext context){
-                                  return DatePickerDialog(
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime(2018),
-                                    lastDate: DateTime(2030),
-                                  );
-                                });
+                              controller: dateController,
+                              onTap: () async {
+                                final DateTime? date = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2018),
+                                  lastDate: DateTime(2030),
+                                );
+                                if (date != null) {
+                                  setState(() {
+                                    _selectedDate = date;
+                                    dateController.text = "${date.day}/${date.month}/${date.year}";
+                                  });
+                                }
                               },
-                              initialValue: DateTime.now().toString(),
                               decoration: const InputDecoration(
-                                  suffixIcon: Icon(Icons.calendar_today, color: Colors.blue,),
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  border: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
+                                  border: OutlineInputBorder(),
                                   labelText: "Date"),
                             ),
                           ),
@@ -129,38 +134,57 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
+                            child: DropdownButtonFormField(
                               decoration: const InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  border: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.blue),
-                                  ),
-                                  labelText: "Delivery Site"),
-
+                                border: OutlineInputBorder(),
+                                  labelText: "Delivery Site",
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  child: Text('Site 1'),
+                                  value: 'Site 1',
+                                ),
+                                DropdownMenuItem(
+                                  child: Text('Site 2'),
+                                  value: 'Site 2',
+                                ),
+                                DropdownMenuItem(
+                                  child: Text('Site 3'),
+                                  value: 'Site 3',
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setState(() {
+                                  //value handler here
+                                });
+                              },
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    TextFormField(
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                          suffixIcon: const Icon(
-                            Icons.car_crash,
-                            color: Colors.blue,
-                          ),
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.blue),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          labelText: "Truck Details"),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => AddTruckDetails()),
+                              );
+                            },
+                            child: const Text('Add Truck Details')),
+                        ElevatedButton(
+                            onPressed: () {},
+                            child: const Text(
+                              'Next',
+                              style: TextStyle(color: Colors.green),
+                            )),
+                      ],
                     ),
-                    SizedBox(height: 20),
-                    ElevatedButton(onPressed: () {}, child: Text('Add'))
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -169,7 +193,28 @@ class _ElementStatusTrackerState extends State<ElementStatusTracker> with Single
 
               ),
               //Third Tab Widget
-              const SizedBox(),
+              SizedBox(
+                child: Card(
+                      shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)
+                  ),
+                  color: Colors.lightBlue.shade100,
+                  child: SingleChildScrollView(
+                    controller: ScrollController(),
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: [
+                        DataColumn(label: Text('Project ID')),
+                        DataColumn(label: Text('Delivery Date')),
+                        DataColumn(label: Text('Delivery Site')),
+                        DataColumn(label: Text('Truck Details')),
+                      ],
+                      rows: [],
+                    ),
+                  ),
+                ),
+              ),
             ]),
           ),
         ));
