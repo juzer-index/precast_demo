@@ -40,6 +40,8 @@ dependencies:
   path: ^1.8.3
   sqlite3_flutter_libs: ^0.5.18
   convert: ^3.1.1
+  path_provider: ^2.1.1
+  sqflite: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +66,10 @@ flutter:
 #    - assets/IITASMEpicorRestAPI.dll
     - assets/Index-Logo.jpg
     - assets/elementmaster.json
+    - assets/data_element.json
+    - assets/data_parts.json
+    - assets/data_projects.json
+    - assets/projectData.json
   uses-material-design: true
 
 

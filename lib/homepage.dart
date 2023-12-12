@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path/path.dart';
 import 'package:precast_demo/projectDetailTabs.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:precast_demo/sideBarMenu.dart';
@@ -37,16 +39,26 @@ class Data {
   }
 }
 
+//for internal usage
+
 Future<List<Data>> fetchData() async {
-  var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data_projects.json');
-  final response = await http.get(url);
-  if (response.statusCode == 200) {
-    Map<String, dynamic> jsonResponse = json.decode(response.body);
-    return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => Data.fromJson(e)).toList();
-  } else {
-    throw Exception('Unexpected error occurred!');
-  }
+  String jsonString = await rootBundle.loadString('assets/data_projects.json');
+  Map<String, dynamic> jsonResponse = json.decode(jsonString);
+  return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => Data.fromJson(e)).toList();
 }
+
+//main function to fetch data from a url
+
+// Future<List<Data>> fetchData() async {
+//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data_projects.json');
+//   final response = await http.get(url);
+//   if (response.statusCode == 200) {
+//     Map<String, dynamic> jsonResponse = json.decode(response.body);
+//     return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => Data.fromJson(e)).toList();
+//   } else {
+//     throw Exception('Unexpected error occurred!');
+//   }
+// }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -331,7 +343,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProjectDetails(initialTabIndex: 0,),
+                          builder: (context) => ProjectDetails(initialTabIndex: 0,),
                         ),
                       );
                     },
@@ -347,7 +359,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProjectDetails(initialTabIndex: 1,),
+                          builder: (context) => ProjectDetails(initialTabIndex: 1,),
                         ),
                       );
         
@@ -364,7 +376,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProjectDetails(initialTabIndex: 2,),
+                          builder: (context) => ProjectDetails(initialTabIndex: 2,),
                         ),
                       );
                     },

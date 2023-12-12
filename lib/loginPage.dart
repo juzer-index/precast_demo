@@ -25,12 +25,12 @@ class _LoginPageState extends State<LoginPage> {
           style: TextStyle(color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          color: Theme.of(context).primaryColor,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
+      body: Container(
+        color: Theme.of(context).primaryColor,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

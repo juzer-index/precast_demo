@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:precast_demo/indexAppBar.dart';
+import 'package:precast_demo/projectDetailTabs.dart';
 import 'homepage.dart';
 
 class AddTruckDetails extends StatefulWidget {
@@ -10,6 +11,14 @@ class AddTruckDetails extends StatefulWidget {
 }
 
 class _AddTruckDetailsState extends State<AddTruckDetails> {
+  late String truckId;
+  late String resourceId;
+  TextEditingController driverNameController = TextEditingController();
+  TextEditingController plateNumberController = TextEditingController();
+  TextEditingController driverNumberController = TextEditingController();
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +70,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                             ],
                             onChanged: (value) {
                               setState(() {
-                                // truckId = value.toString();
+                                truckId = value.toString();
                               });
                             },
                         ),
@@ -92,7 +101,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                             ],
                             onChanged: (value) {
                               setState(() {
-                                // resourceId = value.toString();
+                                resourceId = value.toString();
                               });
                             },
                         ),
@@ -108,6 +117,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: plateNumberController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -152,6 +162,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: driverNameController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -164,6 +175,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: driverNumberController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -361,10 +373,12 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomePage()),
-                      );
+                      String finalTruckDetails = '$truckId $resourceId ${plateNumberController.text} ${driverNameController.text} ${driverNumberController.text}';
+                      //pop back to projectDetailTabs with truck details
+                      setState(() {
+                        Navigator.push(context, MaterialPageRoute(builder:
+                        (context) => ProjectDetails(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
+                      });
                     },
                     child: const Text('Submit'),
                   ),

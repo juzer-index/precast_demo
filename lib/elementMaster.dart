@@ -33,28 +33,25 @@ class Data {
   }
 }
 
-Future<List<Data>> fetchData() async {
-  var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
-  final response = await http.get(url);
-  if (response.statusCode == 200) {
-    List jsonResponse  = json.decode(response.body);
-    return jsonResponse.map((data) => Data.fromJson(data)).toList();
-  }
-  else {
-    throw Exception('unexpected error');
-  }
-}
+// Future<List<Data>> fetchData() async {
+//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
+//   final response = await http.get(url);
+//   if (response.statusCode == 200) {
+//     List jsonResponse  = json.decode(response.body);
+//     return jsonResponse.map((data) => Data.fromJson(data)).toList();
+//   }
+//   else {
+//     throw Exception('unexpected error');
+//   }
+// }
 
 // SY: 27112023: Use Local DATA in json format
 
-// Future<List<Data>> fetchData() async {
-//   final String jsonString =
-//   await rootBundle.loadString('elementmaster.json');
-//   final List<dynamic> jsonList = json.decode(jsonString);
-//
-//   // Convert the JSON list to a List of Element objects
-//   return jsonList.map((data) => Data.fromJson(data)).toList();
-// }
+Future<List<Data>> fetchData() async {
+  String jsonString = await rootBundle.loadString('assets/elementmaster.json');
+  List jsonResponse = json.decode(jsonString);
+  return jsonResponse.map((data) => Data.fromJson(data)).toList();
+}
 
 class MyDataTableSource extends DataTableSource{
   final List<Data> _data;
