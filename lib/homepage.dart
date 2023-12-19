@@ -292,11 +292,9 @@ class _HomePageState extends State<HomePage> {
                                     .map(
                                       (data) => DataRow(
                                         onSelectChanged: (bool? value) {
-                                          if (value != null) {
-                                            setState(() {
-                                              // selectedRow = data;
-                                            });
-                                          }
+                                          setState(() {
+                                            // data.selected = value!;
+                                          });
                                         },
                                         cells: [
                                           // DataCell(

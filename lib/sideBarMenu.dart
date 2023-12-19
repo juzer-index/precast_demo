@@ -83,13 +83,6 @@ Drawer SideBarMenu(BuildContext context) {
               Padding(
                 padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
                 child: ListTile(
-                  title: const Text('Settings'),
-                  onTap: () {},
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(40, 0, 0, 0),
-                child: ListTile(
                   title: const Text('Dispatch Load'),
                   onTap: () {},
                 ),

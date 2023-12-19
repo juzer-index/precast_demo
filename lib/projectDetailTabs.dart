@@ -361,11 +361,16 @@ class _ProjectDetailsState extends State<ProjectDetails> with SingleTickerProvid
   }
 }
 
-class Tab3 extends StatelessWidget {
+class Tab3 extends StatefulWidget {
   const Tab3({
     super.key,
   });
 
+  @override
+  State<Tab3> createState() => _Tab3State();
+}
+
+class _Tab3State extends State<Tab3> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -376,34 +381,35 @@ class Tab3 extends StatelessWidget {
         color: Colors.lightBlue.shade100,
         child: SingleChildScrollView(
           controller: ScrollController(),
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Project ID')),
-              DataColumn(label: Text('Delivery Date')),
-              DataColumn(label: Text('Delivery Site')),
-              DataColumn(label: Text('Truck Details')),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Project details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Project ID: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Delivery Date: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Delivery Site: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Truck Details: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
             ],
-            rows: const [
-              DataRow(cells: [
-                DataCell(Text('Project 1')),
-                DataCell(Text('01/01/2021')),
-                DataCell(Text('Site 1')),
-                DataCell(Text('Truck 1')),
-              ]),
-              DataRow(cells: [
-                DataCell(Text('Project 2')),
-                DataCell(Text('02/01/2021')),
-                DataCell(Text('Site 2')),
-                DataCell(Text('Truck 2')),
-              ]),
-              DataRow(cells: [
-                DataCell(Text('Project 3')),
-                DataCell(Text('03/01/2021')),
-                DataCell(Text('Site 3')),
-                DataCell(Text('Truck 3')),
-              ]),
-            ]
           ),
         ),
       ),
@@ -421,53 +427,135 @@ class Tab2 extends StatefulWidget {
 }
 
 class _Tab2State extends State<Tab2> {
+
+  List<ElementData> selectedElements = [];
+  List<PartData> selectedParts = [];
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: SizedBox(
-        child: Column(children: [
-          //Elements Card
-          Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            color: Colors.lightBlue.shade100,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+        //Elements Card
+        Card(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+          color: Colors.lightBlue.shade100,
+          child: Column(
+            children: [
+              const Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('Elements',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    color: Colors.white,
+                    width: MediaQuery.of(context).size.width * 0.44,
+                    child: FutureBuilder<List<ElementData>>(
+                        future: fetchElementData(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return SizedBox(
+                              height: MediaQuery.of(context).size.height *
+                                  0.5,
+                              child: ListView.builder(itemBuilder: (context, index) {
+                                return ListTile(
+                                  title: Text(snapshot.data![index].elementDesc),
+                                  onTap: () {
+                                    setState(() {
+                                      selectedElements.add(snapshot.data![index]);
+                                    });
+                                  },
+                                );
+                              },
+                                itemCount: snapshot.data!.length,
+                              ),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text('${snapshot.error}');
+                          }
+                          return const CircularProgressIndicator();
+                        }),
+                  ),
+                  Container(
+                    color: Colors.white,
+                    width: MediaQuery.of(context).size.width * 0.44,
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height *
+                          0.5,
+                      child: ListView.builder(itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(selectedElements[index].elementDesc.toString()),
+                        );
+                      },
+                        itemCount: selectedElements.length,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        //Parts Card
+        Card(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+          color: Colors.lightBlue.shade100,
+          child: SingleChildScrollView(
             child: Column(
               children: [
                 const Row(
                   children: [
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text('Elements',
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black)),
-                      ),
+                    Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('Parts',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black)),
                     ),
                   ],
                 ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Container(
                       color: Colors.white,
                       width: MediaQuery.of(context).size.width * 0.44,
-                      child: FutureBuilder<List<ElementData>>(
-                          future: fetchElementData(),
+                      child: FutureBuilder<List<PartData>>(
+                          future: fetchPartData(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               return SizedBox(
                                 height: MediaQuery.of(context).size.height *
                                     0.5,
-                                child: Expanded(
-                                  child: ListView.builder(itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text(snapshot.data![index].elementDesc),
-                                    );
-                                  },
-                                    itemCount: snapshot.data!.length,
-                                  ),
+                                child: ListView.builder(itemBuilder:
+                                    (context, index) {
+                                  return ListTile(
+                                    title: Text(snapshot.data![index].partDesc),
+                                    onTap: () {
+                                      setState(() {
+                                        selectedParts.add(snapshot.data![index]);
+                                      });
+                                    },
+                                  );
+                                },
+                                  itemCount: snapshot.data!.length,
                                 ),
                               );
                             } else if (snapshot.hasError) {
@@ -479,118 +567,58 @@ class _Tab2State extends State<Tab2> {
                     Container(
                       color: Colors.white,
                       width: MediaQuery.of(context).size.width * 0.44,
-
-                      child: FutureBuilder<List<ElementData>>(
-                          future: fetchElementData(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return SizedBox(
-                                height: MediaQuery.of(context).size.height *
-                                    0.5,
-                                child: Expanded(
-                                  child: ListView.builder(itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text(snapshot.data![index].elementDesc),
-                                    );
-                                  },
-                                    itemCount: snapshot.data!.length,
-                                  ),
-                                ),
-                              );
-                            } else if (snapshot.hasError) {
-                              return Text('${snapshot.error}');
-                            }
-                            return const CircularProgressIndicator();
-                          }),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height *
+                            0.5,
+                        child: ListView.builder(itemBuilder: (context, index) {
+                          return ListTile(
+                            title: Text(selectedParts[index].partDesc.toString()),
+                          );
+                        },
+                          itemCount: selectedParts.length,
+                        ),
+                      ),
+                      // child: FutureBuilder<List<PartData>>(
+                      //     future: fetchPartData(),
+                      //     builder: (context, snapshot) {
+                      //       if (snapshot.hasData) {
+                      //         return SizedBox(
+                      //           height: MediaQuery.of(context).size.height *
+                      //               0.5,
+                      //           child: ListView.builder(itemBuilder:
+                      //               (context, index) {
+                      //             return ListTile(
+                      //               title: Text(snapshot.data![index].partDesc),
+                      //             );
+                      //           },
+                      //             itemCount: snapshot.data!.length,
+                      //           ),
+                      //         );
+                      //       } else if (snapshot.hasError) {
+                      //         return Text('${snapshot.error}');
+                      //       }
+                      //       return const CircularProgressIndicator();
+                      //     }),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          //Parts Card
-          Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            color: Colors.lightBlue.shade100,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text('Parts',
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black)),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width * 0.44,
-                        child: FutureBuilder<List<PartData>>(
-                            future: fetchPartData(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.5,
-                                  child: ListView.builder(itemBuilder:
-                                      (context, index) {
-                                    return ListTile(
-                                      title: Text(snapshot.data![index].partDesc),
-                                    );
-                                  },
-                                    itemCount: snapshot.data!.length,
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text('${snapshot.error}');
-                              }
-                              return const CircularProgressIndicator();
-                            }),
-                      ),
-                      Container(
-                        color: Colors.white,
-                        width: MediaQuery.of(context).size.width * 0.44,
-                        child: FutureBuilder<List<PartData>>(
-                            future: fetchPartData(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.5,
-                                  child: ListView.builder(itemBuilder:
-                                      (context, index) {
-                                    return ListTile(
-                                      title: Text(snapshot.data![index].partDesc),
-                                    );
-                                  },
-                                    itemCount: snapshot.data!.length,
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Text('${snapshot.error}');
-                              }
-                              return const CircularProgressIndicator();
-                            }),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+        ),
+            const SizedBox(height: 20,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(onPressed: (){}, child: const Text('Scan QR'),
+                ),
+                ElevatedButton(onPressed: (){}, child: const Text('Manual'),
+                ),
+                ElevatedButton(onPressed: (){}, child: const Text('Save')),
+              ],
             ),
-          ),
-        ]),
+            const SizedBox(height: 20,),
+          ]
       ),
     );
   }
