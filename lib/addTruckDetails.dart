@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:precast_demo/indexAppBar.dart';
-import 'package:precast_demo/projectDetailTabs.dart';
+import 'package:precast_demo/stockLoadingPage.dart';
 import 'homepage.dart';
 
 class AddTruckDetails extends StatefulWidget {
@@ -377,7 +377,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       //pop back to projectDetailTabs with truck details
                       setState(() {
                         Navigator.push(context, MaterialPageRoute(builder:
-                        (context) => ProjectDetails(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
+                        (context) => StockLoading(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
                       });
                     },
                     child: const Text('Submit'),

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:precast_demo/projectDetailTabs.dart';
+import 'package:precast_demo/stockLoadingPage.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:precast_demo/sideBarMenu.dart';
 import 'loginPage.dart';
@@ -227,164 +227,280 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               const Divider(),
               Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  'Your Assigned Projects',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade400,
-                  ),
-                ),
-              ),
-              //add a table here whose rows can be selected with checkboxes
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.5,
-                child: Card(
-                  elevation: 1,
-                  color: Colors.lightBlue.shade100,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FutureBuilder<List<Data>>(
-                      future: fetchData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          List<Data>? data = snapshot.data;
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: DataTable(
-                                onSelectAll: null,
-                                showCheckboxColumn: true,
-                                columns: const [
-                                  // DataColumn(
-                                  //   label: Text(
-                                  //     'Transaction ID',
-                                  //   ),
-                                  // ),
-                                  DataColumn(
-                                    label: Text(
-                                      'Project ID',
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      'Date of Delivery',
-                                    ),
-                                  ),
-                                  DataColumn(
-                                      label: Text('Location')
-                                  ),
-                                  // DataColumn(
-                                  //   label: Text(
-                                  //     'Line Items',
-                                  //   ),
-                                  // ),
-                                  // DataColumn(
-                                  //   label: Text(
-                                  //     'Details',
-                                  //   ),
-                                  // ),
-                                ],
-                                rows: data!
-                                    .map(
-                                      (data) => DataRow(
-                                        onSelectChanged: (bool? value) {
-                                          setState(() {
-                                            // data.selected = value!;
-                                          });
-                                        },
-                                        cells: [
-                                          // DataCell(
-                                          //   Text(data.transactionId.toString()),
-                                          // ),
-                                          DataCell(
-                                            Text(data.projectId.toString()),
-                                          ),
-                                          DataCell(
-                                            Text(data.date.toString()),
-                                          ),
-                                          DataCell(
-                                            Text(data.location.toString()),
-                                          ),
-                                          // DataCell(
-                                          //   Text(data.toString()),
-                                          // ),
-                                          // DataCell(
-                                          //   Text(data.details),
-                                          // ),
-                                        ],
-                                      ),
-                                    ).toList(),
-                              ),
+                padding: const EdgeInsets.all(8.0),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  children: [
+                    Card(
+                      elevation: 1,
+                      color: Colors.lightBlue.shade100,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ElementMaster(),
                             ),
                           );
-                        } else if (snapshot.hasError) {
-                          return Text('${snapshot.error}');
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.settings,
+                              size: 50,
+                              color: Colors.blueGrey,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Element Details',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    Card(
+                      elevation: 1,
+                      color: Colors.lightBlue.shade100,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StockLoading(initialTabIndex: 0,),
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.assignment,
+                              size: 50,
+                              color: Colors.blueGrey,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Stock Loading',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Card(
+                      elevation: 1,
+                      color: Colors.lightBlue.shade100,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StockLoading(initialTabIndex: 1,),
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.assignment_turned_in,
+                              size: 50,
+                              color: Colors.blueGrey,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Stock Offloading',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Card(
+                      elevation: 1,
+                      color: Colors.lightBlue.shade100,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  StockLoading(initialTabIndex: 2,),
+                            ),
+                          );
+                        }
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              // Padding(
+              //   padding: const EdgeInsets.all(8),
+              //   child: Text(
+              //     'Your Assigned Projects',
+              //     style: TextStyle(
+              //       fontSize: 16,
+              //       fontWeight: FontWeight.bold,
+              //       color: Colors.blue.shade400,
+              //     ),
+              //   ),
+              // ),
+              //add a table here whose rows can be selected with checkboxes
+              // SizedBox(
+              //   width: MediaQuery.of(context).size.width,
+              //   height: MediaQuery.of(context).size.height * 0.5,
+              //   child: Card(
+              //     elevation: 1,
+              //     color: Colors.lightBlue.shade100,
+              //     child: Padding(
+              //       padding: const EdgeInsets.all(8.0),
+              //       child: FutureBuilder<List<Data>>(
+              //         future: fetchData(),
+              //         builder: (context, snapshot) {
+              //           if (snapshot.hasData) {
+              //             List<Data>? data = snapshot.data;
+              //             return SingleChildScrollView(
+              //               scrollDirection: Axis.horizontal,
+              //               child: SingleChildScrollView(
+              //                 scrollDirection: Axis.vertical,
+              //                 child: DataTable(
+              //                   onSelectAll: null,
+              //                   showCheckboxColumn: true,
+              //                   columns: const [
+              //                     // DataColumn(
+              //                     //   label: Text(
+              //                     //     'Transaction ID',
+              //                     //   ),
+              //                     // ),
+              //                     DataColumn(
+              //                       label: Text(
+              //                         'Project ID',
+              //                       ),
+              //                     ),
+              //                     DataColumn(
+              //                       label: Text(
+              //                         'Date of Delivery',
+              //                       ),
+              //                     ),
+              //                     DataColumn(
+              //                         label: Text('Location')
+              //                     ),
+              //                     // DataColumn(
+              //                     //   label: Text(
+              //                     //     'Line Items',
+              //                     //   ),
+              //                     // ),
+              //                     // DataColumn(
+              //                     //   label: Text(
+              //                     //     'Details',
+              //                     //   ),
+              //                     // ),
+              //                   ],
+              //                   rows: data!
+              //                       .map(
+              //                         (data) => DataRow(
+              //                           onSelectChanged: (bool? value) {
+              //                             setState(() {
+              //                               // data.selected = value!;
+              //                             });
+              //                           },
+              //                           cells: [
+              //                             // DataCell(
+              //                             //   Text(data.transactionId.toString()),
+              //                             // ),
+              //                             DataCell(
+              //                               Text(data.projectId.toString()),
+              //                             ),
+              //                             DataCell(
+              //                               Text(data.date.toString()),
+              //                             ),
+              //                             DataCell(
+              //                               Text(data.location.toString()),
+              //                             ),
+              //                             // DataCell(
+              //                             //   Text(data.toString()),
+              //                             // ),
+              //                             // DataCell(
+              //                             //   Text(data.details),
+              //                             // ),
+              //                           ],
+              //                         ),
+              //                       ).toList(),
+              //                 ),
+              //               ),
+              //             );
+              //           } else if (snapshot.hasError) {
+              //             return Text('${snapshot.error}');
+              //           }
+              //           return const Center(child: CircularProgressIndicator());
+              //         },
+              //       ),
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.white)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProjectDetails(initialTabIndex: 0,),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Add New',
-                      style: TextStyle(color: Colors.blueGrey),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.white)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProjectDetails(initialTabIndex: 1,),
-                        ),
-                      );
-        
-                    },
-                    child: const Text(
-                      'Complete',
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.white)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProjectDetails(initialTabIndex: 2,),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Undo',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              //   children: [
+              //     ElevatedButton(
+              //       style: ButtonStyle(
+              //           backgroundColor: MaterialStateProperty.all(Colors.white)),
+              //       onPressed: () {
+              //         Navigator.push(
+              //           context,
+              //           MaterialPageRoute(
+              //             builder: (context) => ProjectDetails(initialTabIndex: 0,),
+              //           ),
+              //         );
+              //       },
+              //       child: const Text(
+              //         'Add New',
+              //         style: TextStyle(color: Colors.blueGrey),
+              //       ),
+              //     ),
+              //     ElevatedButton(
+              //       style: ButtonStyle(
+              //           backgroundColor: MaterialStateProperty.all(Colors.white)),
+              //       onPressed: () {
+              //         Navigator.push(
+              //           context,
+              //           MaterialPageRoute(
+              //             builder: (context) => ProjectDetails(initialTabIndex: 1,),
+              //           ),
+              //         );
+              //
+              //       },
+              //       child: const Text(
+              //         'Complete',
+              //         style: TextStyle(color: Colors.green),
+              //       ),
+              //     ),
+              //     ElevatedButton(
+              //       style: ButtonStyle(
+              //           backgroundColor: MaterialStateProperty.all(Colors.white)),
+              //       onPressed: () {
+              //         Navigator.push(
+              //           context,
+              //           MaterialPageRoute(
+              //             builder: (context) => ProjectDetails(initialTabIndex: 2,),
+              //           ),
+              //         );
+              //       },
+              //       child: const Text(
+              //         'Undo',
+              //         style: TextStyle(color: Colors.red),
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
