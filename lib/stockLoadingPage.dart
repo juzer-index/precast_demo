@@ -137,6 +137,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   final _formKey = GlobalKey<FormState>();
   TextEditingController projectIdController = TextEditingController();
   TextEditingController deliverySiteController = TextEditingController();
+  List<ElementData> selectedElements = [];
+  List<PartData> selectedParts = [];
+
 
   @override
   void initState() {
@@ -515,7 +518,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   else {
                                     setState(() {
                                       writeProjectDataToJson(projectIdController.text, dateController.text, deliverySiteController.text, widget.truckDetails.toString());
-                                      _tabController.animateTo(2);
+                                      _tabController.animateTo(1);
                                     });
                                   }
                                 },
@@ -532,268 +535,262 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 ),
               ),
               //Tab 2 Content
-              Tab2(),
+          SingleChildScrollView(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  //Elements Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    color: Colors.lightBlue.shade100,
+                    child: Column(
+                      children: [
+                        const Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text('Elements',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black)),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                              color: Colors.white,
+                              width: MediaQuery.of(context).size.width * 0.44,
+                              child: FutureBuilder<List<ElementData>>(
+                                  future: fetchElementData(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      return SizedBox(
+                                        height: MediaQuery.of(context).size.height *
+                                            0.5,
+                                        child: ListView.builder(itemBuilder: (context, index) {
+                                          return ListTile(
+                                            title: Text(snapshot.data![index].elementDesc),
+                                            onTap: () {
+                                              setState(() {
+                                                selectedElements.add(snapshot.data![index]);
+                                              });
+                                            },
+                                          );
+                                        },
+                                          itemCount: snapshot.data!.length,
+                                        ),
+                                      );
+                                    } else if (snapshot.hasError) {
+                                      return Text('${snapshot.error}');
+                                    }
+                                    return const CircularProgressIndicator();
+                                  }),
+                            ),
+                            Container(
+                              color: Colors.white,
+                              width: MediaQuery.of(context).size.width * 0.44,
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height *
+                                    0.5,
+                                child: ListView.builder(itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text(selectedElements[index].elementDesc.toString()),
+                                  );
+                                },
+                                  itemCount: selectedElements.length,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  //Parts Card
+                  Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    color: Colors.lightBlue.shade100,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text('Parts',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black)),
+                              ),
+                            ],
+                          ),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Container(
+                                color: Colors.white,
+                                width: MediaQuery.of(context).size.width * 0.44,
+                                child: FutureBuilder<List<PartData>>(
+                                    future: fetchPartData(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        return SizedBox(
+                                          height: MediaQuery.of(context).size.height *
+                                              0.5,
+                                          child: ListView.builder(itemBuilder:
+                                              (context, index) {
+                                            return ListTile(
+                                              title: Text(snapshot.data![index].partDesc),
+                                              onTap: () {
+                                                setState(() {
+                                                  selectedParts.add(snapshot.data![index]);
+                                                });
+                                              },
+                                            );
+                                          },
+                                            itemCount: snapshot.data!.length,
+                                          ),
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return Text('${snapshot.error}');
+                                      }
+                                      return const CircularProgressIndicator();
+                                    }),
+                              ),
+                              Container(
+                                color: Colors.white,
+                                width: MediaQuery.of(context).size.width * 0.44,
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height *
+                                      0.5,
+                                  child: ListView.builder(itemBuilder: (context, index) {
+                                    return ListTile(
+                                      title: Text(selectedParts[index].partDesc.toString()),
+                                    );
+                                  },
+                                    itemCount: selectedParts.length,
+                                  ),
+                                ),
+                                // child: FutureBuilder<List<PartData>>(
+                                //     future: fetchPartData(),
+                                //     builder: (context, snapshot) {
+                                //       if (snapshot.hasData) {
+                                //         return SizedBox(
+                                //           height: MediaQuery.of(context).size.height *
+                                //               0.5,
+                                //           child: ListView.builder(itemBuilder:
+                                //               (context, index) {
+                                //             return ListTile(
+                                //               title: Text(snapshot.data![index].partDesc),
+                                //             );
+                                //           },
+                                //             itemCount: snapshot.data!.length,
+                                //           ),
+                                //         );
+                                //       } else if (snapshot.hasError) {
+                                //         return Text('${snapshot.error}');
+                                //       }
+                                //       return const CircularProgressIndicator();
+                                //     }),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const QrCodeScanner()));
+                        },
+                        child: const Text('Scan QR'
+                        ),
+                      ),
+                      ElevatedButton(onPressed: (){}, child: const Text('Manual'),
+                      ),
+                      ElevatedButton(
+                          onPressed: (){
+                            //navigate to tab 3
+                            setState(() {
+                              _tabController.animateTo(2);
+                            });
+                          },
+                          child: const Text('Save')
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20,),
+                ]),
+              ),
               //Tab 3 Content
-              Tab3(),
+              SizedBox(
+                    child: SingleChildScrollView(
+                      controller: ScrollController(),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text('Line details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
+                            ),
+                          ),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: DataTable(
+                              columns: const [
+                                DataColumn(label: Text('Load')),
+                                DataColumn(label: Text('Line No.')),
+                                DataColumn(label: Text('Part Num')),
+                                DataColumn(label: Text('Element ID')),
+                                DataColumn(label: Text('From Warehouse')),
+                                DataColumn(label: Text('From Bin')),
+                                DataColumn(label: Text('Quantity')),
+                                DataColumn(label: Text('UOM')),
+                              ],
+                              rows: const [
+                                DataRow(cells: [
+                                  DataCell(Text('1')),
+                                  DataCell(Text('1')),
+                                  DataCell(Text('Part 1')),
+                                  DataCell(Text('Element 1')),
+                                  DataCell(Text('Warehouse 1')),
+                                  DataCell(Text('Bin 1')),
+                                  DataCell(Text('1')),
+                                  DataCell(Text('UOM 1')),
+                                ]),
+                                DataRow(cells: [
+                                  DataCell(Text('1')),
+                                  DataCell(Text('2')),
+                                  DataCell(Text('Part 2')),
+                                  DataCell(Text('Element 2')),
+                                  DataCell(Text('Warehouse 2')),
+                                  DataCell(Text('Bin 2')),
+                                  DataCell(Text('2')),
+                                  DataCell(Text('UOM 2')),
+                                ]),
+                              ],
+                            ),
+                          )],
+                      ),
+                    ),
+                  ),
             ]),
           ),
         ));
   }
 }
 
-class Tab3 extends StatefulWidget {
-  const Tab3({
-    super.key,
-  });
 
-  @override
-  State<Tab3> createState() => _Tab3State();
-}
-
-class _Tab3State extends State<Tab3> {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      child: SingleChildScrollView(
-        controller: ScrollController(),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text('Line details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
-              ),
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Load')),
-                  DataColumn(label: Text('Line No.')),
-                  DataColumn(label: Text('Part Num')),
-                  DataColumn(label: Text('Element ID')),
-                  DataColumn(label: Text('From Warehouse')),
-                  DataColumn(label: Text('From Bin')),
-                  DataColumn(label: Text('Quantity')),
-                  DataColumn(label: Text('UOM')),
-                ],
-                rows: [],
-              ),
-            )],
-        ),
-      ),
-    );
-  }
-}
-
-class Tab2 extends StatefulWidget {
-  const Tab2({
-    super.key,
-  });
-
-  @override
-  State<Tab2> createState() => _Tab2State();
-}
-
-class _Tab2State extends State<Tab2> {
-
-  List<ElementData> selectedElements = [];
-  List<PartData> selectedParts = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-        //Elements Card
-        Card(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
-          color: Colors.lightBlue.shade100,
-          child: Column(
-            children: [
-              const Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('Elements',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black)),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    color: Colors.white,
-                    width: MediaQuery.of(context).size.width * 0.44,
-                    child: FutureBuilder<List<ElementData>>(
-                        future: fetchElementData(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return SizedBox(
-                              height: MediaQuery.of(context).size.height *
-                                  0.5,
-                              child: ListView.builder(itemBuilder: (context, index) {
-                                return ListTile(
-                                  title: Text(snapshot.data![index].elementDesc),
-                                  onTap: () {
-                                    setState(() {
-                                      selectedElements.add(snapshot.data![index]);
-                                    });
-                                  },
-                                );
-                              },
-                                itemCount: snapshot.data!.length,
-                              ),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Text('${snapshot.error}');
-                          }
-                          return const CircularProgressIndicator();
-                        }),
-                  ),
-                  Container(
-                    color: Colors.white,
-                    width: MediaQuery.of(context).size.width * 0.44,
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height *
-                          0.5,
-                      child: ListView.builder(itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(selectedElements[index].elementDesc.toString()),
-                        );
-                      },
-                        itemCount: selectedElements.length,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        //Parts Card
-        Card(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
-          color: Colors.lightBlue.shade100,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                const Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('Parts',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black)),
-                    ),
-                  ],
-                ),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width * 0.44,
-                      child: FutureBuilder<List<PartData>>(
-                          future: fetchPartData(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              return SizedBox(
-                                height: MediaQuery.of(context).size.height *
-                                    0.5,
-                                child: ListView.builder(itemBuilder:
-                                    (context, index) {
-                                  return ListTile(
-                                    title: Text(snapshot.data![index].partDesc),
-                                    onTap: () {
-                                      setState(() {
-                                        selectedParts.add(snapshot.data![index]);
-                                      });
-                                    },
-                                  );
-                                },
-                                  itemCount: snapshot.data!.length,
-                                ),
-                              );
-                            } else if (snapshot.hasError) {
-                              return Text('${snapshot.error}');
-                            }
-                            return const CircularProgressIndicator();
-                          }),
-                    ),
-                    Container(
-                      color: Colors.white,
-                      width: MediaQuery.of(context).size.width * 0.44,
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height *
-                            0.5,
-                        child: ListView.builder(itemBuilder: (context, index) {
-                          return ListTile(
-                            title: Text(selectedParts[index].partDesc.toString()),
-                          );
-                        },
-                          itemCount: selectedParts.length,
-                        ),
-                      ),
-                      // child: FutureBuilder<List<PartData>>(
-                      //     future: fetchPartData(),
-                      //     builder: (context, snapshot) {
-                      //       if (snapshot.hasData) {
-                      //         return SizedBox(
-                      //           height: MediaQuery.of(context).size.height *
-                      //               0.5,
-                      //           child: ListView.builder(itemBuilder:
-                      //               (context, index) {
-                      //             return ListTile(
-                      //               title: Text(snapshot.data![index].partDesc),
-                      //             );
-                      //           },
-                      //             itemCount: snapshot.data!.length,
-                      //           ),
-                      //         );
-                      //       } else if (snapshot.hasError) {
-                      //         return Text('${snapshot.error}');
-                      //       }
-                      //       return const CircularProgressIndicator();
-                      //     }),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-            const SizedBox(height: 20,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const QrCodeScanner()));
-                  },
-                  child: const Text('Scan QR'
-                  ),
-                ),
-                ElevatedButton(onPressed: (){}, child: const Text('Manual'),
-                ),
-                ElevatedButton(onPressed: (){}, child: const Text('Save')),
-              ],
-            ),
-            const SizedBox(height: 20,),
-          ]
-      ),
-    );
-  }
-}
