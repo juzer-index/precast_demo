@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'package:precast_demo/stockLoadingPage.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:precast_demo/sideBarMenu.dart';
+import 'package:precast_demo/stockOffloadingPage.dart';
 import 'loginPage.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
@@ -302,7 +303,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 1,),
+                              builder: (context) => StockOffloading(initialTabIndex: 0,),
                             ),
                           );
                         },

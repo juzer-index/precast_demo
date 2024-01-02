@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:precast_demo/addTruckDetails.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:precast_demo/qrScanner.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class ProjectData{
   late final String projectID;
@@ -133,12 +134,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController truckController = TextEditingController();
   String loadTypeValue = '';
   String loadConditionValue = '';
+  String inputTypeValue = 'Manual';
   late DateTime _selectedDate;
   final _formKey = GlobalKey<FormState>();
   TextEditingController projectIdController = TextEditingController();
   TextEditingController deliverySiteController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
+
+  Barcode? result;
+  QRViewController? controller;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
 
   @override
@@ -185,10 +191,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               text: 'Detail',
             ),
             Tab(
-              text: 'Line',
-            ),
+                text: 'Line',
+              ),
             Tab(
-              text: 'List',
+              text: 'Summary',
             ),
           ],
         ),
@@ -535,258 +541,452 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 ),
               ),
               //Tab 2 Content
-          SingleChildScrollView(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  //Elements Card
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    color: Colors.lightBlue.shade100,
-                    child: Column(
-                      children: [
-                        const Row(
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text('Elements',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black)),
-                              ),
-                            ),
-                          ],
+              SingleChildScrollView(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          'Input Type',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.blue),
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Container(
-                              color: Colors.white,
-                              width: MediaQuery.of(context).size.width * 0.44,
-                              child: FutureBuilder<List<ElementData>>(
-                                  future: fetchElementData(),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      return SizedBox(
-                                        height: MediaQuery.of(context).size.height *
-                                            0.5,
-                                        child: ListView.builder(itemBuilder: (context, index) {
-                                          return ListTile(
-                                            title: Text(snapshot.data![index].elementDesc),
-                                            onTap: () {
-                                              setState(() {
-                                                selectedElements.add(snapshot.data![index]);
-                                              });
-                                            },
-                                          );
-                                        },
-                                          itemCount: snapshot.data!.length,
-                                        ),
-                                      );
-                                    } else if (snapshot.hasError) {
-                                      return Text('${snapshot.error}');
-                                    }
-                                    return const CircularProgressIndicator();
-                                  }),
-                            ),
-                            Container(
-                              color: Colors.white,
-                              width: MediaQuery.of(context).size.width * 0.44,
-                              child: SizedBox(
-                                height: MediaQuery.of(context).size.height *
-                                    0.5,
-                                child: ListView.builder(itemBuilder: (context, index) {
-                                  return ListTile(
-                                    title: Text(selectedElements[index].elementDesc.toString()),
-                                  );
-                                },
-                                  itemCount: selectedElements.length,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  //Parts Card
-                  Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    color: Colors.lightBlue.shade100,
-                    child: SingleChildScrollView(
-                      child: Column(
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          const Row(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text('Parts',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black)),
-                              ),
-                            ],
+                          Expanded(
+                            child: RadioListTile(
+                              title: const Text('Manual'),
+                              value: 'Manual',
+                              groupValue: inputTypeValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  inputTypeValue = value.toString();
+                                });
+                              },
+                            ),
                           ),
-
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Container(
-                                color: Colors.white,
-                                width: MediaQuery.of(context).size.width * 0.44,
-                                child: FutureBuilder<List<PartData>>(
-                                    future: fetchPartData(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        return SizedBox(
-                                          height: MediaQuery.of(context).size.height *
-                                              0.5,
-                                          child: ListView.builder(itemBuilder:
-                                              (context, index) {
-                                            return ListTile(
-                                              title: Text(snapshot.data![index].partDesc),
-                                              onTap: () {
-                                                setState(() {
-                                                  selectedParts.add(snapshot.data![index]);
-                                                });
-                                              },
-                                            );
-                                          },
-                                            itemCount: snapshot.data!.length,
-                                          ),
-                                        );
-                                      } else if (snapshot.hasError) {
-                                        return Text('${snapshot.error}');
-                                      }
-                                      return const CircularProgressIndicator();
-                                    }),
-                              ),
-                              Container(
-                                color: Colors.white,
-                                width: MediaQuery.of(context).size.width * 0.44,
-                                child: SizedBox(
-                                  height: MediaQuery.of(context).size.height *
-                                      0.5,
-                                  child: ListView.builder(itemBuilder: (context, index) {
-                                    return ListTile(
-                                      title: Text(selectedParts[index].partDesc.toString()),
-                                    );
-                                  },
-                                    itemCount: selectedParts.length,
-                                  ),
-                                ),
-                                // child: FutureBuilder<List<PartData>>(
-                                //     future: fetchPartData(),
-                                //     builder: (context, snapshot) {
-                                //       if (snapshot.hasData) {
-                                //         return SizedBox(
-                                //           height: MediaQuery.of(context).size.height *
-                                //               0.5,
-                                //           child: ListView.builder(itemBuilder:
-                                //               (context, index) {
-                                //             return ListTile(
-                                //               title: Text(snapshot.data![index].partDesc),
-                                //             );
-                                //           },
-                                //             itemCount: snapshot.data!.length,
-                                //           ),
-                                //         );
-                                //       } else if (snapshot.hasError) {
-                                //         return Text('${snapshot.error}');
-                                //       }
-                                //       return const CircularProgressIndicator();
-                                //     }),
-                              ),
-                            ],
+                          Expanded(
+                            child: RadioListTile(
+                              title: const Text('QR Code'),
+                              value: 'QR Code',
+                              groupValue: inputTypeValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  inputTypeValue = value.toString();
+                                });
+                              },
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const QrCodeScanner()));
-                        },
-                        child: const Text('Scan QR'
+                      if (inputTypeValue == 'Manual')
+                        Column(
+                          children: [
+                            Container(
+                              color: Colors.blue.shade100,
+                              child: ExpansionTile(
+                                title: const Text('Elements'),
+                                children: [
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.3,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: FutureBuilder<List<ElementData>>(
+                                          future: fetchElementData(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return DataTable(
+                                                columns: const [
+                                                  DataColumn(
+                                                      label:
+                                                          Text('Element ID')),
+                                                  DataColumn(
+                                                      label: Text(
+                                                          'Element Description')),
+                                                  DataColumn(
+                                                      label: Text('Select')),
+                                                ],
+                                                rows: snapshot.data!
+                                                    .map((row) =>
+                                                        DataRow(cells: [
+                                                          DataCell(Text(
+                                                              row.elementId)),
+                                                          DataCell(Text(
+                                                              row.elementDesc)),
+                                                          DataCell(IconButton(
+                                                            icon: const Icon(
+                                                                Icons.add),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                selectedElements
+                                                                    .add(row);
+                                                              });
+                                                            },
+                                                          )),
+                                                        ]))
+                                                    .toList(),
+                                              );
+                                            } else if (snapshot.hasError) {
+                                              return Text('${snapshot.error}');
+                                            }
+                                            return const CircularProgressIndicator();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20,),
+                            Container(
+                              color: Colors.blue.shade100,
+                              child: ExpansionTile(
+                                title: const Text('Parts'),
+                                children: [
+                                  SizedBox(
+                                    height: MediaQuery.of(context).size.height *
+                                        0.3,
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: FutureBuilder<List<PartData>>(
+                                          future: fetchPartData(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return DataTable(
+                                                columns: const [
+                                                  DataColumn(
+                                                      label: Text('Part Num')),
+                                                  DataColumn(
+                                                      label: Text(
+                                                          'Part Description')),
+                                                  DataColumn(
+                                                      label: Text('Select')),
+                                                ],
+                                                rows: snapshot.data!
+                                                    .map((row) =>
+                                                        DataRow(cells: [
+                                                          DataCell(Text(
+                                                              row.partNum)),
+                                                          DataCell(Text(
+                                                              row.partDesc)),
+                                                          DataCell(IconButton(
+                                                            icon: const Icon(
+                                                                Icons.add),
+                                                            onPressed: () {
+                                                              setState(() {
+                                                                selectedParts
+                                                                    .add(row);
+                                                              });
+                                                            },
+                                                          )),
+                                                        ]))
+                                                    .toList(),
+                                              );
+                                            } else if (snapshot.hasError) {
+                                              return Text('${snapshot.error}');
+                                            }
+                                            return const CircularProgressIndicator();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      ElevatedButton(onPressed: (){}, child: const Text('Manual'),
-                      ),
-                      ElevatedButton(
-                          onPressed: (){
-                            //navigate to tab 3
-                            setState(() {
-                              _tabController.animateTo(2);
-                            });
-                          },
-                          child: const Text('Save')
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20,),
-                ]),
-              ),
-              //Tab 3 Content
-              SizedBox(
-                    child: SingleChildScrollView(
-                      controller: ScrollController(),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text('Line details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 21),
+                      if (inputTypeValue == 'QR Code')
+                        Column(children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            child: QRView(
+                              key: qrKey,
+                              onQRViewCreated: (controller) {
+                                setState(() {
+                                  this.controller = controller;
+                                });
+                                controller.scannedDataStream.listen((scanData) {
+                                  setState(() {
+                                    result = scanData;
+                                  });
+                                });
+                              },
                             ),
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              columns: const [
-                                DataColumn(label: Text('Load')),
-                                DataColumn(label: Text('Line No.')),
-                                DataColumn(label: Text('Part Num')),
-                                DataColumn(label: Text('Element ID')),
-                                DataColumn(label: Text('From Warehouse')),
-                                DataColumn(label: Text('From Bin')),
-                                DataColumn(label: Text('Quantity')),
-                                DataColumn(label: Text('UOM')),
-                              ],
-                              rows: const [
-                                DataRow(cells: [
-                                  DataCell(Text('1')),
-                                  DataCell(Text('1')),
-                                  DataCell(Text('Part 1')),
-                                  DataCell(Text('Element 1')),
-                                  DataCell(Text('Warehouse 1')),
-                                  DataCell(Text('Bin 1')),
-                                  DataCell(Text('1')),
-                                  DataCell(Text('UOM 1')),
-                                ]),
-                                DataRow(cells: [
-                                  DataCell(Text('1')),
-                                  DataCell(Text('2')),
-                                  DataCell(Text('Part 2')),
-                                  DataCell(Text('Element 2')),
-                                  DataCell(Text('Warehouse 2')),
-                                  DataCell(Text('Bin 2')),
-                                  DataCell(Text('2')),
-                                  DataCell(Text('UOM 2')),
-                                ]),
-                              ],
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.1,
+                            child: Center(
+                              child: Text(
+                                  'Barcode Type: ${describeEnum(result?.format ?? BarcodeFormat.unknown)}   Data: ${result?.code ?? 'Unknown'}'),
                             ),
-                          )],
+                          ),
+                        ]),
+                      const SizedBox(
+                        height: 20,
                       ),
-                    ),
+                      const Text(
+                        'Selected Elements',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.blue),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Element ID')),
+                              DataColumn(label: Text('Element Description')),
+                              DataColumn(label: Text('Remove')),
+                            ],
+                            rows: selectedElements
+                                .map((row) => DataRow(cells: [
+                                      DataCell(Text(row.elementId)),
+                                      DataCell(Text(row.elementDesc)),
+                                      DataCell(IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedElements.remove(row);
+                                          });
+                                        },
+                                      )),
+                                    ]))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      const Text(
+                        'Selected Parts',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.blue),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Part Num')),
+                              DataColumn(label: Text('Part Description')),
+                              DataColumn(label: Text('Remove')),
+                            ],
+                            rows: selectedParts
+                                .map((row) => DataRow(cells: [
+                                      DataCell(Text(row.partNum)),
+                                      DataCell(Text(row.partDesc)),
+                                      DataCell(IconButton(
+                                        icon: const Icon(Icons.remove),
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedParts.remove(row);
+                                          });
+                                        },
+                                      )),
+                                    ]))
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            writeProjectDataToJson(
+                                projectIdController.text,
+                                dateController.text,
+                                deliverySiteController.text,
+                                widget.truckDetails.toString());
+                            _tabController.animateTo(2);
+                          });
+                        },
+                        child: const Text('Next'),
+                      )
+                    ]),
+              ),
+              //Tab 3 Content
+              SingleChildScrollView(
+                controller: ScrollController(),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Project Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          enabled: false,
+                          initialValue: projectIdController.text,
+                          decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "Project ID"),
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                enabled: false,
+                                initialValue: loadTimeController.text,
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Load Date"),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                enabled: false,
+                                initialValue: loadTimeController.text,
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "Load Time"),
+                              ),
+                            )
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: deliverySiteController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "From"),
+                                ),
+                              )
+                          ),
+                          Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: deliverySiteController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "To"),
+                                ),
+                              )
+                          ),
+                        ],
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          enabled: false,
+                          initialValue: widget.truckDetails,
+                          maxLines: null, // Set to null for unlimited lines
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Truck Details',
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Selected Elements', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Element ID')),
+                              DataColumn(label: Text('Element Description')),
+                            ],
+                            rows: selectedElements.map((row) => DataRow(
+                                cells: [
+                                  DataCell(Text(row.elementId)),
+                                  DataCell(Text(row.elementDesc)),
+                                ]
+                            )).toList(),
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text('Selected Parts', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                      ),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.vertical,
+                          child: DataTable(
+                            columns: const [
+                              DataColumn(label: Text('Part Num')),
+                              DataColumn(label: Text('Part Description')),
+                            ],
+                            rows: selectedParts.map((row) => DataRow(
+                                cells: [
+                                  DataCell(Text(row.partNum)),
+                                  DataCell(Text(row.partDesc)),
+                                ]
+                            )).toList(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20,),
+                      ElevatedButton(
+                          onPressed: () {
+                            showDialog(context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Success'),
+                                    content: const Text('Stock Loading details saved successfully, LoadID: ID-L1'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                }
+                            );
+                          },
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(color: Colors.green),
+                          )),
+                    ],
                   ),
+                ),
+              ),
             ]),
           ),
         ));
