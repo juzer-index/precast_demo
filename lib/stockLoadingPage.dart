@@ -9,22 +9,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-class ProjectData{
-  late final String projectID;
-  late final String deliveryDate;
-  late final String deliverySite;
-  late final String truckDetails;
-  ProjectData({required this.projectID, required this.deliveryDate, required this.deliverySite, required this.truckDetails});
-
-  factory ProjectData.fromJson(Map<String, dynamic> json) {
-    return ProjectData(
-      projectID: json['ProjectID'],
-      deliveryDate: json['DeliveryDate'],
-      deliverySite: json['DeliverySite'],
-      truckDetails: json['TruckDetails'],
-    );
-  }
-}
 
 class ElementData {
   late final String elementId;
@@ -588,7 +572,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                         Column(
                           children: [
                             Container(
-                              color: Colors.blue.shade100,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                               child: ExpansionTile(
                                 title: const Text('Elements'),
                                 children: [
@@ -648,7 +635,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             ),
                             const SizedBox(height: 20,),
                             Container(
-                              color: Colors.blue.shade100,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade100,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                               child: ExpansionTile(
                                 title: const Text('Parts'),
                                 children: [
@@ -838,7 +828,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           enabled: false,
                           initialValue: projectIdController.text,
                           decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
+                              border: UnderlineInputBorder(),
                               labelText: "Project ID"),
                         ),
                       ),
@@ -852,7 +842,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 enabled: false,
                                 initialValue: loadTimeController.text,
                                 decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
+                                    border: UnderlineInputBorder(),
                                     labelText: "Load Date"),
                               ),
                             ),
@@ -864,7 +854,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 enabled: false,
                                 initialValue: loadTimeController.text,
                                 decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
+                                    border: UnderlineInputBorder(),
                                     labelText: "Load Time"),
                               ),
                             )
@@ -880,7 +870,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   enabled: false,
                                   initialValue: deliverySiteController.text,
                                   decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
+                                      border: UnderlineInputBorder(),
                                       labelText: "From"),
                                 ),
                               )
@@ -892,7 +882,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   enabled: false,
                                   initialValue: deliverySiteController.text,
                                   decoration: const InputDecoration(
-                                      border: OutlineInputBorder(),
+                                      border: UnderlineInputBorder(),
                                       labelText: "To"),
                                 ),
                               )
@@ -910,8 +900,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           initialValue: widget.truckDetails,
                           maxLines: null, // Set to null for unlimited lines
                           decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Truck Details',
+                            border: UnderlineInputBorder(),
                           ),
                         ),
                       ),

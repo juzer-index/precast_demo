@@ -1,0 +1,86 @@
+{
+  "L1": {
+    "Project ID": "Emaar Cluster",
+    "Load Date": "18-08-2023",
+    "To Warehouse": "Primary",
+    "To Bin": "P-112",
+    "Load Type": "Delivery",
+    "Load Condition": "Internal",
+    "Elements": [
+        {
+            "Element ID": "E-001",
+            "Element Type": "Door",
+            "Element Quantity": 2,
+            "Element Size": "2.5x2.5",
+            "Element Weight": 100,
+            "Element Status": "Loaded"
+        },
+        {
+            "Element ID": "E-002",
+            "Element Type": "Window",
+            "Element Quantity": 4,
+            "Element Size": "2.5x2.5",
+            "Element Weight": 100,
+            "Element Status": "Loaded"
+        },
+        {
+            "Element ID": "E-003",
+            "Element Type": "Door",
+            "Element Quantity": 2,
+            "Element Size": "2.5x2.5",
+            "Element Weight": 100,
+            "Element Status": "Loaded"
+        },
+        {
+            "Element ID": "E-004",
+            "Element Type": "Window",
+            "Element Quantity": 4,
+            "Element Size": "2.5x2.5",
+            "Element Weight": 100,
+            "Element Status": "Loaded"
+        }
+    ],
+    "Parts": [
+        {
+            "Part ID": "P-001",
+            "Part Type": "Door",
+            "Part Quantity": 2,
+            "Part Size": "2.5x2.5",
+            "Part Weight": 100,
+            "Part Status": "Loaded"
+        },
+        {
+            "Part ID": "P-002",
+            "Part Type": "Window",
+            "Part Quantity": 4,
+            "Part Size": "2.5x2.5",
+            "Part Weight": 100,
+            "Part Status": "Loaded"
+        },
+        {
+            "Part ID": "P-003",
+            "Part Type": "Door",
+            "Part Quantity": 2,
+            "Part Size": "2.5x2.5",
+            "Part Weight": 100,
+            "Part Status": "Loaded"
+        },
+        {
+            "Part ID": "P-004",
+            "Part Type": "Window",
+            "Part Quantity": 4,
+            "Part Size": "2.5x2.5",
+            "Part Weight": 100,
+            "Part Status": "Loaded"
+        }
+    ]
+  },
+  "L2": {
+    "Project ID": "Emaar Cluster",
+    "Load Date": "19-10-2023",
+    "To Warehouse": "Secondary",
+    "To Bin": "P-076",
+    "Load Type": "Return",
+    "Load Condition": "Internal"
+  }
+}

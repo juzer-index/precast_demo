@@ -71,6 +71,7 @@ flutter:
     - assets/data_parts.json
     - assets/data_projects.json
     - assets/projectData.json
+    - assets/OffloadProjects.json
   uses-material-design: true
 
 
