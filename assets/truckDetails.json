@@ -1,0 +1,14 @@
+{
+  "Truck 1": {
+    "Plate": "DXB-12341",
+    "Transporter": "Precast Vertical"
+  },
+  "Truck 2": {
+    "Plate": "DXB-51211",
+    "Transporter": "Precast Vertical"
+  },
+  "Truck 3": {
+    "Plate": "AUH-12-90023",
+    "Transporter": "Precast Vertical"
+  }
+}

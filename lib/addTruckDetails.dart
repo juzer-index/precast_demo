@@ -1,7 +1,41 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:precast_demo/stockLoadingPage.dart';
-import 'homepage.dart';
+
+class TruckDetails {
+  late final String plateNumber;
+  late final String transporterName;
+  TruckDetails({required this.plateNumber, required this.transporterName});
+
+  factory TruckDetails.fromJson(Map<String, dynamic> json) {
+    return TruckDetails(
+      plateNumber: json['Plate'],
+      transporterName: json['Transporter'],
+    );
+  }
+}
+
+class ResourceDetails {
+  late final String capacity;
+  late final String length;
+  late final String width;
+  late final String height;
+  late final String volume;
+  ResourceDetails({required this.capacity, required this.length, required this.width, required this.height, required this.volume});
+
+  factory ResourceDetails.fromJson(Map<String, dynamic> json) {
+    return ResourceDetails(
+      capacity: json['Capacity'],
+      length: json['Length'],
+      width: json['Width'],
+      height: json['Height'],
+      volume: json['Volume'],
+    );
+  }
+}
 
 class AddTruckDetails extends StatefulWidget {
   const AddTruckDetails({super.key});
@@ -14,9 +48,53 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
   late String truckId;
   late String resourceId;
   TextEditingController driverNameController = TextEditingController();
+  TextEditingController transporterNameController = TextEditingController();
   TextEditingController plateNumberController = TextEditingController();
   TextEditingController driverNumberController = TextEditingController();
+  TextEditingController capacityController = TextEditingController();
+  TextEditingController lengthController = TextEditingController();
+  TextEditingController widthController = TextEditingController();
+  TextEditingController heightController = TextEditingController();
+  TextEditingController volumeController = TextEditingController();
+  Map<String, dynamic> truckDetails = {};
+  Map<String, dynamic> resourceDetails = {};
 
+  Future<void> fetchTruckDetails() async {
+    String jsonString = await rootBundle.loadString('assets/truckDetails.json');
+    Map<String, dynamic> jsonResponse = json.decode(jsonString);
+    setState(() {
+      truckDetails = jsonResponse;
+    });
+  }
+
+  Future<void> fetchResourceDetails() async {
+    String jsonString = await rootBundle.loadString('assets/resourceDetails.json');
+    Map<String, dynamic> jsonResponse = json.decode(jsonString);
+    setState(() {
+      resourceDetails = jsonResponse;
+    });
+  }
+
+  TruckDetails? getTruckDetailsFromJson(String truckID) {
+    if (truckDetails.containsKey(truckID)) {
+      return TruckDetails.fromJson(truckDetails[truckID]);
+    }
+    return null;
+  }
+
+  ResourceDetails? getResourceDetailsFromJson(String resourceID) {
+    if (resourceDetails.containsKey(resourceID)) {
+      return ResourceDetails.fromJson(resourceDetails[resourceID]);
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTruckDetails();
+    fetchResourceDetails();
+  }
 
 
   @override
@@ -72,6 +150,12 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                               setState(() {
                                 truckId = value.toString();
                               });
+                              TruckDetails? truckDetails = getTruckDetailsFromJson(truckId);
+                              debugPrint(truckDetails.toString());
+                              if (truckDetails != null) {
+                                plateNumberController.text = truckDetails.plateNumber;
+                                transporterNameController.text = truckDetails.transporterName;
+                              }
                             },
                         ),
                       ),
@@ -87,22 +171,31 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
           
                             items: const [
                               DropdownMenuItem(
-                                child: Text('Resource 1'),
-                                value: 'Resource 1',
+                                child: Text('Trailer 1'),
+                                value: 'Trailer 1',
                               ),
                               DropdownMenuItem(
-                                child: Text('Resource 2'),
-                                value: 'Resource 2',
+                                child: Text('Trailer 2'),
+                                value: 'Trailer 2',
                               ),
                               DropdownMenuItem(
-                                child: Text('Resource 3'),
-                                value: 'Resource 3',
+                                child: Text('Trailer 3'),
+                                value: 'Trailer 3',
                               ),
                             ],
                             onChanged: (value) {
                               setState(() {
                                 resourceId = value.toString();
                               });
+                              ResourceDetails? resourceDetails = getResourceDetailsFromJson(resourceId);
+                              debugPrint(resourceId);
+                              if (resourceDetails != null) {
+                                capacityController.text = resourceDetails.capacity;
+                                lengthController.text = resourceDetails.length;
+                                widthController.text = resourceDetails.width;
+                                heightController.text = resourceDetails.height;
+                                volumeController.text = resourceDetails.volume;
+                              }
                             },
                         ),
                       ),
@@ -130,6 +223,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: transporterNameController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -208,6 +302,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: capacityController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -238,6 +333,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: lengthController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -250,6 +346,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: widthController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -262,6 +359,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: heightController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -280,6 +378,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
+                          controller: volumeController,
                           decoration: const InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
@@ -375,10 +474,11 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                     onPressed: () {
                       String finalTruckDetails = '$truckId $resourceId ${plateNumberController.text} ${driverNameController.text} ${driverNumberController.text}';
                       //pop back to projectDetailTabs with truck details
-                      setState(() {
-                        Navigator.push(context, MaterialPageRoute(builder:
-                        (context) => StockLoading(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
-                      });
+                      // setState(() {
+                      //   Navigator.push(context, MaterialPageRoute(builder:
+                      //   (context) => StockLoading(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
+                      // });
+                      Navigator.pop(context, finalTruckDetails);
                     },
                     child: const Text('Submit'),
                   ),

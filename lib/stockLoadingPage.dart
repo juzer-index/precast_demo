@@ -487,30 +487,32 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 child: const Text('Add Truck Details')),
                             ElevatedButton(
                                 onPressed: () {
-                                  if (widget.truckDetails == null) {
-                                    showDialog(context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Error'),
-                                            content: const Text('Please add truck details'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          );
-                                        }
-                                    );
-                                  }
-                                  else {
-                                    setState(() {
-                                      writeProjectDataToJson(projectIdController.text, dateController.text, deliverySiteController.text, widget.truckDetails.toString());
-                                      _tabController.animateTo(1);
-                                    });
-                                  }
+                                  // if (widget.truckDetails == null) {
+                                  //   showDialog(context: context,
+                                  //       builder: (BuildContext context) {
+                                  //         return AlertDialog(
+                                  //           title: const Text('Error'),
+                                  //           content: const Text('Please add truck details'),
+                                  //           actions: [
+                                  //             TextButton(
+                                  //               onPressed: () {
+                                  //                 Navigator.of(context).pop();
+                                  //               },
+                                  //               child: const Text('OK'),
+                                  //             ),
+                                  //           ],
+                                  //         );
+                                  //       }
+                                  //   );
+                                  // }
+                                  setState(() {
+                                    writeProjectDataToJson(
+                                        projectIdController.text,
+                                        dateController.text,
+                                        deliverySiteController.text,
+                                        widget.truckDetails.toString());
+                                    _tabController.animateTo(1);
+                                  });
                                 },
                                 child: const Text(
                                   'Next',
