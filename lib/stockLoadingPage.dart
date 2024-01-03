@@ -36,20 +36,6 @@ class PartData {
   }
 }
 
-Future<void> writeProjectDataToJson(String projectID, String deliveryDate, String deliverySite, String truckDetails) async {
-  final Map<String, dynamic> projectData = <String, dynamic>{
-    'ProjectID':  projectID,
-    'DeliveryDate': deliveryDate,
-    'DeliverySite': deliverySite,
-    'TruckDetails': truckDetails,
-  };
-  final jsonString = json.encode(projectData);
-  debugPrint (jsonString);
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/projectData.json');
-  await file.writeAsString(jsonString);
-}
-
 Future<Map<String, dynamic>> fetchProjectDataFromJson() async {
   final directory = await getApplicationDocumentsDirectory();
   final file = File('${directory.path}/projectData.json');
@@ -116,6 +102,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController dateController = TextEditingController();
   TextEditingController loadTimeController = TextEditingController();
   TextEditingController truckController = TextEditingController();
+  TextEditingController truckDetailsController = TextEditingController();
   String loadTypeValue = '';
   String loadConditionValue = '';
   String inputTypeValue = 'Manual';
@@ -460,7 +447,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
-                            initialValue: widget.truckDetails,
+                            controller: truckDetailsController,
                             enabled: false,
                             maxLines: null, // Set to null for unlimited lines
                             decoration: const InputDecoration(
@@ -474,14 +461,14 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             ElevatedButton(
-                                onPressed: () {
-                                  String result = Navigator.push(
+                                onPressed: () async {
+                                  String truckResult = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => const AddTruckDetails()),
                                   ) as String;
                                   setState(() {
-                                    widget.truckDetails = result.toString();
+                                    truckDetailsController.text = truckResult.toString();
                                   });
                                 },
                                 child: const Text('Add Truck Details')),
@@ -506,11 +493,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   //   );
                                   // }
                                   setState(() {
-                                    writeProjectDataToJson(
-                                        projectIdController.text,
-                                        dateController.text,
-                                        deliverySiteController.text,
-                                        widget.truckDetails.toString());
                                     _tabController.animateTo(1);
                                   });
                                 },
@@ -802,11 +784,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            writeProjectDataToJson(
-                                projectIdController.text,
-                                dateController.text,
-                                deliverySiteController.text,
-                                widget.truckDetails.toString());
                             _tabController.animateTo(2);
                           });
                         },
@@ -899,7 +876,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                         padding: const EdgeInsets.all(8.0),
                         child: TextFormField(
                           enabled: false,
-                          initialValue: widget.truckDetails,
+                          controller: truckDetailsController,
                           maxLines: null, // Set to null for unlimited lines
                           decoration: const InputDecoration(
                             border: UnderlineInputBorder(),

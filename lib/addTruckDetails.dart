@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/indexAppBar.dart';
-import 'package:precast_demo/stockLoadingPage.dart';
 
 class TruckDetails {
   late final String plateNumber;
@@ -134,16 +133,16 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
           
                             items: const [
                               DropdownMenuItem(
-                                child: Text('Truck 1'),
                                 value: 'Truck 1',
+                                child: Text('Truck 1'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Truck 2'),
                                 value: 'Truck 2',
+                                child: Text('Truck 2'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Truck 3'),
                                 value: 'Truck 3',
+                                child: Text('Truck 3'),
                               ),
                             ],
                             onChanged: (value) {
@@ -171,16 +170,16 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
           
                             items: const [
                               DropdownMenuItem(
-                                child: Text('Trailer 1'),
                                 value: 'Trailer 1',
+                                child: Text('Trailer 1'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Trailer 2'),
                                 value: 'Trailer 2',
+                                child: Text('Trailer 2'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Trailer 3'),
                                 value: 'Trailer 3',
+                                child: Text('Trailer 3'),
                               ),
                             ],
                             onChanged: (value) {
@@ -234,12 +233,12 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       child: Text('Driver Details',
                           style: TextStyle(
                               fontSize: 16,
@@ -280,12 +279,12 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       child: Text('Truck Load',
                           style: TextStyle(
                               fontSize: 16,
@@ -389,12 +388,12 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       child: Text('Foreman Details',
                           style: TextStyle(
                               fontSize: 16,
@@ -418,16 +417,16 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
 
                             items: const [
                               DropdownMenuItem(
-                                child: Text('Foreman 1'),
                                 value: 'Foreman 1',
+                                child: Text('Foreman 1'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Foreman 2'),
                                 value: 'Foreman 2',
+                                child: Text('Foreman 2'),
                               ),
                               DropdownMenuItem(
-                                child: Text('Foreman 3'),
                                 value: 'Foreman 3',
+                                child: Text('Foreman 3'),
                               ),
                             ],
                             onChanged: (value) {
@@ -479,6 +478,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                       //   (context) => StockLoading(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
                       // });
                       Navigator.pop(context, finalTruckDetails);
+                      debugPrint(finalTruckDetails);
                     },
                     child: const Text('Submit'),
                   ),
