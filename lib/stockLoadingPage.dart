@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -26,12 +27,18 @@ class ElementData {
 class PartData {
   late final String partNum;
   late final String partDesc;
-  PartData({required this.partNum, required this.partDesc});
+  late final String uom;
+  late final String qty;
+  late final String selectedQty;
+  PartData({required this.partNum, required this.partDesc, required this.uom, required this.qty});
 
   factory PartData.fromJson(Map<String, dynamic> json) {
     return PartData(
       partNum: json['Part_PartNum'],
       partDesc: json['Part_PartDescription'],
+      qty: json['Part_QTY'],
+      uom: json['Part_IUM'],
+
     );
   }
 }
@@ -112,16 +119,42 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController deliverySiteController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
+  List<int> selectedPartQty = [];
+  TextEditingController partIDController = TextEditingController();
+  TextEditingController lotNoController = TextEditingController();
+  TextEditingController partDescriptionController = TextEditingController();
+  TextEditingController onHandQtyController = TextEditingController();
+  TextEditingController uomController = TextEditingController();
+  TextEditingController selectedQtyController = TextEditingController();
+  Map<String, dynamic> fetchedPartData = {};
+  List<dynamic> fetchedPartValue = [];
 
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+
+  Future<void> fetchPartDataFromJson() async {
+    final jsonString = await rootBundle.loadString('assets/data_parts.json');
+    setState(() {
+      fetchedPartData = json.decode(jsonString);
+      fetchedPartValue = fetchedPartData['value'];
+    });
+  }
+
+  PartData? getPartObjectfromJson(String partNum){
+    if(fetchedPartValue.isNotEmpty){
+      PartData partData = PartData.fromJson(fetchedPartValue.where((element) => element['Part_PartNum'] == partNum).first);
+      return partData;
+    }
+    return null;
+  }
 
 
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
+    fetchProjectDataFromJson();
     super.initState();
   }
 
@@ -182,89 +215,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   child: Center(
                     child: Column(
                       children: [
-                        Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text('Load Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
-                                        ),
-                                      ),
-                                      RadioListTile(
-                                        title: const Text('Return Trip'),
-                                        value: 'Delivery',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                      RadioListTile(
-                                        title: const Text('Delivery Trip'),
-                                        value: 'Return',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    ]
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text('Load Condition', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
-                                        ),
-                                      ),
-                                      RadioListTile(
-                                        title: const Text('External'),
-                                        value: 'External',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                      RadioListTile(
-                                        title: const Text('Internal'),
-                                        value: 'Internal',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                      RadioListTile(
-                                        title: const Text('Ex-Factory'),
-                                        value: 'Ex-Factory',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      )
-                                    ]
-                                ),
-                              ),
-                            ]
-                        ),
                         const Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Text(
                             'Load Details',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                                border: UnderlineInputBorder(),
+                                labelText: "Load ID"),
                           ),
                         ),
                         Padding(
@@ -437,6 +401,83 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             ),
                           ],
                         ),
+                        Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Load Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
+                                        ),
+                                      ),
+                                      RadioListTile(
+                                        title: const Text('Return Trip'),
+                                        value: 'Delivery',
+                                        groupValue: loadTypeValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            loadTypeValue = value.toString();
+                                          });
+                                        },
+                                      ),
+                                      RadioListTile(
+                                        title: const Text('Delivery Trip'),
+                                        value: 'Return',
+                                        groupValue: loadTypeValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            loadTypeValue = value.toString();
+                                          });
+                                        },
+                                      ),
+                                    ]
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Load Condition', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),
+                                        ),
+                                      ),
+                                      RadioListTile(
+                                        title: const Text('External'),
+                                        value: 'External',
+                                        groupValue: loadConditionValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            loadConditionValue = value.toString();
+                                          });
+                                        },
+                                      ),
+                                      RadioListTile(
+                                        title: const Text('Internal'),
+                                        value: 'Internal',
+                                        groupValue: loadConditionValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            loadConditionValue = value.toString();
+                                          });
+                                        },
+                                      ),
+                                      RadioListTile(
+                                        title: const Text('Ex-Factory'),
+                                        value: 'Ex-Factory',
+                                        groupValue: loadConditionValue,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            loadConditionValue = value.toString();
+                                          });
+                                        },
+                                      )
+                                    ]
+                                ),
+                              ),
+                            ]
+                        ),
                         const Padding(padding: EdgeInsets.all(8.0),
                           child: Text(
                             'Truck Details',
@@ -540,8 +581,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           ),
                           Expanded(
                             child: RadioListTile(
-                              title: const Text('QR Code'),
-                              value: 'QR Code',
+                              title: const Text('Scanner'),
+                              value: 'Scanner',
                               groupValue: inputTypeValue,
                               onChanged: (value) {
                                 setState(() {
@@ -561,7 +602,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: ExpansionTile(
-                                title: const Text('Elements'),
+                                title: const Text('Element Parts'),
                                 children: [
                                   SizedBox(
                                     height: MediaQuery.of(context).size.height *
@@ -624,56 +665,122 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: ExpansionTile(
-                                title: const Text('Parts'),
+                                title: const Text('Non Element Parts'),
                                 children: [
                                   SizedBox(
                                     height: MediaQuery.of(context).size.height *
-                                        0.3,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: FutureBuilder<List<PartData>>(
-                                          future: fetchPartData(),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              return DataTable(
-                                                columns: const [
-                                                  DataColumn(
-                                                      label: Text('Part Num')),
-                                                  DataColumn(
-                                                      label: Text(
-                                                          'Part Description')),
-                                                  DataColumn(
-                                                      label: Text('Select')),
-                                                ],
-                                                rows: snapshot.data!
-                                                    .map((row) =>
-                                                        DataRow(cells: [
-                                                          DataCell(Text(
-                                                              row.partNum)),
-                                                          DataCell(Text(
-                                                              row.partDesc)),
-                                                          DataCell(IconButton(
-                                                            icon: const Icon(
-                                                                Icons.add),
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                selectedParts
-                                                                    .add(row);
-                                                              });
-                                                            },
-                                                          )),
-                                                        ]))
-                                                    .toList(),
-                                              );
-                                            } else if (snapshot.hasError) {
-                                              return Text('${snapshot.error}');
-                                            }
-                                            return const CircularProgressIndicator();
-                                          },
+                                        0.4,
+                                    child: Column(
+                                      children: [
+                                        Row(children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: partIDController,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    hintText: "Part ID",),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: IconButton(
+                                              onPressed: () async {
+                                                PartData parts = getPartObjectfromJson(partIDController.text)!;
+                                                debugPrint(parts.partDesc.toString());
+                                                setState(() {
+                                                  partDescriptionController.text = parts.partDesc;
+                                                  onHandQtyController.text = parts.qty;
+                                                  uomController.text = parts.uom;
+                                                });
+                                              },
+                                              icon: const Icon(Icons.search),
+                                            ),
+                                          ),
+                                        ]),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  enabled: false,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "Lot No."),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  controller: partDescriptionController,
+                                                  enabled: false,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "Part Description"),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  controller: onHandQtyController,
+                                                  enabled: false,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "On Hand Qty"),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  controller: uomController,
+                                                  enabled: false,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "UOM"),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "Selected Qty"),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: ElevatedButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      selectedParts.add(PartData(partNum: partIDController.text, partDesc: partDescriptionController.text, uom: uomController.text, qty: onHandQtyController.text));
+                                                    });
+                                                  },
+                                                  child: const Text('Select'),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -681,7 +788,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             ),
                           ],
                         ),
-                      if (inputTypeValue == 'QR Code')
+                      if (inputTypeValue == 'Scanner')
                         Column(children: [
                           SizedBox(
                             height: MediaQuery.of(context).size.height * 0.5,
@@ -762,12 +869,16 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             columns: const [
                               DataColumn(label: Text('Part Num')),
                               DataColumn(label: Text('Part Description')),
+                              DataColumn(label: Text('QTY')),
+                              DataColumn(label: Text('UOM')),
                               DataColumn(label: Text('Remove')),
                             ],
                             rows: selectedParts
                                 .map((row) => DataRow(cells: [
                                       DataCell(Text(row.partNum)),
                                       DataCell(Text(row.partDesc)),
+                                      DataCell(Text(row.selectedQty)),
+                                      DataCell(Text(row.uom)),
                                       DataCell(IconButton(
                                         icon: const Icon(Icons.remove),
                                         onPressed: () {
