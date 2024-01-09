@@ -8,34 +8,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'load_model.dart';
-
-
-
-class ElementData {
-  late final String elementId;
-  late final String elementDesc;
-  ElementData({required this.elementId, required this.elementDesc});
-
-  factory ElementData.fromJson(Map<String, dynamic> json) {
-    return ElementData(
-      elementId: json['PartNum'],
-      elementDesc: json['PartLotDescription'],
-    );
-  }
-}
-
-class PartData {
-  late final String partNum;
-  late final String partDesc;
-  PartData({required this.partNum, required this.partDesc});
-
-  factory PartData.fromJson(Map<String, dynamic> json) {
-    return PartData(
-      partNum: json['Part_PartNum'],
-      partDesc: json['Part_PartDescription'],
-    );
-  }
-}
+import 'part_model.dart';
+import 'element_model.dart';
 
 
 Future<Map<String, dynamic>> fetchProjectDataFromJson() async {
@@ -188,98 +162,6 @@ class _StockOffloadingState extends State<StockOffloading>
                   key: _formKey,
                   child: Center(
                     child: Column(children: [
-                      Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(children: [
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Load Type',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.blue),
-                                  ),
-                                ),
-                                AbsorbPointer(
-                                  child: RadioListTile(
-                                    title: const Text('Return Trip'),
-                                    value: 'Return',
-                                    groupValue: loadTypeValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        loadTypeValue = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                                AbsorbPointer(
-                                  child: RadioListTile(
-                                    title: const Text('Delivery Trip'),
-                                    value: 'Issue Load',
-                                    groupValue: loadTypeValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        loadTypeValue = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ]),
-                            ),
-                            Expanded(
-                              child: Column(children: [
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Load Condition',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.blue),
-                                  ),
-                                ),
-                                AbsorbPointer(
-                                  child: RadioListTile(
-                                    title: const Text('External'),
-                                    value: 'External',
-                                    groupValue: loadConditionValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        loadConditionValue = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                                AbsorbPointer(
-                                  child: RadioListTile(
-                                    title: const Text('Internal'),
-                                    value: 'Internal Truck',
-                                    groupValue: loadConditionValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        loadConditionValue = value.toString();
-                                      });
-                                    },
-                                  ),
-                                ),
-                                AbsorbPointer(
-                                  child: RadioListTile(
-                                    title: const Text('Ex-Factory'),
-                                    value: 'Ex-Factory',
-                                    groupValue: loadConditionValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        loadConditionValue = value.toString();
-                                      });
-                                    },
-                                  ),
-                                )
-                              ]),
-                            ),
-                          ]),
                       const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(
@@ -418,6 +300,98 @@ class _StockOffloadingState extends State<StockOffloading>
                           ),
                         ],
                       ),
+                      Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(children: [
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Load Type',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.blue),
+                                  ),
+                                ),
+                                AbsorbPointer(
+                                  child: RadioListTile(
+                                    title: const Text('Return Trip'),
+                                    value: 'Return',
+                                    groupValue: loadTypeValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        loadTypeValue = value.toString();
+                                      });
+                                    },
+                                  ),
+                                ),
+                                AbsorbPointer(
+                                  child: RadioListTile(
+                                    title: const Text('Delivery Trip'),
+                                    value: 'Issue Load',
+                                    groupValue: loadTypeValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        loadTypeValue = value.toString();
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ]),
+                            ),
+                            Expanded(
+                              child: Column(children: [
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Load Condition',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.blue),
+                                  ),
+                                ),
+                                AbsorbPointer(
+                                  child: RadioListTile(
+                                    title: const Text('External'),
+                                    value: 'External',
+                                    groupValue: loadConditionValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        loadConditionValue = value.toString();
+                                      });
+                                    },
+                                  ),
+                                ),
+                                AbsorbPointer(
+                                  child: RadioListTile(
+                                    title: const Text('Internal'),
+                                    value: 'Internal Truck',
+                                    groupValue: loadConditionValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        loadConditionValue = value.toString();
+                                      });
+                                    },
+                                  ),
+                                ),
+                                AbsorbPointer(
+                                  child: RadioListTile(
+                                    title: const Text('Ex-Factory'),
+                                    value: 'Ex-Factory',
+                                    groupValue: loadConditionValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        loadConditionValue = value.toString();
+                                      });
+                                    },
+                                  ),
+                                )
+                              ]),
+                            ),
+                          ]),
                       const SizedBox(
                         height: 20,
                       ),
@@ -427,7 +401,7 @@ class _StockOffloadingState extends State<StockOffloading>
                             _tabController.animateTo(1);
                           });
                         },
-                        child: const Text('Unload Items'),
+                        child: const Text('Next'),
                       ),
                     ]),
                   ),
@@ -439,210 +413,14 @@ class _StockOffloadingState extends State<StockOffloading>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       const Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Text(
-                          'Input Type',
+                          'Arrived Elements',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                               color: Colors.blue),
                         ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: RadioListTile(
-                              title: const Text('Manual'),
-                              value: 'Manual',
-                              groupValue: inputTypeValue,
-                              onChanged: (value) {
-                                setState(() {
-                                  inputTypeValue = value.toString();
-                                });
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile(
-                              title: const Text('QR Code'),
-                              value: 'QR Code',
-                              groupValue: inputTypeValue,
-                              onChanged: (value) {
-                                setState(() {
-                                  inputTypeValue = value.toString();
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (inputTypeValue == 'Manual')
-                        Column(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade100,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ExpansionTile(
-                                title: const Text('Arrived Elements'),
-                                children: [
-                                  SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.3,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: FutureBuilder<List<ElementData>>(
-                                          future: fetchElementData(),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              return DataTable(
-                                                columns: const [
-                                                  DataColumn(
-                                                      label:
-                                                          Text('Element ID')),
-                                                  DataColumn(
-                                                      label: Text(
-                                                          'Element Description')),
-                                                  DataColumn(
-                                                      label: Text('Select')),
-                                                ],
-                                                rows: snapshot.data!
-                                                    .map((row) =>
-                                                        DataRow(cells: [
-                                                          DataCell(Text(
-                                                              row.elementId)),
-                                                          DataCell(Text(
-                                                              row.elementDesc)),
-                                                          DataCell(IconButton(
-                                                            icon: const Icon(
-                                                                Icons.add),
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                selectedElements
-                                                                    .add(row);
-                                                              });
-                                                            },
-                                                          )),
-                                                        ]))
-                                                    .toList(),
-                                              );
-                                            } else if (snapshot.hasError) {
-                                              return Text('${snapshot.error}');
-                                            }
-                                            return const CircularProgressIndicator();
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 20,
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade100,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ExpansionTile(
-                                title: const Text('Arrived Parts'),
-                                children: [
-                                  SizedBox(
-                                    height: MediaQuery.of(context).size.height *
-                                        0.3,
-                                    child: SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: FutureBuilder<List<PartData>>(
-                                          future: fetchPartData(),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              return DataTable(
-                                                columns: const [
-                                                  DataColumn(
-                                                      label: Text('Part Num')),
-                                                  DataColumn(
-                                                      label: Text(
-                                                          'Part Description')),
-                                                  DataColumn(
-                                                      label: Text('Select')),
-                                                ],
-                                                rows: snapshot.data!
-                                                    .map((row) =>
-                                                        DataRow(cells: [
-                                                          DataCell(Text(
-                                                              row.partNum)),
-                                                          DataCell(Text(
-                                                              row.partDesc)),
-                                                          DataCell(IconButton(
-                                                            icon: const Icon(
-                                                                Icons.add),
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                selectedParts
-                                                                    .add(row);
-                                                              });
-                                                            },
-                                                          )),
-                                                        ]))
-                                                    .toList(),
-                                              );
-                                            } else if (snapshot.hasError) {
-                                              return Text('${snapshot.error}');
-                                            }
-                                            return const CircularProgressIndicator();
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (inputTypeValue == 'QR Code')
-                        Column(children: [
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            child: QRView(
-                              key: qrKey,
-                              onQRViewCreated: (controller) {
-                                setState(() {
-                                  this.controller = controller;
-                                });
-                                controller.scannedDataStream.listen((scanData) {
-                                  setState(() {
-                                    result = scanData;
-                                  });
-                                });
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: Center(
-                              child: Text(
-                                  'Barcode Type: ${describeEnum(result?.format ?? BarcodeFormat.unknown)}   Data: ${result?.code ?? 'Unknown'}'),
-                            ),
-                          ),
-                        ]),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      const Text(
-                        'Selected Elements',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.blue),
                       ),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
@@ -652,20 +430,13 @@ class _StockOffloadingState extends State<StockOffloading>
                             columns: const [
                               DataColumn(label: Text('Element ID')),
                               DataColumn(label: Text('Element Description')),
-                              DataColumn(label: Text('Remove')),
+                              DataColumn(label: Text('Erection Seq')),
                             ],
                             rows: selectedElements
                                 .map((row) => DataRow(cells: [
-                                      DataCell(Text(row.elementId)),
-                                      DataCell(Text(row.elementDesc)),
-                                      DataCell(IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedElements.remove(row);
-                                          });
-                                        },
-                                      )),
+                                  DataCell(Text(row.elementId)),
+                                  DataCell(Text(row.elementDesc)),
+                                  DataCell(Text(row.erectionSeq)),
                                     ]))
                                 .toList(),
                           ),
@@ -689,25 +460,21 @@ class _StockOffloadingState extends State<StockOffloading>
                             columns: const [
                               DataColumn(label: Text('Part Num')),
                               DataColumn(label: Text('Part Description')),
-                              DataColumn(label: Text('Remove')),
+                              DataColumn(label: Text('UOM')),
+                              DataColumn(label: Text('Qty')),
                             ],
                             rows: selectedParts
                                 .map((row) => DataRow(cells: [
                                       DataCell(Text(row.partNum)),
                                       DataCell(Text(row.partDesc)),
-                                      DataCell(IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedParts.remove(row);
-                                          });
-                                        },
-                                      )),
+                                      DataCell(Text(row.uom)),
+                                      DataCell(Text(row.qty)),
                                     ]))
                                 .toList(),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20,),
                       ElevatedButton(
                         onPressed: () {
                           setState(() {
@@ -880,7 +647,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           _tabController.animateTo(0);
                         });
                       },
-                      child: const Text('Submit'),
+                      child: const Text('Offload Items'),
                     ),
                   ],
                 ),
