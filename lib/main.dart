@@ -2,10 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'loginPage.dart';
 import 'themeData.dart';
+import 'dart:io';
 
 
 void main() {
+  HttpOverrides.global = MyHttpOverrides();
+  final context = SecurityContext.defaultContext;
+  context.allowLegacyUnsafeRenegotiation = true;
+  final httpClient = HttpClient(context: context);
   runApp(const MyApp());
+}
+
+class MyHttpOverrides extends HttpOverrides{
+  @override
+  HttpClient createHttpClient(SecurityContext? context){
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
+  }
 }
 
 class MyApp extends StatefulWidget {

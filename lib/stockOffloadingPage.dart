@@ -6,32 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'load_model.dart';
 
-class LoadData {
-  late final String projectId;
-  late final String loadDate;
-  late final String toWarehouse;
-  late final String toBin;
-  late final String loadType;
-  late final String loadCondition;
-  LoadData({required this.projectId, required this.loadDate, required this.toWarehouse, required this.toBin, required this.loadType, required this.loadCondition});
 
-  factory LoadData.fromJson(Map<String, dynamic> json) {
-    return LoadData(
-      projectId: json['Project ID'],
-      loadDate: json['Load Date'],
-      toWarehouse: json['To Warehouse'],
-      toBin: json['To Bin'],
-      loadType: json['Load Type'],
-      loadCondition: json['Load Condition'],
-    );
-  }
-
-  @override
-  String toString() {
-    return 'projectId: $projectId, loadDate: $loadDate, toWarehouse: $toWarehouse, toBin: $toBin, loadType: $loadType, loadCondition: $loadCondition';
-  }
-}
 
 class ElementData {
   late final String elementId;
@@ -105,10 +83,37 @@ class _StockOffloadingState extends State<StockOffloading>
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   Map<String, dynamic> loadData = {};
+  List<dynamic> loadValue = [];
 
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+
+  Future<void> fetchLoadDataFromURL() async {
+
+    final url = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD103Svc/UD103s');
+    final String username = 'manager';
+    final String password = 'manager';
+    final String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
+    try {
+      final response = await http.get(
+          url,
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        loadData = jsonResponse;
+        loadValue = loadData['value'];
+      });
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+
+  }
 
   Future<void> fetchOffloadData() async {
     final jsonString = await rootBundle.loadString('assets/OffloadProjects.json');
@@ -117,9 +122,11 @@ class _StockOffloadingState extends State<StockOffloading>
     });
   }
 
-  LoadData? getObjectFromJson(String loadID) {
-    if (loadData.containsKey(loadID)) {
-      return LoadData.fromJson(loadData[loadID]);
+  LoadData? getLoadObjectFromJson(String loadID) {
+    if (loadValue.isNotEmpty){
+      LoadData loadObject = LoadData.fromJson(loadValue.where((element) => element['Key1'] == loadID).first);
+      debugPrint(loadObject.toString());
+      return loadObject;
     }
     return null;
   }
@@ -129,8 +136,8 @@ class _StockOffloadingState extends State<StockOffloading>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
+    fetchLoadDataFromURL();
     super.initState();
-    fetchOffloadData();
   }
 
   @override
@@ -199,7 +206,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 AbsorbPointer(
                                   child: RadioListTile(
                                     title: const Text('Return Trip'),
-                                    value: 'Delivery',
+                                    value: 'Return',
                                     groupValue: loadTypeValue,
                                     onChanged: (value) {
                                       setState(() {
@@ -211,7 +218,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 AbsorbPointer(
                                   child: RadioListTile(
                                     title: const Text('Delivery Trip'),
-                                    value: 'Return',
+                                    value: 'Issue Load',
                                     groupValue: loadTypeValue,
                                     onChanged: (value) {
                                       setState(() {
@@ -249,7 +256,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 AbsorbPointer(
                                   child: RadioListTile(
                                     title: const Text('Internal'),
-                                    value: 'Internal',
+                                    value: 'Internal Truck',
                                     groupValue: loadConditionValue,
                                     onChanged: (value) {
                                       setState(() {
@@ -301,10 +308,10 @@ class _StockOffloadingState extends State<StockOffloading>
                               ),
                             ),
                             IconButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                await fetchLoadDataFromURL();
                                 String projectLoadID = loadIDController.text;
-                                LoadData? offloadData = getObjectFromJson(projectLoadID);
-                                debugPrint(projectLoadID);
+                                LoadData? offloadData = getLoadObjectFromJson(projectLoadID);
                                 debugPrint(offloadData.toString());
                                 if (offloadData != null) {
                                   setState(() {
