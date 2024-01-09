@@ -29,8 +29,8 @@ class PartData {
   late final String partDesc;
   late final String uom;
   late final String qty;
-  late final String selectedQty;
-  PartData({required this.partNum, required this.partDesc, required this.uom, required this.qty});
+  late final String? selectedQty;
+  PartData({required this.partNum, required this.partDesc, required this.uom, required this.qty, this.selectedQty});
 
   factory PartData.fromJson(Map<String, dynamic> json) {
     return PartData(
@@ -38,19 +38,14 @@ class PartData {
       partDesc: json['Part_PartDescription'],
       qty: json['Part_QTY'],
       uom: json['Part_IUM'],
-
     );
   }
-}
 
-Future<Map<String, dynamic>> fetchProjectDataFromJson() async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/projectData.json');
-  final jsonString = await file.readAsString();
-  Map<String, dynamic> jsonResponse = json.decode(jsonString);
-  return jsonResponse;
+  @override
+  String toString() {
+    return 'PartData{partNum: $partNum, partDesc: $partDesc, uom: $uom, qty: $qty, selectedQty: $selectedQty}';
+  }
 }
-
 //Part Data URL fetch
 
 // Future<List<PartData>> fetchPartData() async {
@@ -120,7 +115,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   List<int> selectedPartQty = [];
-  TextEditingController partIDController = TextEditingController();
+  TextEditingController partNumberController = TextEditingController();
   TextEditingController lotNoController = TextEditingController();
   TextEditingController partDescriptionController = TextEditingController();
   TextEditingController onHandQtyController = TextEditingController();
@@ -129,7 +124,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Map<String, dynamic> fetchedPartData = {};
   List<dynamic> fetchedPartValue = [];
 
-  Barcode? result;
+  Barcode? partResult;
+  String partResultCode = '';
+  Barcode? elementResult;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
@@ -154,7 +151,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    fetchProjectDataFromJson();
+    fetchPartDataFromJson();
     super.initState();
   }
 
@@ -515,24 +512,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 child: const Text('Add Truck Details')),
                             ElevatedButton(
                                 onPressed: () {
-                                  // if (widget.truckDetails == null) {
-                                  //   showDialog(context: context,
-                                  //       builder: (BuildContext context) {
-                                  //         return AlertDialog(
-                                  //           title: const Text('Error'),
-                                  //           content: const Text('Please add truck details'),
-                                  //           actions: [
-                                  //             TextButton(
-                                  //               onPressed: () {
-                                  //                 Navigator.of(context).pop();
-                                  //               },
-                                  //               child: const Text('OK'),
-                                  //             ),
-                                  //           ],
-                                  //         );
-                                  //       }
-                                  //   );
-                                  // }
                                   setState(() {
                                     _tabController.animateTo(1);
                                   });
@@ -554,48 +533,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Input Type',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blue),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: RadioListTile(
-                              title: const Text('Manual'),
-                              value: 'Manual',
-                              groupValue: inputTypeValue,
-                              onChanged: (value) {
-                                setState(() {
-                                  inputTypeValue = value.toString();
-                                });
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile(
-                              title: const Text('Scanner'),
-                              value: 'Scanner',
-                              groupValue: inputTypeValue,
-                              onChanged: (value) {
-                                setState(() {
-                                  inputTypeValue = value.toString();
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (inputTypeValue == 'Manual')
                         Column(
                           children: [
+                            const Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Load Details',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.blue),
+                              ),
+                            ),
                             Container(
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade100,
@@ -606,7 +555,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 children: [
                                   SizedBox(
                                     height: MediaQuery.of(context).size.height *
-                                        0.3,
+                                        0.4,
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: SingleChildScrollView(
@@ -677,7 +626,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
                                               child: TextFormField(
-                                                controller: partIDController,
+                                                controller: partNumberController,
                                                 decoration: const InputDecoration(
                                                     border: OutlineInputBorder(),
                                                     hintText: "Part ID",),
@@ -685,18 +634,78 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                           ),
                                           Padding(
-                                            padding: const EdgeInsets.all(8.0),
+                                            padding: const EdgeInsets.all(4.0),
                                             child: IconButton(
-                                              onPressed: () async {
-                                                PartData parts = getPartObjectfromJson(partIDController.text)!;
-                                                debugPrint(parts.partDesc.toString());
-                                                setState(() {
-                                                  partDescriptionController.text = parts.partDesc;
-                                                  onHandQtyController.text = parts.qty;
-                                                  uomController.text = parts.uom;
-                                                });
+                                              onPressed: () {
+                                                setPartData();
                                               },
                                               icon: const Icon(Icons.search),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(4.0),
+                                            child: IconButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                    context: context,
+                                                    builder: (BuildContext context){
+                                                      return Dialog(
+                                                        shape: const RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.zero,
+                                                        ),
+                                                        child: SizedBox(
+                                                          height: MediaQuery.of(context).size.height * 0.6,
+                                                          width: MediaQuery.of(context).size.width * 0.8,
+                                                          child: Column(
+                                                            children: [
+                                                              Expanded(
+                                                                child: Padding(
+                                                                  padding: const EdgeInsets.all(8.0),
+                                                                  child: QRView(
+                                                                    key: qrKey,
+                                                                    onQRViewCreated: (controller) {
+                                                                      setState(() {
+                                                                        this.controller = controller;
+                                                                      });
+                                                                      controller.scannedDataStream.listen((scanData) {
+                                                                        setState(() {
+                                                                          partResult = scanData;
+                                                                          partResultCode = partResult?.code ?? 'Unknown';
+                                                                          partNumberController.text = partResult?.code ?? 'Unknown';
+                                                                        });
+                                                                        setPartData();
+                                                                      });
+
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: MediaQuery.of(context).size.height * 0.1,
+                                                                child: Center(
+                                                                  child: Text(
+                                                                      'Data: $partResultCode'
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: ElevatedButton(
+                                                                  onPressed: () {
+                                                                    Navigator.of(context).pop();
+                                                                  },
+                                                                  child: const Text('OK'),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+
+                                                      );
+                                                    }
+                                                );
+                                              },
+                                              icon: const Icon(Icons.qr_code_2),
                                             ),
                                           ),
                                         ]),
@@ -761,6 +770,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               child: Padding(
                                                 padding: const EdgeInsets.all(8.0),
                                                 child: TextFormField(
+                                                  controller: selectedQtyController,
                                                   decoration: const InputDecoration(
                                                       border: OutlineInputBorder(),
                                                       labelText: "Selected Qty"),
@@ -772,7 +782,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               child: ElevatedButton(
                                                   onPressed: () {
                                                     setState(() {
-                                                      selectedParts.add(PartData(partNum: partIDController.text, partDesc: partDescriptionController.text, uom: uomController.text, qty: onHandQtyController.text));
+                                                      selectedParts.add(PartData(partNum: partNumberController.text, partDesc: partDescriptionController.text, uom: uomController.text, qty: onHandQtyController.text, selectedQty: selectedQtyController.text));
                                                     });
                                                   },
                                                   child: const Text('Select'),
@@ -788,32 +798,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             ),
                           ],
                         ),
-                      if (inputTypeValue == 'Scanner')
-                        Column(children: [
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            child: QRView(
-                              key: qrKey,
-                              onQRViewCreated: (controller) {
-                                setState(() {
-                                  this.controller = controller;
-                                });
-                                controller.scannedDataStream.listen((scanData) {
-                                  setState(() {
-                                    result = scanData;
-                                  });
-                                });
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.1,
-                            child: Center(
-                              child: Text(
-                                  'Barcode Type: ${describeEnum(result?.format ?? BarcodeFormat.unknown)}   Data: ${result?.code ?? 'Unknown'}'),
-                            ),
-                          ),
-                        ]),
                       const SizedBox(
                         height: 20,
                       ),
@@ -877,7 +861,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 .map((row) => DataRow(cells: [
                                       DataCell(Text(row.partNum)),
                                       DataCell(Text(row.partDesc)),
-                                      DataCell(Text(row.selectedQty)),
+                                      DataCell(Text(row.selectedQty ?? '0')),
                                       DataCell(Text(row.uom)),
                                       DataCell(IconButton(
                                         icon: const Icon(Icons.remove),
@@ -1069,6 +1053,15 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             ]),
           ),
         ));
+  }
+
+  void setPartData() {
+    PartData parts = PartData.fromJson(fetchedPartValue.where((element) => element['Part_PartNum'] == partNumberController.text).first);
+    setState(() {
+      partDescriptionController.text = parts.partDesc;
+      onHandQtyController.text = parts.qty;
+      uomController.text = parts.uom;
+    });
   }
 }
 

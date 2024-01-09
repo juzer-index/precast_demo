@@ -473,12 +473,7 @@ class _AddTruckDetailsState extends State<AddTruckDetails> {
                     onPressed: () {
                       String finalTruckDetails = '$truckId $resourceId ${plateNumberController.text} ${driverNameController.text} ${driverNumberController.text}';
                       //pop back to projectDetailTabs with truck details
-                      // setState(() {
-                      //   Navigator.push(context, MaterialPageRoute(builder:
-                      //   (context) => StockLoading(initialTabIndex: 0, truckDetails: finalTruckDetails,)));
-                      // });
                       Navigator.pop(context, finalTruckDetails);
-                      debugPrint(finalTruckDetails);
                     },
                     child: const Text('Submit'),
                   ),
