@@ -44,6 +44,9 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   List<dynamic>? resourceValue = [];
   List<dynamic> matchingResources = [];
 
+  Map<String, dynamic> fetchedDriverData = {};
+  List<dynamic> fetchedDriverValue = [];
+
   bool isTruckChanged = false;
 
   ResourceDetails? getResourceDetailsFromJson(String resourceID) {
@@ -106,9 +109,33 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
     }
   }
 
+  Future<void> getDriverList() async {
+    final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    try{
+      final response = await http.get(
+          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if (response.statusCode == 200) {
+        setState(() {
+          fetchedDriverData = json.decode(response.body);
+          fetchedDriverValue = fetchedDriverData['value'];
+        });
+        debugPrint(fetchedDriverValue.toString());
+      } else {
+        throw Exception('Failed to load album');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    getDriverList();
     getTrucksFromURL();
   }
 
@@ -253,20 +280,45 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     //add dropdown item list with label truck ID
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextFormField(
-                          enabled: widget.isEdit,
-                          controller: driverNameController,
-                          decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(),
-                              labelText: "Driver Name"),
+                    if(!widget.isEdit)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            enabled: widget.isEdit,
+                            controller: driverNameController,
+                            decoration: const InputDecoration(
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(),
+                                labelText: "Driver Name"),
+                          ),
                         ),
                       ),
-                    ),
+                    if(widget.isEdit)
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: DropdownButtonFormField(
+                            hint: const Text('Driver Name'),
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                              ),
+                              items: fetchedDriverValue.map<DropdownMenuItem<dynamic>>((
+                                  dynamic value) {
+                                return DropdownMenuItem<dynamic>(
+                                    value: value['Driver_Name'],
+                                    child: Text(value['Driver_Name']),
+                              );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  driverNameController.text = value.toString();
+                                });
+                              },
+                          ),
+                        ),
+                      ),
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),

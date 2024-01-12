@@ -1,7 +1,8 @@
+import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/truckDetails.dart';
@@ -15,7 +16,7 @@ import 'package:http/http.dart' as http;
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  StockLoading({super.key, required this.initialTabIndex});
+  const StockLoading({super.key, required this.initialTabIndex});
 
 
   @override
@@ -47,20 +48,24 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getProjectList() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
-    final response = await http.get(
-      Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Erp.Bo.ProjectSvc/List/'),
-        headers: {
-          HttpHeaders.authorizationHeader: basicAuth,
-          HttpHeaders.contentTypeHeader: 'application/json',
-        }
-    );
-    if (response.statusCode == 200) {
-      setState(() {
-        fetchedProjectData = json.decode(response.body);
-        fetchedProjectValue = fetchedProjectData['value'];
-      });
-    } else {
-      throw Exception('Failed to load album');
+    try {
+      final response = await http.get(
+        Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Erp.Bo.ProjectSvc/List/'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          fetchedProjectData = json.decode(response.body);
+          fetchedProjectValue = fetchedProjectData['value'];
+        });
+      } else {
+        throw Exception('Failed to load album');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
     }
   }
 
