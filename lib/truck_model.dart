@@ -1,17 +1,19 @@
 class TruckDetails {
+  late final String truckName;
   late final String plateNumber;
-  late final String transporterName;
-  TruckDetails({required this.plateNumber, required this.transporterName});
+  late final String resourceID;
+  TruckDetails({required this.truckName, required this.plateNumber, required this.resourceID});
 
   factory TruckDetails.fromJson(Map<String, dynamic> json) {
     return TruckDetails(
-      plateNumber: json['ShortChar07'],
-      transporterName: json['Character01'],
+      truckName: json['Character01'],
+      plateNumber: json['Character02'],
+      resourceID: json['Key1'],
     );
   }
 
   @override
    String toString() {
-      return 'plateNumber: $plateNumber, transporterName: $transporterName';
+      return 'truckName: $truckName, plateNumber: $plateNumber key1: $resourceID';
     }
 }

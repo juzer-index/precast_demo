@@ -8,11 +8,11 @@ class ResourceDetails {
 
   factory ResourceDetails.fromJson(Map<String, dynamic> json) {
     return ResourceDetails(
-      capacity: json['Number06'],
-      length: json['Number10'],
-      width: json['Number09'],
-      height: json['Number08'],
-      volume: json['Number07'],
+      capacity: json['Number03'],
+      length: json['Number05'],
+      width: json['Number06'],
+      height: json['Number07'],
+      volume: json['Number04'],
     );
   }
 }

@@ -1,16 +1,19 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'truck_model.dart';
 import 'truckresource_model.dart';
 import 'load_model.dart';
+import 'package:http/http.dart' as http;
 
 
 class TruckDetailsForm extends StatefulWidget {
   final bool isEdit;
   LoadData? truckDetails;
-  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails});
+  TruckDetails? truckMasterDetails;
+  final Function(LoadData)? onTruckDetailsSelected;
+  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails, this.truckMasterDetails, this.onTruckDetailsSelected});
 
   @override
   State<TruckDetailsForm> createState() => _TruckDetailsFormState();
@@ -29,40 +32,104 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   TextEditingController heightController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
   Map<String, dynamic> truckDetails = {};
-  Map<String, dynamic> resourceDetails = {};
+  ResourceDetails? resourceDetails;
 
-  TruckDetails? getTruckDetailsFromJson(String truckID) {
-    if (truckDetails.containsKey(truckID)) {
-      return TruckDetails.fromJson(truckDetails[truckID]);
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  var truckURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102s');
+  var resourceURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As');
+  Map<String, dynamic> truckData = {};
+  List<dynamic> truckValue = [];
+  Map<String, dynamic> resourceData = {};
+  List<dynamic>? resourceValue = [];
+  List<dynamic> matchingResources = [];
+
+  bool isTruckChanged = false;
+
+  ResourceDetails? getResourceDetailsFromJson(String resourceID) {
+    debugPrint(resourceID);
+    if (resourceValue != null) {
+      if(resourceValue!.where((element) => element['Character01'] == resourceID).isNotEmpty){
+        resourceDetails = ResourceDetails.fromJson(resourceValue!.where((element) => element['Character01'] == resourceID).first);
+        return resourceDetails;
+      }
     }
     return null;
   }
 
-  ResourceDetails? getResourceDetailsFromJson(String resourceID) {
-    if (resourceDetails.containsKey(resourceID)) {
-      return ResourceDetails.fromJson(resourceDetails[resourceID]);
+  Future<void> getTrucksFromURL() async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    try {
+      final response = await http.get(
+          truckURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        truckData = jsonResponse;
+        truckValue = truckData['value'];
+      });
     }
-    return null;
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getResourceForTrucks(String resourceID) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    var urL = Uri.parse("https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    try {
+      final response = await http.get(
+          urL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        resourceData = jsonResponse;
+        resourceValue = resourceData['value'];
+        debugPrint(resourceValue.toString());
+        // for (var element in resourceValue) {
+        //   if (element['Key1'] == truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1']) {
+        //     matchingResources.add(element);
+        //   }
+        // }
+      });
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    getTrucksFromURL();
   }
 
 
   @override
   Widget build(BuildContext context) {
-    truckIdController.text = widget.truckDetails?.truckId ?? '';
-    resourceIdController.text = widget.truckDetails?.resourceId ?? '';
-    plateNumberController.text = widget.truckDetails?.plateNumber ?? '';
-    driverNameController.text = widget.truckDetails?.driverName ?? '';
-    driverNumberController.text = widget.truckDetails?.driverNumber ?? '';
-    capacityController.text = widget.truckDetails?.resourceCapacity ?? '';
-    lengthController.text = widget.truckDetails?.resourceLength ?? '';
-    widthController.text = widget.truckDetails?.resourceWidth ?? '';
-    heightController.text = widget.truckDetails?.resourceHeight ?? '';
-    volumeController.text = widget.truckDetails?.resourceVolume ?? '';
+    if(widget.truckDetails != null && widget.truckMasterDetails == null){
+      truckIdController.text = widget.truckDetails?.truckId ?? '';
+      resourceIdController.text = widget.truckDetails?.resourceId ?? '';
+      plateNumberController.text = widget.truckDetails?.plateNumber ?? '';
+      driverNameController.text = widget.truckDetails?.driverName ?? '';
+      driverNumberController.text = widget.truckDetails?.driverNumber ?? '';
+      capacityController.text = widget.truckDetails?.resourceCapacity ?? '';
+      lengthController.text = widget.truckDetails?.resourceLength ?? '';
+      widthController.text = widget.truckDetails?.resourceWidth ?? '';
+      heightController.text = widget.truckDetails?.resourceHeight ?? '';
+      volumeController.text = widget.truckDetails?.resourceVolume ?? '';
+    }
+    if(widget.truckMasterDetails !=null){
+
+    }
     return Center(
             child: Column(
               children: [
@@ -94,29 +161,24 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                                 border: OutlineInputBorder(),
                               ),
 
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'Truck 1',
-                                  child: Text('Truck 1'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'Truck 2',
-                                  child: Text('Truck 2'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'Truck 3',
-                                  child: Text('Truck 3'),
-                                ),
-                              ],
-                              onChanged: (value) {
+                              items: truckValue.map<DropdownMenuItem<dynamic>>((
+                                  dynamic value) =>
+                                  DropdownMenuItem<dynamic>(
+                                    value: value['Character01'],
+                                    child: Text(value['Character01']),
+                              )).toList(),
+                              onTap: () async {
+                                await getTrucksFromURL();
+                              },
+                              onChanged: (value) async {
                                 setState(() {
                                   truckIdController.text = value.toString();
+                                  resourceIdController.text = truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1'];
                                 });
-                                TruckDetails? truckDetails = getTruckDetailsFromJson(truckIdController.text);
-                                debugPrint(truckDetails.toString());
-                                if (truckDetails != null) {
-                                  plateNumberController.text = truckDetails.plateNumber;
-                                  transporterNameController.text = truckDetails.transporterName;
+                                plateNumberController.text = truckValue.where((element) => element['Character01'] == truckIdController.text).first['Character02'];
+                                await getResourceForTrucks(resourceIdController.text);
+                                if(resourceValue != null){
+                                  _formKey.currentState?.reset();
                                 }
                               },
                           ),
@@ -141,39 +203,35 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                       Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: DropdownButtonFormField(
-                          hint: const Text('Resource'),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                            ),
-          
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'Trailer 1',
-                                child: Text('Trailer 1'),
+                        child: Form(
+                          key: _formKey,
+                          child: DropdownButtonFormField(
+                            hint: const Text('Resource'),
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
                               ),
-                              DropdownMenuItem(
-                                value: 'Trailer 2',
-                                child: Text('Trailer 2'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'Trailer 3',
-                                child: Text('Trailer 3'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                resourceIdController.text = value.toString();
-                              });
-                              ResourceDetails? resourceDetails = getResourceDetailsFromJson(resourceIdController.text);
-                              if (resourceDetails != null) {
-                                capacityController.text = resourceDetails.capacity;
-                                lengthController.text = resourceDetails.length;
-                                widthController.text = resourceDetails.width;
-                                heightController.text = resourceDetails.height;
-                                volumeController.text = resourceDetails.volume;
-                              }
-                            },
+                              items: resourceValue?.map<DropdownMenuItem<dynamic>>((
+                                  dynamic value) {
+                                return DropdownMenuItem<dynamic>(
+                                    value: value['Character01'],
+                                    child: Text(value['Character01']),
+                              );
+                              }).toList() ?? [],
+                              onChanged: (value) {
+                              debugPrint(value.toString());
+                              var resourceIdentifier = resourceValue?.where((element) => element['Character01'] == value).first['Character01'];
+                                getResourceDetailsFromJson(resourceIdentifier);
+                                if(resourceDetails != null){
+                                  setState(() {
+                                    capacityController.text = resourceDetails!.capacity;
+                                    lengthController.text = resourceDetails!.length;
+                                    widthController.text = resourceDetails!.width;
+                                    heightController.text = resourceDetails!.height;
+                                    volumeController.text = resourceDetails!.volume;
+                                  });
+                                }
+                              },
+                          ),
                         ),
                       ),
                     ),

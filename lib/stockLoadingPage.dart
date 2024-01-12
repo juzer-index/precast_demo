@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/elementTable.dart';
@@ -6,10 +8,10 @@ import 'package:precast_demo/truckDetails.dart';
 import 'package:precast_demo/elementSearchForm.dart';
 import 'package:precast_demo/partSearchForm.dart';
 import 'dart:convert';
+import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
-import 'truck_model.dart';
-import 'truckresource_model.dart';
+import 'package:http/http.dart' as http;
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
@@ -36,7 +38,31 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController deliverySiteController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
-  List<TruckDetails> truckDetails = [];
+  List<LoadData> truckDetails = [];
+
+  Map<String, dynamic> fetchedProjectData = {};
+  List<dynamic> fetchedProjectValue = [];
+
+  var resourceURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102As');
+
+  Future<void> getProjectList() async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    final response = await http.get(
+      Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Erp.Bo.ProjectSvc/List/'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        }
+    );
+    if (response.statusCode == 200) {
+      setState(() {
+        fetchedProjectData = json.decode(response.body);
+        fetchedProjectValue = fetchedProjectData['value'];
+      });
+    } else {
+      throw Exception('Failed to load album');
+    }
+  }
 
   void updatePartInformation(List<PartData> selectedPartsFromForm){
     setState(() {
@@ -50,12 +76,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     });
   }
 
+  void getTruckInformation(List<LoadData> selectedTruckDetails){
+    setState(() {
+      truckDetails = selectedTruckDetails;
+    });
+  }
 
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     super.initState();
+    getProjectList();
   }
 
   @override
@@ -129,7 +161,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                              padding: const EdgeInsets.all(8.0),
                               child: TextFormField(
                                 enabled: false,
                                 decoration: const InputDecoration(
@@ -143,20 +175,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 decoration: const InputDecoration(
                                     border: OutlineInputBorder(),
                                     labelText: "Project ID"),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'Project 1',
-                                    child: Text('Project 1'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'Project 2',
-                                    child: Text('Project 2'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'Project 3',
-                                    child: Text('Project 3'),
-                                  ),
-                                ],
+                                items: fetchedProjectValue.map((project) => DropdownMenuItem(
+                                  value: project['ProjectID'],
+                                  child: Text(project['Description']),
+                                )).toList(),
                                 onChanged: (value) {
                                   setState(() {
                                     //value handler here
@@ -258,7 +280,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       child: DropdownButtonFormField(
                                         decoration: const InputDecoration(
                                             border: OutlineInputBorder(),
-                                            labelText: "To"),
+                                            labelText: "To Warehouse"),
                                         items: const [
                                           DropdownMenuItem(
                                             value: 'Site 1',
@@ -283,6 +305,34 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       )),
                                 ),
                               ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: DropdownButtonFormField(
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "To Bin"),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'Truck 1',
+                                    child: Text('Truck 1'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Truck 2',
+                                    child: Text('Truck 2'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Truck 3',
+                                    child: Text('Truck 3'),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  setState(() {
+                                    //value handler here
+
+                                  });
+                                },
+                              ),
                             ),
                             if(loadConditionValue == 'External')
                               Row(
@@ -415,7 +465,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             ElevatedButton(
                                 onPressed: () {
                                   setState(() {
-                                    _tabController.animateTo(1);
+
+                                    // _tabController.animateTo(1);
                                   });
                                 },
                                 child: const Text(
