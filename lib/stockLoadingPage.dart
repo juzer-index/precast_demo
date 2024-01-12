@@ -1,45 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:precast_demo/addTruckDetails.dart';
+import 'package:precast_demo/elementTable.dart';
+import 'package:precast_demo/partTable.dart';
+import 'package:precast_demo/truckDetails.dart';
 import 'package:precast_demo/elementSearchForm.dart';
 import 'package:precast_demo/partSearchForm.dart';
 import 'dart:convert';
 import 'part_model.dart';
 import 'element_model.dart';
-
-
-//Part Data URL fetch
-
-// Future<List<PartData>> fetchPartData() async {
-//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data_parts.json');
-//   final response = await http.get(url);
-//   if (response.statusCode == 200) {
-//     Map<String, dynamic> jsonResponse = json.decode(response.body);
-//     return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => PartData.fromJson(e)).toList();
-//   } else {
-//     throw Exception('Unexpected error occurred!');
-//   }
-// }
-
-
-//Element Data URL Fetch
-
-// Future<List<ElementData>> fetchElementData() async {
-//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data_element.json');
-//   final response = await http.get(url);
-//   if (response.statusCode == 200) {
-//     Map<String, dynamic> jsonResponse = json.decode(response.body);
-//     return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => ElementData.fromJson(e)).toList();
-//   } else {
-//     throw Exception('Unexpected error occurred!');
-//   }
-// }
-
+import 'truck_model.dart';
+import 'truckresource_model.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  String? truckDetails;
-  StockLoading({super.key, required this.initialTabIndex, this.truckDetails});
+  StockLoading({super.key, required this.initialTabIndex});
 
 
   @override
@@ -52,16 +26,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController dateController = TextEditingController();
   TextEditingController loadTimeController = TextEditingController();
   TextEditingController truckController = TextEditingController();
-  TextEditingController truckDetailsController = TextEditingController();
+  TextEditingController loadIDController = TextEditingController();
+  DateTime? _selectedDate;
   String loadTypeValue = '';
   String loadConditionValue = '';
   String inputTypeValue = 'Manual';
-  late DateTime _selectedDate;
   final _formKey = GlobalKey<FormState>();
   TextEditingController projectIdController = TextEditingController();
   TextEditingController deliverySiteController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
+  List<TruckDetails> truckDetails = [];
 
   void updatePartInformation(List<PartData> selectedPartsFromForm){
     setState(() {
@@ -156,8 +131,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                               child: TextFormField(
+                                enabled: false,
                                 decoration: const InputDecoration(
-                                    border: UnderlineInputBorder(),
+                                    border: OutlineInputBorder(),
                                     labelText: "Load ID"),
                               ),
                             ),
@@ -434,49 +410,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     color: Colors.blue),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                controller: truckDetailsController,
-                                enabled: false,
-                                maxLines: null,
-                                // Set to null for unlimited lines
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Truck Details',
-                                ),
-                              ),
-                            ),
+                            TruckDetailsForm(isEdit: true,),
                             const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                ElevatedButton(
-                                    onPressed: () async {
-                                      String truckResult = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (
-                                                context) => const AddTruckDetails()),
-                                      ) as String;
-                                      setState(() {
-                                        truckDetailsController.text =
-                                            truckResult.toString();
-                                      });
-                                    },
-                                    child: const Text('Add Truck Details')),
-                                ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _tabController.animateTo(1);
-                                      });
-                                    },
-                                    child: const Text(
-                                      'Next',
-                                      style: TextStyle(color: Colors.green),
-                                    )),
-                              ],
-                            ),
+                            ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _tabController.animateTo(1);
+                                  });
+                                },
+                                child: const Text(
+                                  'Next',
+                                  style: TextStyle(color: Colors.green),
+                                )),
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -537,35 +482,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Element ID')),
-                                  DataColumn(
-                                      label: Text('Element Description')),
-                                  DataColumn(label: Text('Remove')),
-                                ],
-                                rows: selectedElements
-                                    .map((row) =>
-                                    DataRow(cells: [
-                                      DataCell(Text(row.elementId)),
-                                      DataCell(Text(row.elementDesc)),
-                                      DataCell(IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedElements.remove(row);
-                                          });
-                                        },
-                                      )),
-                                    ]))
-                                    .toList(),
-                              ),
-                            ),
-                          ),
+                          ElementTable(selectedElements: selectedElements),
                           const SizedBox(
                             height: 20,
                           ),
@@ -576,38 +493,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Part Num')),
-                                  DataColumn(label: Text('Part Description')),
-                                  DataColumn(label: Text('QTY')),
-                                  DataColumn(label: Text('UOM')),
-                                  DataColumn(label: Text('Remove')),
-                                ],
-                                rows: selectedParts
-                                    .map((row) =>
-                                    DataRow(cells: [
-                                      DataCell(Text(row.partNum)),
-                                      DataCell(Text(row.partDesc)),
-                                      DataCell(Text(row.selectedQty ?? '0')),
-                                      DataCell(Text(row.uom)),
-                                      DataCell(IconButton(
-                                        icon: const Icon(Icons.remove),
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedParts.remove(row);
-                                          });
-                                        },
-                                      )),
-                                    ]))
-                                    .toList(),
-                              ),
-                            ),
-                          ),
+                          PartTable(selectedParts: selectedParts),
                           ElevatedButton(
                             onPressed: () {
                               setState(() {
@@ -637,7 +523,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               enabled: false,
                               initialValue: projectIdController.text,
                               decoration: const InputDecoration(
-                                  border: UnderlineInputBorder(),
+                                  border: OutlineInputBorder(),
                                   labelText: "Project ID"),
                             ),
                           ),
@@ -651,7 +537,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     enabled: false,
                                     initialValue: loadTimeController.text,
                                     decoration: const InputDecoration(
-                                        border: UnderlineInputBorder(),
+                                        border: OutlineInputBorder(),
                                         labelText: "Load Date"),
                                   ),
                                 ),
@@ -663,7 +549,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       enabled: false,
                                       initialValue: loadTimeController.text,
                                       decoration: const InputDecoration(
-                                          border: UnderlineInputBorder(),
+                                          border: OutlineInputBorder(),
                                           labelText: "Load Time"),
                                     ),
                                   )
@@ -679,7 +565,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       enabled: false,
                                       initialValue: deliverySiteController.text,
                                       decoration: const InputDecoration(
-                                          border: UnderlineInputBorder(),
+                                          border: OutlineInputBorder(),
                                           labelText: "From"),
                                     ),
                                   )
@@ -691,7 +577,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       enabled: false,
                                       initialValue: deliverySiteController.text,
                                       decoration: const InputDecoration(
-                                          border: UnderlineInputBorder(),
+                                          border: OutlineInputBorder(),
                                           labelText: "To"),
                                     ),
                                   )
@@ -705,17 +591,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              enabled: false,
-                              controller: truckDetailsController,
-                              maxLines: null, // Set to null for unlimited lines
-                              decoration: const InputDecoration(
-                                border: UnderlineInputBorder(),
-                              ),
-                            ),
-                          ),
+                          TruckDetailsForm(isEdit: false,),
                           const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('Selected Elements', style: TextStyle(
@@ -723,26 +599,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),),
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Element ID')),
-                                  DataColumn(
-                                      label: Text('Element Description')),
-                                ],
-                                rows: selectedElements.map((row) =>
-                                    DataRow(
-                                        cells: [
-                                          DataCell(Text(row.elementId)),
-                                          DataCell(Text(row.elementDesc)),
-                                        ]
-                                    )).toList(),
-                              ),
-                            ),
-                          ),
+                          ElementTable(selectedElements: selectedElements),
                           const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('Selected Parts', style: TextStyle(
@@ -750,25 +607,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),),
                           ),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: DataTable(
-                                columns: const [
-                                  DataColumn(label: Text('Part Num')),
-                                  DataColumn(label: Text('Part Description')),
-                                ],
-                                rows: selectedParts.map((row) =>
-                                    DataRow(
-                                        cells: [
-                                          DataCell(Text(row.partNum)),
-                                          DataCell(Text(row.partDesc)),
-                                        ]
-                                    )).toList(),
-                              ),
-                            ),
-                          ),
+                          PartTable(selectedParts: selectedParts),
                           const SizedBox(height: 20,),
                           ElevatedButton(
                               onPressed: () {

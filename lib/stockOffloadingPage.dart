@@ -4,38 +4,17 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:precast_demo/elementTable.dart';
+import 'package:precast_demo/partTable.dart';
+import 'package:precast_demo/truckDetails.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
 
-
-Future<Map<String, dynamic>> fetchProjectDataFromJson() async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/projectData.json');
-  final jsonString = await file.readAsString();
-  Map<String, dynamic> jsonResponse = json.decode(jsonString);
-  return jsonResponse;
-}
-
-Future<List<PartData>> fetchPartData() async {
-  String jsonString = await rootBundle.loadString('assets/data_parts.json');
-  Map<String, dynamic> jsonResponse = json.decode(jsonString);
-  return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => PartData.fromJson(e)).toList();
-}
-
-Future<List<ElementData>> fetchElementData() async {
-  String jsonString = await rootBundle.loadString('assets/data_element.json');
-  Map<String, dynamic> jsonResponse = json.decode(jsonString);
-  return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => ElementData.fromJson(e)).toList();
-}
-
-
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
-
   const StockOffloading({super.key, required this.initialTabIndex});
 
   @override
@@ -52,26 +31,40 @@ class _StockOffloadingState extends State<StockOffloading>
   late TabController _tabController;
   String loadTypeValue = '';
   String loadConditionValue = '';
+  String loadStatus = '';
   String inputTypeValue = 'Manual';
   final _formKey = GlobalKey<FormState>();
-  List<ElementData> selectedElements = [];
-  List<PartData> selectedParts = [];
+
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
+
+  Map<String, dynamic> elementData = {};
+  List<dynamic> elementValue = [];
+  List<ElementData> selectedElements = [];
+
+  Map<String, dynamic> partData = {};
+  List<dynamic> partValue = [];
+  List<PartData> selectedParts = [];
+
+  final String username = 'manager';
+  final String password = 'manager';
+
+  LoadData? offloadData;
+
+  bool loaded = false;
+  bool elementsAndPartsLoaded = false;
 
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
+  final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
 
   Future<void> fetchLoadDataFromURL() async {
-
-    final url = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD103Svc/UD103s');
-    final String username = 'manager';
-    final String password = 'manager';
-    final String basicAuth = 'Basic ' + base64Encode(utf8.encode('$username:$password'));
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
       final response = await http.get(
-          url,
+          loadURL,
         headers: {
           HttpHeaders.authorizationHeader: basicAuth,
           HttpHeaders.contentTypeHeader: 'application/json',
@@ -86,24 +79,136 @@ class _StockOffloadingState extends State<StockOffloading>
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
-
-  }
-
-  Future<void> fetchOffloadData() async {
-    final jsonString = await rootBundle.loadString('assets/OffloadProjects.json');
-    setState(() {
-      loadData = json.decode(jsonString);
-    });
   }
 
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty){
       LoadData loadObject = LoadData.fromJson(loadValue.where((element) => element['Key1'] == loadID).first);
-      debugPrint(loadObject.toString());
       return loadObject;
     }
     return null;
   }
+
+  Future<void> fetchElementDataFromURL() async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    try {
+      final response = await http.get(
+          detailsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        elementData = jsonResponse;
+        elementValue = elementData['value'].where((element) => element['CheckBox13'] == false).toList();
+      });
+      debugPrint(elementValue.toString());
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  ElementData? getElementObjectFromJson(String loadID) {
+    if (elementValue.isNotEmpty){
+      var matchingElement = elementValue.where((element) => element['Key1'] == loadID).toList();
+      ElementData? elementObject;
+      if (matchingElement.isNotEmpty){
+        for (var v = 0; v<matchingElement.length; v++) {
+          elementObject = ElementData.fromJson(matchingElement[v]);
+          debugPrint(elementObject.elementId);
+          selectedElements.add(elementObject);
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> fetchPartDataFromURL() async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    try {
+      final response = await http.get(
+          detailsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        partData = jsonResponse;
+        partValue = partData['value'].where((part) => part['CheckBox13'] == true).toList();
+      });
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  PartData? getPartObjectFromJson(String loadID) {
+    if (partValue.isNotEmpty){
+      var matchingPart = partValue.where((part) => part['Key1'] == loadID).toList();
+      if (matchingPart.isNotEmpty){
+        for (var v = 0; v<matchingPart.length; v++) {
+          PartData partObject = PartData.fromJson(matchingPart[v]);
+          selectedParts.add(partObject);
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> updateLoadStatus(Map<String, dynamic> statusData) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    try {
+      final response = await http.post(
+          loadURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+        body: jsonEncode(statusData)
+      );
+      if(response.statusCode == 201){
+        debugPrint('Load Status Updated');
+        setState(() {
+          loaded = true;
+        });
+      }
+      else {
+        debugPrint('Load Status Update Failed');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    try {
+      final response = await http.post(
+          detailsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+          body: jsonEncode(ud103AData)
+      );
+      if(response.statusCode == 201){
+        setState(() {
+          elementsAndPartsLoaded = true;
+        });
+      }
+      else {
+        debugPrint('UD103A Update Failed');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
 
   @override
   void initState() {
@@ -111,6 +216,7 @@ class _StockOffloadingState extends State<StockOffloading>
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     fetchLoadDataFromURL();
+    fetchElementDataFromURL();
     super.initState();
   }
 
@@ -192,36 +298,43 @@ class _StockOffloadingState extends State<StockOffloading>
                             IconButton(
                               onPressed: () async {
                                 await fetchLoadDataFromURL();
+                                await fetchElementDataFromURL();
+                                await fetchPartDataFromURL();
                                 String projectLoadID = loadIDController.text;
-                                LoadData? offloadData = getLoadObjectFromJson(projectLoadID);
-                                debugPrint(offloadData.toString());
+                                offloadData = getLoadObjectFromJson(projectLoadID);
+                                getElementObjectFromJson(projectLoadID);
+                                getPartObjectFromJson(projectLoadID);
                                 if (offloadData != null) {
                                   setState(() {
-                                    projectIDController.text = offloadData.projectId;
-                                    loadDateController.text = offloadData.loadDate;
-                                    toWarehouseController.text = offloadData.toWarehouse;
-                                    toBinController.text = offloadData.toBin;
-                                    loadTypeValue = offloadData.loadType;
-                                    loadConditionValue = offloadData.loadCondition;
+                                    projectIDController.text = offloadData!.projectId;
+                                    loadDateController.text = offloadData!.loadDate;
+                                    toWarehouseController.text = offloadData!.toWarehouse;
+                                    toBinController.text = offloadData!.toBin;
+                                    loadTypeValue = offloadData!.loadType;
+                                    loadConditionValue = offloadData!.loadCondition;
                                   });
-                                } else {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text('Error'),
-                                        content: const Text('Load ID not found'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('Close'),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
+                                }
+                                else {
+                                  if(mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('Error'),
+                                          content: const Text(
+                                              'Load ID not found'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('Close'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
                                 }
                               },
                               icon: const Icon(
@@ -392,6 +505,11 @@ class _StockOffloadingState extends State<StockOffloading>
                               ]),
                             ),
                           ]),
+                      const Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                      ),
+                      TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
                       const SizedBox(
                         height: 20,
                       ),
@@ -422,58 +540,18 @@ class _StockOffloadingState extends State<StockOffloading>
                               color: Colors.blue),
                         ),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Element ID')),
-                              DataColumn(label: Text('Element Description')),
-                              DataColumn(label: Text('Erection Seq')),
-                            ],
-                            rows: selectedElements
-                                .map((row) => DataRow(cells: [
-                                  DataCell(Text(row.elementId)),
-                                  DataCell(Text(row.elementDesc)),
-                                  DataCell(Text(row.erectionSeq)),
-                                    ]))
-                                .toList(),
-                          ),
-                        ),
-                      ),
+                      ElementTable(selectedElements: selectedElements),
                       const SizedBox(
                         height: 20,
                       ),
                       const Text(
-                        'Selected Parts',
+                        'Arrived Parts',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                             color: Colors.blue),
                       ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Part Num')),
-                              DataColumn(label: Text('Part Description')),
-                              DataColumn(label: Text('UOM')),
-                              DataColumn(label: Text('Qty')),
-                            ],
-                            rows: selectedParts
-                                .map((row) => DataRow(cells: [
-                                      DataCell(Text(row.partNum)),
-                                      DataCell(Text(row.partDesc)),
-                                      DataCell(Text(row.uom)),
-                                      DataCell(Text(row.qty)),
-                                    ]))
-                                .toList(),
-                          ),
-                        ),
-                      ),
+                      PartTable(selectedParts: selectedParts),
                       const SizedBox(height: 20,),
                       ElevatedButton(
                         onPressed: () {
@@ -507,7 +585,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
-                          border: UnderlineInputBorder(
+                          border: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.blue),
                           ),
                           label: Text('Load ID'),
@@ -522,7 +600,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
-                          border: UnderlineInputBorder(
+                          border: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.blue),
                           ),
                           label: Text('Project ID'),
@@ -537,7 +615,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
-                          border: UnderlineInputBorder(
+                          border: OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.blue),
                           ),
                           label: Text('Load Date'),
@@ -555,7 +633,7 @@ class _StockOffloadingState extends State<StockOffloading>
                               decoration: const InputDecoration(
                                 fillColor: Colors.white,
                                 filled: true,
-                                border: UnderlineInputBorder(
+                                border: OutlineInputBorder(
                                   borderSide: BorderSide(color: Colors.blue),
                                 ),
                                 label: Text('To Warehouse'),
@@ -572,7 +650,7 @@ class _StockOffloadingState extends State<StockOffloading>
                               decoration: const InputDecoration(
                                 fillColor: Colors.white,
                                 filled: true,
-                                border: UnderlineInputBorder(
+                                border: OutlineInputBorder(
                                   borderSide: BorderSide(color: Colors.blue),
                                 ),
                                 label: Text('To Bin'),
@@ -582,70 +660,150 @@ class _StockOffloadingState extends State<StockOffloading>
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 20,
+                    const SizedBox(height: 20,),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
                     ),
+                    TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
+                    const SizedBox(height: 20,),
                     const Text(
-                      'Selected Elements',
+                      'Arrived Elements',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.blue),
                     ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text('Element ID')),
-                            DataColumn(label: Text('Element Description')),
-                          ],
-                          rows: selectedElements
-                              .map((row) => DataRow(cells: [
-                                    DataCell(Text(row.elementId)),
-                                    DataCell(Text(row.elementDesc)),
-                                  ]))
-                              .toList(),
-                        ),
-                      ),
-                    ),
+                    ElementTable(selectedElements: selectedElements),
                     const SizedBox(
                       height: 20,
                     ),
                     const Text(
-                      'Selected Parts',
+                      'Arrived Parts',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                           color: Colors.blue),
                     ),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: DataTable(
-                          columns: const [
-                            DataColumn(label: Text('Part Num')),
-                            DataColumn(label: Text('Part Description')),
-                          ],
-                          rows: selectedParts
-                              .map((row) => DataRow(cells: [
-                                    DataCell(Text(row.partNum)),
-                                    DataCell(Text(row.partDesc)),
-                                  ]))
-                              .toList(),
-                        ),
-                      ),
-                    ),
+                    PartTable(selectedParts: selectedParts),
                     const SizedBox(
                       height: 20,
                     ),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         setState(() {
-                          _tabController.animateTo(0);
+                          loadStatus = 'Closed';
                         });
+                        if(offloadData!.loadStatus == 'Closed'){
+                          if(mounted) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Error'),
+                                  content: const Text('Load Already Offloaded'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        }
+                        else {
+                          await updateLoadStatus({
+                            "Key1": loadIDController.text,
+                            "Company": 'EPIC06',
+                            "ShortChar03": loadStatus,
+                          });
+
+                          for (var v = 0; v < selectedElements.length; v++) {
+                            await updateUD103A({
+                              "Key1": loadIDController.text,
+                              "Character01": selectedElements[v].elementId,
+                              "Company": 'EPIC06',
+                              "CheckBox02": true,
+                            });
+                            debugPrint(selectedElements[v].elementId);
+                          }
+                          for (var v = 0; v < selectedParts.length; v++) {
+                            await updateUD103A({
+                              "Key1": loadIDController.text,
+                              "Character01": selectedParts[v].partNum,
+                              "Company": 'EPIC06',
+                              "CheckBox02": true,
+                            });
+                            debugPrint(selectedParts[v].partNum);
+                          }
+                        }
+                        if(loaded && elementsAndPartsLoaded){
+                          if(mounted) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Success'),
+                                  content: const Text('Load Offloaded'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        }
+                        if(loaded && !elementsAndPartsLoaded){
+                          if (mounted) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Success'),
+                                  content: const Text('Load Offloaded'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        }
+                        if (!loaded && !elementsAndPartsLoaded){
+                          if(mounted) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('Error', style: TextStyle(color: Colors.red),),
+                                  content: const Text('Offload Failed'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        }
                       },
                       child: const Text('Offload Items'),
                     ),

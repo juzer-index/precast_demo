@@ -22,11 +22,6 @@ class _ElementStatusViewerState extends State<ElementStatusViewer> {
 
   @override
   void initState() {
-    DynamicLibrary myLibrary = DynamicLibrary.open("assets/IITASMEpicorRestAPI.dll");
-    // final myFunction = myLibrary.lookup<NativeFunction<GetElementStatus>>('getElementStatus');
-    // var result = myFunction.asFunction<GetElementStatus>()();
-    // print(result.toDartString());
-
     super.initState();
   }
 

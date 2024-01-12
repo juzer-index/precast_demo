@@ -42,12 +42,6 @@ class Data {
 
 //for internal usage
 
-Future<List<Data>> fetchData() async {
-  String jsonString = await rootBundle.loadString('assets/data_projects.json');
-  Map<String, dynamic> jsonResponse = json.decode(jsonString);
-  return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => Data.fromJson(e)).toList();
-}
-
 //main function to fetch data from a url
 
 // Future<List<Data>> fetchData() async {

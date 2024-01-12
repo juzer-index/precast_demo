@@ -10,10 +10,10 @@ class PartData {
 
   factory PartData.fromJson(Map<String, dynamic> json) {
     return PartData(
-      partNum: json['Part_PartNum'],
-      partDesc: json['Part_PartDescription'],
-      qty: json['Part_QTY'],
-      uom: json['Part_IUM'],
+      partNum: json['Character01'],
+      partDesc: json['Character02'],
+      qty: json['Number01'],
+      uom: json['ShortChar07'],
     );
   }
 

@@ -11,10 +11,10 @@ class ElementData {
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(
-      elementId: json['PartNum'],
-      elementDesc: json['PartLotDescription'],
+      elementId: json['Character01'],
+      elementDesc: json['Character02'],
       erectionSeq: json['ShortChar01'],
-      erectionDate: json['Date01'],
+      erectionDate: json['Date01'] ?? '',
       weight: json['Number01'],
       area: json['Number02'],
       volume: json['Number03'],

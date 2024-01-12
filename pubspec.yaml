@@ -67,13 +67,7 @@ flutter:
 #    - assets/IITASMEpicorRestAPI.dll
     - assets/Index-Logo.jpg
     - assets/elementmaster.json
-    - assets/data_element.json
     - assets/data_parts.json
-    - assets/data_projects.json
-    - assets/projectData.json
-    - assets/OffloadProjects.json
-    - assets/truckDetails.json
-    - assets/resourceDetails.json
   uses-material-design: true
 
 
