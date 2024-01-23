@@ -4,7 +4,8 @@ class ResourceDetails {
   late final String width;
   late final String height;
   late final String volume;
-  ResourceDetails({required this.capacity, required this.length, required this.width, required this.height, required this.volume});
+  late final String loaded;
+  ResourceDetails({required this.capacity, required this.length, required this.width, required this.height, required this.volume, required this.loaded});
 
   factory ResourceDetails.fromJson(Map<String, dynamic> json) {
     return ResourceDetails(
@@ -13,6 +14,7 @@ class ResourceDetails {
       width: json['Number06'],
       height: json['Number07'],
       volume: json['Number04'],
+      loaded: json['Number01'],
     );
   }
 }

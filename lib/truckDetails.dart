@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'truck_model.dart';
 import 'truckresource_model.dart';
@@ -182,32 +183,46 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: DropdownButtonFormField(
-                            hint: const Text('Truck ID'),
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
+                          child: DropdownSearch(
+                            popupProps: const PopupProps.modalBottomSheet(
+                              showSearchBox: true,
+                              searchFieldProps: TextFieldProps(
+                                decoration: InputDecoration(
+                                  suffixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
+                                  labelText: "Search",
+                                ),
                               ),
-
-                              items: truckValue.map<DropdownMenuItem<dynamic>>((
-                                  dynamic value) =>
-                                  DropdownMenuItem<dynamic>(
-                                    value: value['Character01'],
-                                    child: Text(value['Character01']),
-                              )).toList(),
-                              onTap: () async {
-                                await getTrucksFromURL();
-                              },
-                              onChanged: (value) async {
-                                setState(() {
-                                  truckIdController.text = value.toString();
-                                  resourceIdController.text = truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1'];
-                                });
-                                plateNumberController.text = truckValue.where((element) => element['Character01'] == truckIdController.text).first['Character02'];
-                                await getResourceForTrucks(resourceIdController.text);
-                                if(resourceValue != null){
-                                  _formKey.currentState?.reset();
-                                }
-                              },
+                            ),
+                            autoValidateMode: AutovalidateMode.onUserInteraction,
+                            dropdownDecoratorProps: const DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Truck",
+                              ),
+                            ),
+                            items: truckValue
+                                .map((value) => value['Character01'])
+                                .toList(),
+                            onChanged: (value) async {
+                              setState(() {
+                                truckIdController.text = value.toString();
+                                resourceIdController.text = truckValue
+                                    .where((element) =>
+                                        element['Character01'] ==
+                                        truckIdController.text)
+                                    .first['Key1'];
+                              });
+                              plateNumberController.text = truckValue
+                                  .where((element) =>
+                                      element['Character01'] ==
+                                      truckIdController.text)
+                                  .first['Character02'];
+                              await getResourceForTrucks(resourceIdController.text);
+                              if (resourceValue != null) {
+                                _formKey.currentState?.reset();
+                              }
+                            },
                           ),
                         ),
                       ),
@@ -232,32 +247,42 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                         padding: const EdgeInsets.all(8.0),
                         child: Form(
                           key: _formKey,
-                          child: DropdownButtonFormField(
-                            hint: const Text('Resource'),
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
+                          child: DropdownSearch(
+                            popupProps: const PopupProps.modalBottomSheet(
+                              showSearchBox: true,
+                              searchFieldProps: TextFieldProps(
+                                decoration: InputDecoration(
+                                  suffixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
+                                  labelText: "Search",
+                                ),
                               ),
-                              items: resourceValue?.map<DropdownMenuItem<dynamic>>((
-                                  dynamic value) {
-                                return DropdownMenuItem<dynamic>(
-                                    value: value['Character01'],
-                                    child: Text(value['Character01']),
-                              );
-                              }).toList() ?? [],
-                              onChanged: (value) {
-                              debugPrint(value.toString());
-                              var resourceIdentifier = resourceValue?.where((element) => element['Character01'] == value).first['Character01'];
-                                getResourceDetailsFromJson(resourceIdentifier);
-                                if(resourceDetails != null){
-                                  setState(() {
-                                    capacityController.text = resourceDetails!.capacity;
-                                    lengthController.text = resourceDetails!.length;
-                                    widthController.text = resourceDetails!.width;
-                                    heightController.text = resourceDetails!.height;
-                                    volumeController.text = resourceDetails!.volume;
-                                  });
-                                }
-                              },
+                            ),
+                            autoValidateMode: AutovalidateMode.onUserInteraction,
+                            dropdownDecoratorProps: const DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Resource",
+                              ),
+                            ),
+                            items: resourceValue?.map((value) => value['Character01'])
+                                .toList() ?? [],
+                            onChanged: (value) async {
+                              setState(() {
+                                resourceIdController.text = value.toString();
+                              });
+                              await getResourceForTrucks(resourceIdController.text);
+                              debugPrint(resourceIdController.text);
+                              if(resourceDetails != null){
+                                      setState(() {
+                                        capacityController.text = resourceDetails!.capacity;
+                                        lengthController.text = resourceDetails!.length;
+                                        widthController.text = resourceDetails!.width;
+                                        heightController.text = resourceDetails!.height;
+                                        volumeController.text = resourceDetails!.volume;
+                                      });
+                                    }
+                            },
                           ),
                         ),
                       ),
@@ -299,23 +324,32 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: DropdownButtonFormField(
-                            hint: const Text('Driver Name'),
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
+                          child: DropdownSearch(
+                            popupProps: const PopupProps.modalBottomSheet(
+                              showSearchBox: true,
+                              searchFieldProps: TextFieldProps(
+                                decoration: InputDecoration(
+                                  suffixIcon: Icon(Icons.search),
+                                  border: OutlineInputBorder(),
+                                  labelText: "Search",
+                                ),
                               ),
-                              items: fetchedDriverValue.map<DropdownMenuItem<dynamic>>((
-                                  dynamic value) {
-                                return DropdownMenuItem<dynamic>(
-                                    value: value['Driver_Name'],
-                                    child: Text(value['Driver_Name']),
-                              );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  driverNameController.text = value.toString();
-                                });
-                              },
+                            ),
+                            autoValidateMode: AutovalidateMode.onUserInteraction,
+                            dropdownDecoratorProps: const DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Driver Name",
+                              ),
+                            ),
+                            items: fetchedDriverValue
+                                .map((value) => value['Driver_Name'])
+                                .toList(),
+                            onChanged: (value) async {
+                              setState(() {
+                                driverNameController.text = value.toString();
+                              });
+                            },
                           ),
                         ),
                       ),
@@ -342,7 +376,6 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        //add dropdown item list with label truck ID
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
