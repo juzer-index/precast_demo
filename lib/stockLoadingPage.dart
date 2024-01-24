@@ -4,7 +4,6 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
-import 'package:precast_demo/truckDetails.dart';
 import 'package:precast_demo/elementSearchForm.dart';
 import 'package:precast_demo/partSearchForm.dart';
 import 'package:precast_demo/truckresource_model.dart';
@@ -13,14 +12,12 @@ import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
 import 'package:http/http.dart' as http;
-import 'warehouse_model.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  final bool isEdit = true;
+  final bool isOffLoading;
   final bool isUpdate;
-  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate});
-
+  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.isOffLoading});
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -71,6 +68,19 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController foremanId = TextEditingController();
   TextEditingController foremanName = TextEditingController();
 
+  Map<String, dynamic> loadData = {};
+  List<dynamic> loadValue = [];
+
+  Map<String, dynamic> elementData = {};
+  List<dynamic> elementValue = [];
+
+  Map<String, dynamic> partData = {};
+  List<dynamic> partValue = [];
+
+  LoadData? offloadData;
+  final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
+  final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
+
   final GlobalKey<FormState> _truckFormKey = GlobalKey<FormState>();
 
   var truckURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102s');
@@ -86,113 +96,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   bool isTruckChanged = false;
 
-  bool loadCreated = false;
+  bool isLoaded = false;
 
   late final int lastLoad;
   late final String nextLoad;
 
   final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
-
-  ResourceDetails? getResourceDetailsFromJson(String resourceID) {
-    debugPrint(resourceID);
-    if (resourceValue != null) {
-      if(resourceValue!.where((element) => element['Character01'] == resourceID).isNotEmpty){
-        resourceDetails = ResourceDetails.fromJson(resourceValue!.where((element) => element['Character01'] == resourceID).first);
-        return resourceDetails;
-      }
-    }
-    return null;
-  }
-
-  Future<void> getTrucksFromURL() async {
-    try {
-      final response = await http.get(
-          truckURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
-      final jsonResponse = json.decode(response.body);
-      setState(() {
-        truckData = jsonResponse;
-        truckValue = truckData['value'];
-      });
-    }
-    on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
-    try {
-      final response = await http.get(
-          urL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
-      final jsonResponse = json.decode(response.body);
-      setState(() {
-        resourceData = jsonResponse;
-        resourceValue = resourceData['value'];
-        resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
-        // for (var element in resourceValue) {
-        //   if (element['Key1'] == truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1']) {
-        //     matchingResources.add(element);
-        //   }
-        // }
-      });
-    }
-    on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> getDriverList() async {
-    try{
-      final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          });
-      if (response.statusCode == 200) {
-        setState(() {
-          fetchedDriverData = json.decode(response.body);
-          fetchedDriverValue = fetchedDriverData['value'];
-        });
-      } else {
-        throw Exception('Failed to load album');
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> getLastLoadID() async {
-    try{
-      final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_UD103AutoGenerateNum'),
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          });
-      if(response.statusCode == 200){
-          Map<String, dynamic> rp = json.decode(response.body);
-
-          setState(() {
-            lastLoad = rp['value'][0]['Calculated_AutoGen'];
-          });
-          debugPrint(lastLoad.toString());
-        }
-      }
-      on Exception catch (e) {
-        debugPrint(e.toString());
-      }
-  }
 
   @override
   void initState() {
@@ -227,8 +136,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(),
-                  const Text(
-                      'Stock Loading', style: TextStyle(color: Colors.white)),
+                  if(widget.isUpdate)
+                    const Text('Edit Load', style: TextStyle(color: Colors.white)),
+                  if(!widget.isUpdate)
+                    const Text('Stock Loading', style: TextStyle(color: Colors.white)),
+                  if(widget.isOffLoading)
+                    const Text('Stock Offloading', style: TextStyle(color: Colors.white)),
                   ClipOval(
                     child: Image.network(
                       'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
@@ -286,6 +199,67 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       labelText: "Load ID"),
                                 ),
                               ),
+                            if(widget.isUpdate)
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        enabled: false,
+                                        controller: loadIDController,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load ID"),
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () async {
+                                      await fetchLoadDataFromURL();
+                                      await fetchElementDataFromURL();
+                                      await fetchPartDataFromURL();
+                                      String projectLoadID = loadIDController.text;
+                                      offloadData = getLoadObjectFromJson(projectLoadID);
+                                      getElementObjectFromJson(projectLoadID);
+                                      getPartObjectFromJson(projectLoadID);
+                                      if (offloadData != null) {
+                                        setState(() {
+                                          projectIdController.text = offloadData!.projectId;
+                                          dateController.text = offloadData!.loadDate;
+                                          toWarehouseController.text = offloadData!.toWarehouse;
+                                          toBinController.text = offloadData!.toBin;
+                                          loadTypeValue = offloadData!.loadType;
+                                          loadConditionValue = offloadData!.loadCondition;
+                                        });
+                                      }
+                                      else {
+                                        if(mounted) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text('Error'),
+                                                content: const Text(
+                                                    'Load ID not found'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const Text('Close'),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        }
+                                      }
+                                    },
+                                    icon: const Icon(Icons.search),
+                                  ),
+                                ]
+                              ),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: DropdownSearch(
@@ -295,7 +269,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     decoration: InputDecoration(
                                       suffixIcon: Icon(Icons.search),
                                       border: OutlineInputBorder(),
-                                      labelText: "Search a project",
+                                      labelText: "Search",
                                     ),
                                   ),
                                 ),
@@ -635,7 +609,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   "Character06": fromWarehouseController.text,
                                   "Character09": resourceIdController.text,
                                 });
-                                if(loadCreated){
+                                if(isLoaded){
                                   if(mounted) {
                                     showDialog(context: context,
                                       builder: (BuildContext context) {
@@ -672,7 +646,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     ),
                   ),
                   //Tab 2 Content
-                  if(loadCreated)
+                  // if(isLoaded)
                     SingleChildScrollView(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -689,31 +663,42 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       color: Colors.blue),
                                 ),
                               ),
+                              const SizedBox(height: 15,),
                               Container(
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade100,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: ExpansionTile(
-                                  title: const Text('Element Parts'),
+                                child: Column(
                                   children: [
+                                    const Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.all(10.0),
+                                          child: Text('Part Search Form', style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14),)
+                                        ),
+                                      ],
+                                    ),
                                     ElementSearchForm(onElementsSelected: updateElementInformation),
                                   ],
                                 ),
                               ),
                               const SizedBox(height: 20,),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: ExpansionTile(
-                                  title: const Text('Non Element Parts'),
-                                  children: [
-                                    PartSearchForm(onPartsSelected: updatePartInformation,),
-                                  ],
-                                ),
-                              ),
+                              // Container(
+                              //   decoration: BoxDecoration(
+                              //     color: Colors.blue.shade100,
+                              //     borderRadius: BorderRadius.circular(10),
+                              //   ),
+                              //   child: ExpansionTile(
+                              //     title: const Text('Non Element Parts'),
+                              //     children: [
+                              //       PartSearchForm(onPartsSelected: updatePartInformation,),
+                              //     ],
+                              //   ),
+                              // ),
                             ],
                           ),
                           const SizedBox(
@@ -748,10 +733,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           )
                         ]),
                   ),
-                  if(!loadCreated)
-                    const Center(
-                      child: Text('Please create a load first'),
-                    ),
+                  // if(!isLoaded)
+                  //   const Center(
+                  //     child: Text('Please create a load first'),
+                  //   ),
                   //Tab 3 Content
                   SingleChildScrollView(
                     controller: ScrollController(),
@@ -987,7 +972,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       if (response.statusCode == 201) {
         debugPrint(response.body);
         setState(() {
-          loadCreated = true;
+          isLoaded = true;
         });
       }
     } on Exception catch (e) {
@@ -995,11 +980,203 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  // void getTruckInformation(List<LoadData> selectedTruckDetails){
-  //   setState(() {
-  //     truckDetails = selectedTruckDetails;
-  //   });
-  // }
+  ResourceDetails? getResourceDetailsFromJson(String resourceID) {
+    debugPrint(resourceID);
+    if (resourceValue != null) {
+      if(resourceValue!.where((element) => element['Character01'] == resourceID).isNotEmpty){
+        resourceDetails = ResourceDetails.fromJson(resourceValue!.where((element) => element['Character01'] == resourceID).first);
+        return resourceDetails;
+      }
+    }
+    return null;
+  }
+
+  Future<void> getTrucksFromURL() async {
+    try {
+      final response = await http.get(
+          truckURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        truckData = jsonResponse;
+        truckValue = truckData['value'];
+      });
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getResourceForTrucks(String resourceID) async {
+    var urL = Uri.parse("https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    try {
+      final response = await http.get(
+          urL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        resourceData = jsonResponse;
+        resourceValue = resourceData['value'];
+        resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
+        // for (var element in resourceValue) {
+        //   if (element['Key1'] == truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1']) {
+        //     matchingResources.add(element);
+        //   }
+        // }
+      });
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getDriverList() async {
+    try{
+      final response = await http.get(
+          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if (response.statusCode == 200) {
+        setState(() {
+          fetchedDriverData = json.decode(response.body);
+          fetchedDriverValue = fetchedDriverData['value'];
+        });
+      } else {
+        throw Exception('Failed to load album');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getLastLoadID() async {
+    try{
+      final response = await http.get(
+          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_UD103AutoGenerateNum'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if(response.statusCode == 200){
+        Map<String, dynamic> rp = json.decode(response.body);
+
+        setState(() {
+          lastLoad = rp['value'][0]['Calculated_AutoGen'];
+        });
+        debugPrint(lastLoad.toString());
+      }
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> fetchPartDataFromURL() async {
+    try {
+      final response = await http.get(
+          detailsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        partData = jsonResponse;
+        partValue = partData['value'].where((part) => part['CheckBox13'] == true).toList();
+      });
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> fetchElementDataFromURL() async {
+    try {
+      final response = await http.get(
+          detailsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        elementData = jsonResponse;
+        elementValue = elementData['value'].where((element) => element['CheckBox13'] == false).toList();
+      });
+      debugPrint(elementValue.toString());
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> fetchLoadDataFromURL() async {
+    try {
+      final response = await http.get(
+          loadURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      setState(() {
+        loadData = jsonResponse;
+        loadValue = loadData['value'];
+      });
+      return jsonResponse;
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  LoadData? getLoadObjectFromJson(String loadID) {
+    if (loadValue.isNotEmpty){
+      LoadData loadObject = LoadData.fromJson(loadValue.where((element) => element['Key1'] == loadID).first);
+      return loadObject;
+    }
+    return null;
+  }
+
+  ElementData? getElementObjectFromJson(String loadID) {
+    if (elementValue.isNotEmpty){
+      var matchingElement = elementValue.where((element) => element['Key1'] == loadID).toList();
+      ElementData? elementObject;
+      if (matchingElement.isNotEmpty){
+        for (var v = 0; v<matchingElement.length; v++) {
+          elementObject = ElementData.fromJson(matchingElement[v]);
+          debugPrint(elementObject.elementId);
+          selectedElements.add(elementObject);
+        }
+      }
+    }
+    return null;
+  }
+
+  PartData? getPartObjectFromJson(String loadID) {
+    if (partValue.isNotEmpty){
+      var matchingPart = partValue.where((part) => part['Key1'] == loadID).toList();
+      if (matchingPart.isNotEmpty){
+        for (var v = 0; v<matchingPart.length; v++) {
+          PartData partObject = PartData.fromJson(matchingPart[v]);
+          selectedParts.add(partObject);
+        }
+      }
+    }
+    return null;
+  }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
     return Column(

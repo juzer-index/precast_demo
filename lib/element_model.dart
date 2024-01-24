@@ -7,7 +7,9 @@ class ElementData {
   late final String area;
   late final String volume;
   late final String quantity;
-  ElementData({required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.weight, required this.area, required this.volume, required this.quantity});
+  late final String? selectedQty;
+  // late final bool is
+  ElementData({required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty});
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(

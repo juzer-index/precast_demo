@@ -11,50 +11,6 @@ import 'loginPage.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 
-class Data {
-  final String projectId;
-  // final int transactionId;
-  final String date;
-  final String location;
-  // final int lineItems;
-  // final String details;
-
-  Data({
-    required this.projectId,
-    // required this.transactionId,
-    required this.date,
-    required this.location,
-    // required this.lineItems,
-    // required this.details,
-  });
-
-  factory Data.fromJson(Map<String, dynamic> json) {
-    return Data(
-      projectId: json['ProjectID'],
-      // transactionId: json['TransactionId'],
-      date: json['StartDate'],
-      location: json['Description'],
-      // lineItems: int.parse(json['PrimaryMtl']),
-      // details: json['Details'],
-    );
-  }
-}
-
-//for internal usage
-
-//main function to fetch data from a url
-
-// Future<List<Data>> fetchData() async {
-//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data_projects.json');
-//   final response = await http.get(url);
-//   if (response.statusCode == 200) {
-//     Map<String, dynamic> jsonResponse = json.decode(response.body);
-//     return (jsonResponse['value'] as List).cast<Map<String, dynamic>>().map((e) => Data.fromJson(e)).toList();
-//   } else {
-//     throw Exception('Unexpected error occurred!');
-//   }
-// }
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -267,7 +223,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,),
+                              builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: false, isOffLoading: false),
                             ),
                           );
                         },
@@ -328,7 +284,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const StockLoading(initialTabIndex: 0, isUpdate: true),
+                                  const StockLoading(initialTabIndex: 0, isUpdate: true, isOffLoading: false,),
                             ),
                           );
                         },
@@ -360,6 +316,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-
 }
