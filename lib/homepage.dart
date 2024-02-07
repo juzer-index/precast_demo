@@ -46,42 +46,47 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.11,
+                height: MediaQuery.of(context).size.height * 0.12,
                 child: Card(
                   elevation: 1,
                   color: Colors.lightBlue.shade100,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10.0),
-                          child: Image.network(
-                            'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
-                            height: 40,
-                            width: 40,
-                          ),
+                        Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10.0),
+                              child: Image.network(
+                                'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                                height: 40,
+                                width: 40,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'ID: 408',
+                                    style: TextStyle(
+                                        fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    'Department: Sales ',
+                                    style: TextStyle(
+                                        fontSize: 15, color: Colors.grey.shade800),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'ID: 408',
-                                style: TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'Department: Sales ',
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.grey.shade800),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                            padding: const EdgeInsets.fromLTRB(120, 0, 0, 0),
+                            padding: const EdgeInsets.all(8.0),
                             child: IconButton(
                                 onPressed: () {
                                   //display a popup with rounded borders and half screen size

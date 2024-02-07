@@ -26,6 +26,8 @@ class _PartSearchFormState extends State<PartSearchForm> {
   Map<String, dynamic> fetchedPartData = {};
   List<dynamic> fetchedPartValue = [];
 
+
+
   Barcode? partResult;
   String partResultCode = '';
   QRViewController? controller;

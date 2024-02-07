@@ -234,7 +234,7 @@ class _StockOffloadingState extends State<StockOffloading>
                   style: TextStyle(color: Colors.white)),
               ClipOval(
                 child: Image.network(
-                  'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
+                  'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
                   height: 35,
                   width: 35,
                 ),
@@ -305,6 +305,27 @@ class _StockOffloadingState extends State<StockOffloading>
                                 getElementObjectFromJson(projectLoadID);
                                 getPartObjectFromJson(projectLoadID);
                                 if (offloadData != null) {
+                                  if(offloadData!.loadStatus == 'Closed'){
+                                    if(mounted) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            title: const Text('Error'),
+                                            content: const Text('This Load is already offloaded'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: const Text('Close'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }
+                                  }
                                   setState(() {
                                     projectIDController.text = offloadData!.projectId;
                                     loadDateController.text = offloadData!.loadDate;
@@ -691,6 +712,9 @@ class _StockOffloadingState extends State<StockOffloading>
                     ),
                     ElevatedButton(
                       onPressed: () async {
+                        if(offloadData!.loadStatus == 'Closed'){
+                          null;
+                        }
                         setState(() {
                           loadStatus = 'Closed';
                         });

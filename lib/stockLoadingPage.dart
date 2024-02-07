@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/elementSearchForm.dart';
-import 'package:precast_demo/partSearchForm.dart';
 import 'package:precast_demo/truckresource_model.dart';
 import 'dart:convert';
 import 'load_model.dart';
@@ -83,8 +82,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   final GlobalKey<FormState> _truckFormKey = GlobalKey<FormState>();
 
-  var truckURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102As');
+  var truckURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102s');
+  var resourceURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As');
+
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
   Map<String, dynamic> resourceData = {};
@@ -99,6 +99,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   bool isLoaded = false;
 
   late final int lastLoad;
+  late final int l1;
+  late final int l2;
   late final String nextLoad;
 
   final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
@@ -144,7 +146,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     const Text('Stock Offloading', style: TextStyle(color: Colors.white)),
                   ClipOval(
                     child: Image.network(
-                      'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_200_200/0/1692612499698?e=1706140800&v=beta&t=WX4ydCp7VUP7AhXZOIDHIX3D3Ts5KfR-1YJJU6FmalI',
+                      'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
                       height: 35,
                       width: 35,
                     ),
@@ -656,34 +658,22 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               const Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
-                                  'Load Details',
+                                  'Part Search Form',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       color: Colors.blue),
                                 ),
                               ),
-                              const SizedBox(height: 15,),
+                              const SizedBox(height: 10,),
                               Container(
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade100,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Column(
-                                  children: [
-                                    const Row(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding: EdgeInsets.all(10.0),
-                                          child: Text('Part Search Form', style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14),)
-                                        ),
-                                      ],
-                                    ),
-                                    ElementSearchForm(onElementsSelected: updateElementInformation),
-                                  ],
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ElementSearchForm(onElementsSelected: updateElementInformation),
                                 ),
                               ),
                               const SizedBox(height: 20,),
@@ -863,7 +853,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 );
                               },
                               child: const Text(
-                                'Save',
+                                'Save Load',
                                 style: TextStyle(color: Colors.green),
                               )),
                         ],
@@ -1012,7 +1002,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse("https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final response = await http.get(
           urL,
@@ -1041,7 +1031,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getDriverList() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
+          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_DriverName'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1062,16 +1052,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getLastLoadID() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_UD103AutoGenerateNum'),
+          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           });
       if(response.statusCode == 200){
         Map<String, dynamic> rp = json.decode(response.body);
-
         setState(() {
-          lastLoad = rp['value'][0]['Calculated_AutoGen'];
+          l1 = rp['value'][0]['Calculated_AutoGen'];
+          l2 = rp['value'][1]['Calculated_AutoGen'];
+          lastLoad = l1 + l2;
         });
         debugPrint(lastLoad.toString());
       }
@@ -1121,7 +1112,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-
+  
   Future<void> fetchLoadDataFromURL() async {
     try {
       final response = await http.get(
