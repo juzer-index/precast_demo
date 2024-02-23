@@ -2,6 +2,7 @@
 class LoadData {
   late final String projectId;
   late final String loadDate;
+  late final String fromWarehouse;
   late final String toWarehouse;
   late final String toBin;
   late final String loadType;
@@ -24,6 +25,7 @@ class LoadData {
   LoadData({
     required this.projectId,
     required this.loadDate,
+    required this.fromWarehouse,
     required this.toWarehouse,
     required this.toBin,
     required this.loadType,
@@ -49,6 +51,7 @@ class LoadData {
     return LoadData(
       projectId: json['ShortChar05'],
       loadDate: json['Date01'] ?? '',
+      fromWarehouse: json['Character06'],
       toWarehouse: json['Character04'],
       toBin: json['Character05'],
       loadType: json['ShortChar01'],
@@ -75,11 +78,12 @@ class LoadData {
     return LoadData(
       projectId: json['ShortChar05'],
       loadDate: json['Date01'] ?? '',
+      fromWarehouse: json['Character06'],
       toWarehouse: json['Character04'],
       toBin: json['Character05'],
-      loadType: json['ShortChar01'],
+      loadType: json['ShortChar03'],
       loadCondition: json['ShortChar04'],
-      loadStatus: json['ShortChar03'],
+      loadStatus: json['ShortChar01'],
       truckId: json['ShortChar08'],
       resourceId: json['Character09'],
       plateNumber: json['ShortChar07'],

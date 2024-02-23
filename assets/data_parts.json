@@ -22,7 +22,8 @@
       "Part_ChangedOn": "2023-11-09T20:09:40.663",
       "Part_PUM": "Ton",
       "Part_TrackLots": false,
-      "RowIdent": "00000001-0000-0000-0000-000000000000"
+      "RowIdent": "00000001-0000-0000-0000-000000000000",
+      "Part_IsElementPart_c": false,
     },
     {
       "Part_Company": "PRECAST",

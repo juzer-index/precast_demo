@@ -9,6 +9,7 @@ import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/truckDetails.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
+import 'elementSearchForm.dart';
 import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
@@ -40,11 +41,12 @@ class _StockOffloadingState extends State<StockOffloading>
 
   Map<String, dynamic> elementData = {};
   List<dynamic> elementValue = [];
+  List<ElementData> arrivedElements = [];
   List<ElementData> selectedElements = [];
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
-  List<PartData> selectedParts = [];
+  List<PartData> arrivedParts = [];
 
   final String username = 'manager';
   final String password = 'manager';
@@ -119,7 +121,7 @@ class _StockOffloadingState extends State<StockOffloading>
         for (var v = 0; v<matchingElement.length; v++) {
           elementObject = ElementData.fromJson(matchingElement[v]);
           debugPrint(elementObject.elementId);
-          selectedElements.add(elementObject);
+          arrivedElements.add(elementObject);
         }
       }
     }
@@ -153,7 +155,7 @@ class _StockOffloadingState extends State<StockOffloading>
       if (matchingPart.isNotEmpty){
         for (var v = 0; v<matchingPart.length; v++) {
           PartData partObject = PartData.fromJson(matchingPart[v]);
-          selectedParts.add(partObject);
+          arrivedParts.add(partObject);
         }
       }
     }
@@ -207,6 +209,13 @@ class _StockOffloadingState extends State<StockOffloading>
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  void updateElementInformation(List<ElementData> selectedElementsFromForm, List<PartData> selectedPartsFromForm){
+    setState(() {
+      selectedElements = selectedElementsFromForm;
+      arrivedParts = selectedPartsFromForm;
+    });
   }
 
 
@@ -312,7 +321,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                         builder: (context) {
                                           return AlertDialog(
                                             title: const Text('Error'),
-                                            content: const Text('This Load is already offloaded'),
+                                            content: const Text('This Load has already been delivered'),
                                             actions: [
                                               TextButton(
                                                 onPressed: () {
@@ -551,8 +560,34 @@ class _StockOffloadingState extends State<StockOffloading>
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'Verify Elements',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.blue),
+                            ),
+                          ),
+                          const SizedBox(height: 10,),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,),
+                            ),
+                          ),
+                          const SizedBox(height: 20,),
+                        ],
+                      ),
                       const Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: EdgeInsets.all(8.0),
                         child: Text(
                           'Arrived Elements',
                           style: TextStyle(
@@ -572,7 +607,7 @@ class _StockOffloadingState extends State<StockOffloading>
                             fontSize: 18,
                             color: Colors.blue),
                       ),
-                      PartTable(selectedParts: selectedParts),
+                      PartTable(selectedParts: arrivedParts),
                       const SizedBox(height: 20,),
                       ElevatedButton(
                         onPressed: () {
@@ -706,7 +741,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           fontSize: 18,
                           color: Colors.blue),
                     ),
-                    PartTable(selectedParts: selectedParts),
+                    PartTable(selectedParts: arrivedParts),
                     const SizedBox(
                       height: 20,
                     ),
@@ -755,14 +790,14 @@ class _StockOffloadingState extends State<StockOffloading>
                             });
                             debugPrint(selectedElements[v].elementId);
                           }
-                          for (var v = 0; v < selectedParts.length; v++) {
+                          for (var v = 0; v < arrivedParts.length; v++) {
                             await updateUD103A({
                               "Key1": loadIDController.text,
-                              "Character01": selectedParts[v].partNum,
+                              "Character01": arrivedParts[v].partNum,
                               "Company": 'EPIC06',
                               "CheckBox02": true,
                             });
-                            debugPrint(selectedParts[v].partNum);
+                            debugPrint(arrivedParts[v].partNum);
                           }
                         }
                         if(loaded && elementsAndPartsLoaded){

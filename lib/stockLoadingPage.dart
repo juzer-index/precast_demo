@@ -11,6 +11,7 @@ import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
@@ -98,7 +99,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   bool isLoaded = false;
 
-  late final int lastLoad;
+  late int lastLoad = 50;
   late final int l1;
   late final int l2;
   late final String nextLoad;
@@ -109,12 +110,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    super.initState();
     getProjectList();
     getWarehouseList();
     getDriverList();
     getTrucksFromURL();
     getLastLoadID();
+    super.initState();
   }
 
   @override
@@ -125,6 +126,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    loadTimeController.text = DateFormat('HH:mm').format(DateTime.now());
     return DefaultTabController(
         length: 3,
         initialIndex: widget.initialTabIndex,
@@ -195,6 +199,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: TextFormField(
+                                  controller: loadIDController,
                                   enabled: false,
                                   decoration: const InputDecoration(
                                       border: OutlineInputBorder(),
@@ -208,7 +213,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextFormField(
-                                        enabled: false,
                                         controller: loadIDController,
                                         decoration: const InputDecoration(
                                             border: OutlineInputBorder(),
@@ -233,6 +237,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           toBinController.text = offloadData!.toBin;
                                           loadTypeValue = offloadData!.loadType;
                                           loadConditionValue = offloadData!.loadCondition;
+                                          fromWarehouseController.text = offloadData!.fromWarehouse;
                                         });
                                       }
                                       else {
@@ -265,6 +270,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: DropdownSearch(
+                                selectedItem: projectIdController.text,
+                                enabled: !widget.isUpdate,
                                 popupProps: const PopupProps.modalBottomSheet(
                                   showSearchBox: true,
                                   searchFieldProps: TextFieldProps(
@@ -296,6 +303,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: TextFormField(
+                                      enabled: !widget.isUpdate,
                                       controller: dateController,
                                       onTap: () async {
                                         final DateTime? date = await showDatePicker(
@@ -309,7 +317,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             dateController.text =
                                             "${date.day}/${date.month}/${date
                                                 .year}";
-                                            _selectedDate = "${date.year}-${date.month}-${date.day}";
+                                            _selectedDate = DateFormat('yyyy-MM-dd').format(date);
                                           });
                                         }
                                       },
@@ -323,6 +331,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        enabled: !widget.isUpdate,
                                         onTap: () async {
                                           final TimeOfDay? time = await showTimePicker(
                                             context: context,
@@ -350,6 +359,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: DropdownSearch(
+                                        selectedItem: fromWarehouseController.text,
+                                        enabled: !widget.isUpdate,
                                         popupProps: const PopupProps.modalBottomSheet(
                                           showSearchBox: true,
                                           searchFieldProps: TextFieldProps(
@@ -380,6 +391,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: DropdownSearch(
+                                        selectedItem: toWarehouseController.text,
+                                        enabled: !widget.isUpdate,
                                         popupProps: const PopupProps.modalBottomSheet(
                                           showSearchBox: true,
                                           searchFieldProps: TextFieldProps(
@@ -412,6 +425,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: DropdownSearch(
+                                selectedItem: toBinController.text,
+                                enabled: !widget.isUpdate,
                                 popupProps: const PopupProps.modalBottomSheet(
                                   showSearchBox: true,
                                   searchFieldProps: TextFieldProps(
@@ -590,12 +605,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 await createNewLoad({
                                   "Key1": newLoadId,
                                   "Company": "EPIC06",
+                                  "ShortChar07": plateNumberController.text,
                                   "ShortChar05": projectIdController.text,
-                                  "ShortChar03": "Open",
-                                  "ShortChar04": loadConditionValue,
+                                  "ShortChar01": "Open",
                                   "ShortChar04": loadConditionValue,
                                   "ShortChar08": truckIdController.text,
-                                  "ShortChar01": loadTypeValue,
+                                  "ShortChar03": loadTypeValue,
                                   "Number01": loadedController.text,
                                   "Number02": "0",
                                   "Number06": capacityController.text,
@@ -623,6 +638,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.of(context).pop();
+                                                _tabController.animateTo(1);
                                               },
                                               child: const Text('OK'),
                                             ),
@@ -632,7 +648,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   );
                                   }
                                   setState(() {
-                                    // _tabController.animateTo(1);
+                                    loadIDController.text = newLoadId;
                                   });
                                 }
                               }
@@ -648,7 +664,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     ),
                   ),
                   //Tab 2 Content
-                  // if(isLoaded)
+                  if(isLoaded)
                     SingleChildScrollView(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -673,22 +689,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation),
+                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, isOffloading: false, ),
                                 ),
                               ),
                               const SizedBox(height: 20,),
-                              // Container(
-                              //   decoration: BoxDecoration(
-                              //     color: Colors.blue.shade100,
-                              //     borderRadius: BorderRadius.circular(10),
-                              //   ),
-                              //   child: ExpansionTile(
-                              //     title: const Text('Non Element Parts'),
-                              //     children: [
-                              //       PartSearchForm(onPartsSelected: updatePartInformation,),
-                              //     ],
-                              //   ),
-                              // ),
                             ],
                           ),
                           const SizedBox(
@@ -723,10 +727,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           )
                         ]),
                   ),
-                  // if(!isLoaded)
-                  //   const Center(
-                  //     child: Text('Please create a load first'),
-                  //   ),
+                  if(!isLoaded)
+                    const Center(
+                      child: Text('Please create a load first or Select a load to update'),
+                    ),
                   //Tab 3 Content
                   SingleChildScrollView(
                     controller: ScrollController(),
@@ -739,6 +743,16 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                                 color: Colors.blue),),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextFormField(
+                              enabled: false,
+                              initialValue: loadIDController.text,
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Load ID"),
+                            ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -833,29 +847,63 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           PartTable(selectedParts: selectedParts),
                           const SizedBox(height: 20,),
                           ElevatedButton(
-                              onPressed: () {
-                                showDialog(context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('Success'),
-                                        content: const Text(
-                                            'Stock Loading details saved successfully, LoadID: ID-L1'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                );
-                              },
-                              child: const Text(
-                                'Save Load',
-                                style: TextStyle(color: Colors.green),
-                              )),
+                              onPressed: () async {
+                                debugPrint(selectedElements.length.toString());
+                                for(var e = 0; e < selectedElements.length; e++){
+                                  await updateUD103A({
+                                    "Company": "EPIC06",
+                                    "Key1": loadIDController.text,
+                                    "Character01": selectedElements[e].partId,
+                                    "Character02": selectedElements[e].elementId,
+                                    "Character03": toWarehouseController.text,
+                                    "Character04": toBinController.text,
+                                    "Number01": selectedElements[e].selectedQty,
+                                    "Number03": selectedElements[e].weight,
+                                    "Number04": selectedElements[e].area,
+                                    "Number05": selectedElements[e].volume,
+                                    "Number06": selectedElements[e].erectionSeq,
+                                    "ShortChar07": selectedElements[e].UOM,
+                                    "CheckBox13": false,
+                                  });
+                                }
+                                for (var p = 0; p < selectedParts.length; p++){
+                                  await updateUD103A({
+                                    "Company": "EPIC06",
+                                    "Key1": loadIDController.text,
+                                    "Character01": selectedParts[p].partNum,
+                                    "Character02": selectedParts[p].partDesc,
+                                    "Character03": toWarehouseController.text,
+                                    "Character04": toBinController.text,
+                                    "Number01": selectedParts[p].qty,
+                                    "ShortChar07": selectedParts[p].uom,
+                                    "CheckBox13": true,
+                                  });
+                                }
+                            if (mounted) {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Success'),
+                                      content: Text(
+                                          'Stock Loading details saved successfully, LoadID: $loadIDController'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  });
+                            }
+                          },
+                            child: const Text(
+                                  'Save Load',
+                                  style: TextStyle(color: Colors.green),
+                                )
+                          ),
                         ],
                       ),
                     ),
@@ -935,15 +983,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  void updatePartInformation(List<PartData> selectedPartsFromForm){
-    setState(() {
-      selectedParts = selectedPartsFromForm;
-    });
-  }
-
-  void updateElementInformation(List<ElementData> selectedElementsFromForm){
+  void updateElementInformation(List<ElementData> selectedElementsFromForm, List<PartData> selectedPartsFromForm){
     setState(() {
       selectedElements = selectedElementsFromForm;
+      selectedParts = selectedPartsFromForm;
     });
   }
 
@@ -958,7 +1001,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           },
           body: jsonEncode(loadItems)
       );
-      debugPrint(response.statusCode.toString());
+      debugPrint(jsonEncode(loadItems));
+      debugPrint(response.body);
       if (response.statusCode == 201) {
         debugPrint(response.body);
         setState(() {
@@ -1016,11 +1060,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         resourceData = jsonResponse;
         resourceValue = resourceData['value'];
         resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
-        // for (var element in resourceValue) {
-        //   if (element['Key1'] == truckValue.where((element) => element['Character01'] == truckIdController.text).first['Key1']) {
-        //     matchingResources.add(element);
-        //   }
-        // }
       });
     }
     on Exception catch (e) {
@@ -1031,7 +1070,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getDriverList() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_DriverName'),
+          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1042,7 +1081,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           fetchedDriverValue = fetchedDriverData['value'];
         });
       } else {
-        throw Exception('Failed to load album');
+        throw Exception('Failed to get Drivers');
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1060,9 +1099,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       if(response.statusCode == 200){
         Map<String, dynamic> rp = json.decode(response.body);
         setState(() {
-          l1 = rp['value'][0]['Calculated_AutoGen'];
-          l2 = rp['value'][1]['Calculated_AutoGen'];
-          lastLoad = l1 + l2;
+          lastLoad = rp['value'][0]['Calculated_AutoGen'];
         });
         debugPrint(lastLoad.toString());
       }
@@ -1167,6 +1204,28 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       }
     }
     return null;
+  }
+
+  Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
+    try {
+      final response = await http.post(
+          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+          body: jsonEncode(ud103AData)
+      );
+      if (response.statusCode == 201) {
+        debugPrint(response.body);
+      }
+      else {
+        debugPrint(response.body);
+        debugPrint(ud103AData.toString());
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {

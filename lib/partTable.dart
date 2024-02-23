@@ -22,6 +22,7 @@ class _PartTableState extends State<PartTable> {
             DataColumn(label: Text('Part Description')),
             DataColumn(label: Text('UOM')),
             DataColumn(label: Text('Qty')),
+            DataColumn(label: Text('Actions')),
           ],
           rows: widget.selectedParts
               .map((row) => DataRow(cells: [
@@ -29,6 +30,14 @@ class _PartTableState extends State<PartTable> {
             DataCell(Text(row.partDesc)),
             DataCell(Text(row.uom)),
             DataCell(Text(row.qty)),
+            DataCell(IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  widget.selectedParts.remove(row);
+                });
+              },
+            )),
           ]))
               .toList(),
         ),

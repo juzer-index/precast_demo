@@ -1,50 +1,92 @@
 [
   {
     "Id": 1,
-    "ElementId": "1400A1",
+    "ElementId": "SL3-1400A1",
     "PartNum": "SL3",
     "ElementDesc": "HC(4900x1200x200)",
     "Project": "1400",
-    "Status": "Entered"
+    "Status": "Entered",
+    "Weight": "1234",
+    "Volume": "123",
+    "Area": "123",
+    "UOM": "CUM",
+    "ErectionSeq": "1",
+    "ErectionDate": "2020-01-01",
+    "IsElementPart": "true"
   },
   {
     "Id": 2,
-    "ElementId": "1400A2",
+    "ElementId": "SL3-1400A2",
     "PartNum": "SL3",
     "ElementDesc": "Wall External",
     "Project": "GC002",
-    "Status": "Casted"
+    "Status": "Casted",
+    "Weight": "1977",
+    "Volume": "201",
+    "Area": "190",
+    "UOM": "CUM",
+    "ErectionSeq": "2",
+    "ErectionDate": "2020-01-02",
+    "IsElementPart": "true"
   },
   {
     "Id": 3,
-    "ElementId": "1400A3",
+    "ElementId": "SL3-1400A3",
     "PartNum": "SL3",
     "ElementDesc": "Wall Internal",
     "Project": "GC002",
-    "Status": "Casted"
+    "Status": "Casted",
+    "Weight": "1232",
+    "Volume": "120",
+    "Area": "300",
+    "UOM": "CUM",
+    "ErectionSeq": "3",
+    "ErectionDate": "2020-01-03",
+    "IsElementPart": "true"
   },
   {
     "Id": 4,
-    "ElementId": "1400A4",
+    "ElementId": "SL3-1400A4",
     "PartNum": "SL3",
     "ElementDesc": "Wall Side",
     "Project": "GC002",
-    "Status": "Erected"
+    "Status": "Erected",
+    "Weight": "12321",
+    "Volume": "873",
+    "Area": "334",
+    "UOM": "CUM",
+    "ErectionSeq": "4",
+    "ErectionDate": "2020-01-04",
+    "IsElementPart": "true"
   },
   {
     "Id": 5,
-    "ElementId": "1400A5",
+    "ElementId": "SL3-1400A5",
     "PartNum": "SL3",
     "ElementDesc": "Wall External",
     "Project": "GC002",
-    "Status": "Erected"
+    "Status": "Erected",
+    "Weight": "2123",
+    "Volume": "210",
+    "Area": "120",
+    "UOM": "CUM",
+    "ErectionSeq": "5",
+    "ErectionDate": "2020-01-05",
+    "IsElementPart": "true"
   },
   {
     "Id": 6,
-    "ElementId": "1400A6",
+    "ElementId": "SL3-1400A6",
     "PartNum": "SL3",
     "ElementDesc": "Wall Side",
     "Project": "GC002",
-    "Status": "Casted"
+    "Status": "Casted",
+    "Weight": "2301",
+    "Volume": "254",
+    "Area": "100",
+    "UOM": "CUM",
+    "ErectionSeq": "6",
+    "ErectionDate": "2020-01-06",
+    "IsElementPart": "true"
   }
 ]

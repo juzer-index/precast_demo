@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:http/http.dart' as http;
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+import 'detailsPage.dart';
 
 
 class ElementMaster extends StatefulWidget {
@@ -12,94 +16,97 @@ class ElementMaster extends StatefulWidget {
   State<ElementMaster> createState() => _ElementMasterState();
 }
 
-class Data {
-  late final int id;
-  late final String elementId;
-  late final String partNum;
-  late final String elementDesc;
-  late final String project;
-  late final String status;
-  Data({required this.id, required this.elementId, required this.partNum, required this.project, required this.status, required this.elementDesc});
-
-  factory Data.fromJson(Map<String, dynamic> json) {
-    return Data(
-      id: json['Id'],
-      elementId: json['ElementId'],
-      partNum: json['PartNum'],
-      elementDesc: json['ElementDesc'],
-      project: json['Project'],
-      status: json['Status']
-    );
-  }
-}
-
-// Future<List<Data>> fetchData() async {
-//   var url = Uri.parse('https://raw.githubusercontent.com/juzer-index/Precast-assets/main/data.json');
-//   final response = await http.get(url);
-//   if (response.statusCode == 200) {
-//     List jsonResponse  = json.decode(response.body);
-//     return jsonResponse.map((data) => Data.fromJson(data)).toList();
-//   }
-//   else {
-//     throw Exception('unexpected error');
-//   }
-// }
-
-// SY: 27112023: Use Local DATA in json format
-
-Future<List<Data>> fetchData() async {
-  String jsonString = await rootBundle.loadString('assets/elementmaster.json');
-  List jsonResponse = json.decode(jsonString);
-  return jsonResponse.map((data) => Data.fromJson(data)).toList();
-}
-
 class MyDataTableSource extends DataTableSource{
-  final List<Data> _data;
+  final List<dynamic> _elementData;
+  final BuildContext dialogContext;
 
-  MyDataTableSource(this._data);
+  MyDataTableSource(this._elementData, this.dialogContext);
 
   @override
   DataRow? getRow(int index) {
     Color statusColor;
-    final row = _data[index];
-    if (row.status == 'Entered'){
-      statusColor = Colors.grey;
-    } else if(row.status == 'Casted') {
-      statusColor = Colors.green;
-    } else if (row.status == 'Erected'){
+    final row = _elementData[index];
+    if (row["PartLot_ElementStatus_c"] == 'Entered'){
       statusColor = Colors.blue;
-    } else {
+    } else if(row["PartLot_ElementStatus_c"] == 'Casted') {
+      statusColor = Colors.grey;
+    } else if (row["PartLot_ElementStatus_c"] == 'Erected'){
+      statusColor = Colors.black54;
+    } else if (row["PartLot_ElementStatus_c"] == 'In-Transit') {
+      statusColor = Colors.brown;
+    } else if (row["PartLot_ElementStatus_c"] == 'OnSite') {
+      statusColor = Colors.purple;
+    } else if (row["PartLot_ElementStatus_c"] == 'Cancelled') {
+      statusColor = Colors.red;
+    } else if (row["PartLot_ElementStatus_c"] == 'Approved') {
+      statusColor = Colors.green;
+    } else if (row["PartLot_ElementStatus_c"] == 'Draft') {
+      statusColor = Colors.orange;
+    } else if (row["PartLot_ElementStatus_c"] == 'Hold') {
+      statusColor = Colors.yellow;
+    }
+    else {
       statusColor = Colors.transparent;
     }
     return DataRow(cells: [
       DataCell(
-          Text(row.id.toString())
+          GestureDetector(
+            onTap: () async {
+              final String elementId = row["PartLot_LotNum"];
+              final String partNum = row["PartLot_PartNum"];
+              Map<String, dynamic> elementDetails = {};
+              final String basicAuth = 'Basic ${base64Encode(
+                  utf8.encode('manager:manager'))}';
+              try {
+                final response = await http.get(
+                  Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+                    headers: {
+                      HttpHeaders.authorizationHeader: basicAuth,
+                      HttpHeaders.contentTypeHeader: 'application/json',
+                    },
+                );
+                debugPrint(response.statusCode.toString());
+                if (response.statusCode == 200) {
+                  debugPrint(response.body);
+                  elementDetails = json.decode(response.body);
+                }
+              } on Exception catch (e) {
+                  debugPrint(e.toString());
+              }
+              Navigator.push(
+                dialogContext,
+                MaterialPageRoute(builder: (context) => DetailsPage(elementId: row["PartLot_LotNum"], elementDetails: elementDetails, statusColor: statusColor)),
+              );
+            },
+            child: Text(row["PartLot_LotNum"],
+              style: const TextStyle(
+                //add an underline
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          )
       ),
       DataCell(
-          Text(row.elementId)
+          Text(row["PartLot_PartNum"])
       ),
       DataCell(
-          Text(row.partNum)
+        Text(row["PartLot_PartLotDescription"]),
       ),
       DataCell(
-        Text(row.elementId),
-      ),
-      DataCell(
-        Text(row.project),
+        Text(row["PartLot_Project_c"]),
       ),
       DataCell(
         Container(
           height: 20,
-          width: 50,
+          width: 100,
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: statusColor),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(row.status),
+              Text(row["PartLot_ElementStatus_c"]),
             ],
           ),
         ),
-
       )
     ]);
   }
@@ -108,15 +115,100 @@ class MyDataTableSource extends DataTableSource{
   bool get isRowCountApproximate => false;
 
   @override
-  int get rowCount => _data.length;
+  int get rowCount => _elementData.length;
 
   @override
   int get selectedRowCount => 0;
-
-
 }
 
+
+
 class _ElementMasterState extends State<ElementMaster> {
+
+  late Future _elementListFuture;
+
+  Map<String, dynamic> elementListData = {};
+  List<dynamic> elementListValue = [];
+  List<dynamic> partElementList = [];
+
+  TextEditingController partNumController = TextEditingController();
+  TextEditingController elementIdController = TextEditingController();
+
+  bool isSingleElement = false;
+
+  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+
+  Barcode? elementResult;
+  String elementResultCode = '';
+  QRViewController? controller;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+
+  bool isScanned = false;
+
+  Future<void> getElementList() async {
+    var url = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_AllElement');
+    try {
+      final response = await http.get(url, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
+      if (response.statusCode == 200) {
+        elementListData = json.decode(response.body);
+        elementListValue = elementListData['value'];
+        debugPrint(elementListValue.toString());
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getScannedElement(String partNum, String elementId) async {
+    var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
+    try {
+      final response = await http.get(url, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
+      debugPrint(response.statusCode.toString());
+      if (response.statusCode == 200) {
+        elementListData = json.decode(response.body);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DetailsPage(elementId: elementId, elementDetails: elementListData, statusColor: Colors.transparent)),
+        );
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getPartElementList(String partNum) async {
+    if (!isSingleElement) {
+      for(int i = 0; i < elementListValue.length; i++) {
+        if (elementListValue[i]['PartLot_PartNum'] == partNum) {
+          setState(() {
+            partElementList.add(elementListValue[i]);
+          });
+        }
+      }
+    }
+    if(isSingleElement) {
+      for(int i = 0; i < elementListValue.length; i++) {
+        if (elementListValue[i]['PartLot_LotNum'] == partNum) {
+          setState(() {
+            partElementList.add(elementListValue[i]);
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _elementListFuture = getElementList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,7 +227,7 @@ class _ElementMasterState extends State<ElementMaster> {
                     height: MediaQuery.of(context).size.height * 0.12,
                     child: Card(
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
                       elevation: 1,
                       color: Colors.lightBlue.shade100,
@@ -146,15 +238,20 @@ class _ElementMasterState extends State<ElementMaster> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextFormField(
+                                onTap: () {
+                                  setState(() {
+                                    elementIdController.clear();
+                                  });
+                                },
+                                controller: partNumController,
                                 decoration: const InputDecoration(
-                                  suffixIcon: Icon(Icons.search, color: Colors.blue,),
                                   fillColor: Colors.white,
                                     filled: true,
                                     border: UnderlineInputBorder(
                                       borderSide: BorderSide(color: Colors.blue),
                                     ),
-                                    labelText: "Part Number"),
-          
+                                    labelText: "Part Num"),
+
                               ),
                             ),
                           ),
@@ -162,29 +259,101 @@ class _ElementMasterState extends State<ElementMaster> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: TextFormField(
+                                onTap: () {
+                                  setState(() {
+                                    partNumController.clear();
+                                  });
+                                },
+                                controller: elementIdController,
                                 decoration: const InputDecoration(
-                                    suffixIcon: Icon(Icons.search, color: Colors.blue,),
                                     fillColor: Colors.white,
                                     filled: true,
                                     border: UnderlineInputBorder(
                                       borderSide: BorderSide(color: Colors.blue),
                                     ),
                                     labelText: "Element ID"),
-          
+
                               ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: FutureBuilder(
+                              future: _elementListFuture,
+                              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                                if (snapshot.connectionState == ConnectionState.done) {
+                                  return IconButton(
+                                    onPressed: () async {
+                                      partElementList.clear();
+                                      if(partNumController.text.isNotEmpty) {
+                                        setState(() {
+                                          isSingleElement = false;
+                                        });
+                                        await getPartElementList(partNumController.text);
+                                      }
+                                      if(elementIdController.text.isNotEmpty){
+                                        setState(() {
+                                          isSingleElement = true;
+                                        });
+                                        await getPartElementList(elementIdController.text);
+                                      }
+                                    },
+                                    icon: const Icon(Icons.search),
+                                  );
+                                }
+                                return const CircularProgressIndicator();
+                              },
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: IconButton(
                               onPressed: () {
-          
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Scan Element'),
+                                      content: SizedBox(
+                                        width: MediaQuery.of(context).size.width * 0.5,
+                                        height: MediaQuery.of(context).size.height * 0.5,
+                                        child: QRView(
+                                          key: qrKey,
+                                          onQRViewCreated: (QRViewController controller) {
+                                            this.controller = controller;
+                                            controller.scannedDataStream.listen((scanData) async {
+                                              controller.pauseCamera();
+                                              List<String> scanResult = scanData.code!.split('-');
+                                              // String company = scanResult[1];
+                                              String partNum = scanResult[2];
+                                              String elementId = scanResult[3];
+                                              debugPrint('$partNum $elementId');
+                                              await getScannedElement(partNum, elementId);
+                                              // setState(() {
+                                              //   controller.pauseCamera();
+                                              //   elementResultCode = scanData.code!;
+                                              //   isScanned = true;
+                                              //   partElementList.clear();
+                                              //   // getPartElementList(elementResultCode);
+                                              //   elementIdController.text = elementResultCode;
+                                              // });
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               },
-                              icon: Icon(
-                                  Icons.refresh_sharp,
-                                color: Colors.blueGrey.shade800,
-                                size: 28,
-                              ),
+                              icon: const Icon(Icons.qr_code_scanner),
                             ),
                           ),
                         ],
@@ -192,45 +361,27 @@ class _ElementMasterState extends State<ElementMaster> {
                     ),
                   ),
                   SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.75,
                     child: Card(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero
-                      ),
                       color: Colors.lightBlue.shade100,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: FutureBuilder<List<Data>> (
-                          future: fetchData(),
-                          builder: (context, snapshot){
-                            if (snapshot.hasData) {
-                              return SingleChildScrollView(
+                        child: SingleChildScrollView(
                                 child: PaginatedDataTable(
                                   headingRowColor: MaterialStateColor.resolveWith((states) {return Theme.of(context).primaryColor;}),
                                   columnSpacing: 30,
                                   columns: const [
-                                    DataColumn(label: Text('ID')),
                                     DataColumn(label: Text('Element ID')),
                                     DataColumn(label: Text('Part Num')),
                                     DataColumn(label: Text('Element Desc')),
                                     DataColumn(label: Text('Project')),
                                     DataColumn(label: Text('Status')),
                                   ],
-                                  source: MyDataTableSource(snapshot.data!),
+                                  source: MyDataTableSource(partElementList, context),
                                   )
-                              );
-                            }
-                            else if (snapshot.hasError) {
-                              return Text(snapshot.error.toString());
-                            }
-                            // By default show a loading spinner.
-                            return Center(child: CircularProgressIndicator(color: Theme.of(context).primaryColor,));
-                          },
+                              )
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ],
@@ -240,3 +391,7 @@ class _ElementMasterState extends State<ElementMaster> {
     );
   }
 }
+
+
+
+

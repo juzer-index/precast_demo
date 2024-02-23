@@ -20,14 +20,23 @@ class _ElementTableState extends State<ElementTable> {
         child: DataTable(
           columns: const [
             DataColumn(label: Text('Element ID')),
-            DataColumn(label: Text('Element Description')),
+            DataColumn(label: Text('Part Number')),
             DataColumn(label: Text('Erection Seq')),
+            DataColumn(label: Text('Actions')),
           ],
           rows: widget.selectedElements
               .map((row) => DataRow(cells: [
             DataCell(Text(row.elementId)),
-            DataCell(Text(row.elementDesc)),
+            DataCell(Text(row.partId)),
             DataCell(Text(row.erectionSeq)),
+            DataCell(IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  widget.selectedElements.remove(row);
+                });
+              },
+            )),
           ]))
               .toList(),
         ),
