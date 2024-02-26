@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/elementSearchForm.dart';
+import 'package:precast_demo/stockOffloadingPage.dart';
 import 'package:precast_demo/truckresource_model.dart';
 import 'dart:convert';
 import 'load_model.dart';
@@ -15,9 +16,8 @@ import 'package:intl/intl.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  final bool isOffLoading;
   final bool isUpdate;
-  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.isOffLoading});
+  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate});
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -146,8 +146,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     const Text('Edit Load', style: TextStyle(color: Colors.white)),
                   if(!widget.isUpdate)
                     const Text('Stock Loading', style: TextStyle(color: Colors.white)),
-                  if(widget.isOffLoading)
-                    const Text('Stock Offloading', style: TextStyle(color: Colors.white)),
                   ClipOval(
                     child: Image.network(
                       'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
@@ -158,6 +156,41 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 ],
               ),
             ),
+            actions: [
+              PopupMenuButton(itemBuilder: (BuildContext context) {
+                return [
+                  if(widget.isUpdate)
+                    PopupMenuItem(
+                      child: ListTile(
+                        title: const Text('Create New Load'),
+                        leading: const Icon(Icons.edit_calendar),
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: false)));
+                        },
+                      ),
+                    ),
+                  if(!widget.isUpdate)
+                    PopupMenuItem(
+                      child: ListTile(
+                        title: const Text('Edit a Load'),
+                        leading: const Icon(Icons.edit_calendar),
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: true)));
+                        },
+                      ),
+                    ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      title: const Text('Offload'),
+                      leading: const Icon(Icons.playlist_remove),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0)));
+                      },
+                    ),
+                  ),
+                ];
+              }
+              ) ],
             bottom: TabBar(
               controller: _tabController,
               tabs: const [

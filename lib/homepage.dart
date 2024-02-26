@@ -228,7 +228,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: false, isOffLoading: false),
+                              builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: false),
                             ),
                           );
                         },
@@ -289,7 +289,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const StockLoading(initialTabIndex: 0, isUpdate: true, isOffLoading: false,),
+                                  const StockLoading(initialTabIndex: 0, isUpdate: true),
                             ),
                           );
                         },

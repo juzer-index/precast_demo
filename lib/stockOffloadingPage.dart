@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
+import 'package:precast_demo/stockLoadingPage.dart';
 import 'package:precast_demo/truckDetails.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
@@ -251,6 +252,30 @@ class _StockOffloadingState extends State<StockOffloading>
             ],
           ),
         ),
+        actions:[
+          PopupMenuButton(
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: const Icon(Icons.create_new_folder),
+                    title: const Text('Create New Load'),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0,)));
+                    },
+                  ),
+                ),
+                PopupMenuItem(
+                  child: ListTile(
+                    leading: const Icon(Icons.edit_calendar),
+                    title: const Text('Edit a Load'),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: true)));
+                    },
+                  ),
+                ),
+              ],
+          )
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
