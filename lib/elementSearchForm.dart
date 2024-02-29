@@ -277,6 +277,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     padding: const EdgeInsets.all(4.0),
                     child: IconButton(
                       onPressed: () {
+                        
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -311,6 +312,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                               controller = qrController;
                                               controller!.scannedDataStream.listen((
                                                   scanData) {
+                                                controller?.pauseCamera();
+                                                Navigator.pop(context);
                                                 List<String> data = scanData.code!
                                                     .split('-');
                                                 // for(var i = 0; i < elements.length; i++){
@@ -338,6 +341,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                 // }
                                               });
                                             },
+
+
                                           ),
                                         ),
                                       ),
