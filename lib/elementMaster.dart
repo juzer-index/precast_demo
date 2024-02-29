@@ -223,8 +223,8 @@ class _ElementMasterState extends State<ElementMaster> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.12,
+                   // width: MediaQuery.of(context).size.width,
+                   // height: MediaQuery.of(context).size.height * 0.12,
                     child: Card(
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -306,28 +306,20 @@ class _ElementMasterState extends State<ElementMaster> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(4.0),
                             child: IconButton(
                               onPressed: () {
                                 showDialog(
                                   context: context,
-                                  builder: (BuildContext context) {
-                                    return Dialog(
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.zero,
-                                      ),
-                                      child: SizedBox(
-                                        width: MediaQuery.of(context).size.width * 0.6,
-                                        height: MediaQuery.of(context).size.height * 0.6,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Scan Element'),
+                                      content: SizedBox(
+                                        width: MediaQuery.of(context).size.width ,
+                                        height: MediaQuery.of(context).size.height * 0.35,
                                         child: QRView(
                                           key: qrKey,
-                                          overlay: QrScannerOverlayShape(
-                                            borderColor: Colors.red,
-                                            borderRadius: 10,
-                                            borderLength: 30,
-                                            borderWidth: 10,
-                                            cutOutSize: 300,
-                                          ),
+
                                           onQRViewCreated: (QRViewController controller) {
                                             this.controller = controller;
                                             controller.scannedDataStream

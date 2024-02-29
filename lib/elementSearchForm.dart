@@ -50,7 +50,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<dynamic> consumables = [];
   List<dynamic> elements = [];
   List<dynamic> lots = [];
-  Map<String, dynamic> elementListData = {};
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -177,23 +176,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       }
     }
     on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> getScannedElement(String partNum, String elementId) async {
-    var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
-    try {
-      final response = await http.get(url, headers: {
-        HttpHeaders.authorizationHeader: basicAuth,
-        HttpHeaders.contentTypeHeader: 'application/json',
-      });
-      debugPrint(response.statusCode.toString());
-      if (response.statusCode == 200) {
-        elementListData = json.decode(response.body);
-        debugPrint(elementListData.toString());
-      }
-    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
