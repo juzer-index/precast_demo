@@ -311,14 +311,23 @@ class _ElementMasterState extends State<ElementMaster> {
                               onPressed: () {
                                 showDialog(
                                   context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Scan Element'),
-                                      content: SizedBox(
-                                        width: MediaQuery.of(context).size.width * 0.5,
-                                        height: MediaQuery.of(context).size.height * 0.5,
+                                  builder: (BuildContext context) {
+                                    return Dialog(
+                                      shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.zero,
+                                      ),
+                                      child: SizedBox(
+                                        width: MediaQuery.of(context).size.width * 0.6,
+                                        height: MediaQuery.of(context).size.height * 0.6,
                                         child: QRView(
                                           key: qrKey,
+                                          overlay: QrScannerOverlayShape(
+                                            borderColor: Colors.red,
+                                            borderRadius: 10,
+                                            borderLength: 30,
+                                            borderWidth: 10,
+                                            cutOutSize: 300,
+                                          ),
                                           onQRViewCreated: (QRViewController controller) {
                                             this.controller = controller;
                                             controller.scannedDataStream.listen((scanData) async {
@@ -329,26 +338,10 @@ class _ElementMasterState extends State<ElementMaster> {
                                               String elementId = scanResult[3];
                                               debugPrint('$partNum $elementId');
                                               await getScannedElement(partNum, elementId);
-                                              // setState(() {
-                                              //   controller.pauseCamera();
-                                              //   elementResultCode = scanData.code!;
-                                              //   isScanned = true;
-                                              //   partElementList.clear();
-                                              //   // getPartElementList(elementResultCode);
-                                              //   elementIdController.text = elementResultCode;
-                                              // });
                                             });
                                           },
                                         ),
                                       ),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('OK'),
-                                        ),
-                                      ],
                                     );
                                   },
                                 );

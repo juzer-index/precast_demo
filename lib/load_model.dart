@@ -74,32 +74,32 @@ class LoadData {
     );
   }
 
-  factory LoadData.toJson(Map<String, dynamic> json) {
-    return LoadData(
-      projectId: json['ShortChar05'],
-      loadDate: json['Date01'] ?? '',
-      fromWarehouse: json['Character06'],
-      toWarehouse: json['Character04'],
-      toBin: json['Character05'],
-      loadType: json['ShortChar03'],
-      loadCondition: json['ShortChar04'],
-      loadStatus: json['ShortChar01'],
-      truckId: json['ShortChar08'],
-      resourceId: json['Character09'],
-      plateNumber: json['ShortChar07'],
-      driverName: json['Character02'],
-      driverNumber: json['Character03'],
-      resourceCapacity: json['Number06'],
-      resourceLoaded: json['Number01'],
-      resourceLength: json['Number10'],
-      resourceWidth: json['Number09'],
-      resourceHeight: json['Number08'],
-      resourceVolume: json['Number07'],
-      foremanId: json['EmployeeID_c'],
-      foremanName: json['EmployeeName_c'],
-      comments: json['Comments_c'],
-    );
-  }
+  // factory LoadData.toJson(Map<String, dynamic> json) {
+  //   return LoadData(
+  //     projectId: json['ShortChar05'],
+  //     loadDate: json['Date01'] ?? '',
+  //     fromWarehouse: json['Character06'],
+  //     toWarehouse: json['Character04'],
+  //     toBin: json['Character05'],
+  //     loadType: json['ShortChar03'],
+  //     loadCondition: json['ShortChar04'],
+  //     loadStatus: json['ShortChar01'],
+  //     truckId: json['ShortChar08'],
+  //     resourceId: json['Character09'],
+  //     plateNumber: json['ShortChar07'],
+  //     driverName: json['Character02'],
+  //     driverNumber: json['Character03'],
+  //     resourceCapacity: json['Number06'],
+  //     resourceLoaded: json['Number01'],
+  //     resourceLength: json['Number10'],
+  //     resourceWidth: json['Number09'],
+  //     resourceHeight: json['Number08'],
+  //     resourceVolume: json['Number07'],
+  //     foremanId: json['EmployeeID_c'],
+  //     foremanName: json['EmployeeName_c'],
+  //     comments: json['Comments_c'],
+  //   );
+  // }
 
   @override
   String toString() {

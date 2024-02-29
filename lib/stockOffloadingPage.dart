@@ -235,20 +235,20 @@ class _StockOffloadingState extends State<StockOffloading>
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        title: Center(
+        title: const Center(
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(),
-              const Text('Stock Offloading',
+              SizedBox(),
+              Text('Stock Offloading',
                   style: TextStyle(color: Colors.white)),
-              ClipOval(
-                child: Image.network(
-                  'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-                  height: 35,
-                  width: 35,
-                ),
-              )
+              // ClipOval(
+              //   child: Image.network(
+              //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+              //     height: 35,
+              //     width: 35,
+              //   ),
+              // )
             ],
           ),
         ),

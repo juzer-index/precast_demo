@@ -6,6 +6,7 @@ import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/elementSearchForm.dart';
 import 'package:precast_demo/stockOffloadingPage.dart';
+import 'package:precast_demo/truckDetails.dart';
 import 'package:precast_demo/truckresource_model.dart';
 import 'dart:convert';
 import 'load_model.dart';
@@ -34,13 +35,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   String loadTypeValue = '';
   String loadConditionValue = '';
   String inputTypeValue = 'Manual';
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _truckKey = GlobalKey<FormState>();
   TextEditingController projectIdController = TextEditingController();
   TextEditingController fromWarehouseController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController toBinController = TextEditingController();
+  TextEditingController poNumberController = TextEditingController();
+  TextEditingController poLineController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
+  String resourceId = '';
 
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
@@ -80,8 +85,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   LoadData? offloadData;
   final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
   final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
-
-  final GlobalKey<FormState> _truckFormKey = GlobalKey<FormState>();
 
   var truckURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102s');
   var resourceURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As');
@@ -139,20 +142,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 .primaryColor,
             title: Center(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(),
                   if(widget.isUpdate)
                     const Text('Edit Load', style: TextStyle(color: Colors.white)),
                   if(!widget.isUpdate)
                     const Text('Stock Loading', style: TextStyle(color: Colors.white)),
-                  ClipOval(
-                    child: Image.network(
-                      'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-                      height: 35,
-                      width: 35,
-                    ),
-                  )
+                  // ClipOval(
+                  //   child: Image.network(
+                  //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                  //     height: 35,
+                  //     width: 35,
+                  //   ),
+                  // )
                 ],
               ),
             ),
@@ -271,6 +274,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           loadTypeValue = offloadData!.loadType;
                                           loadConditionValue = offloadData!.loadCondition;
                                           fromWarehouseController.text = offloadData!.fromWarehouse;
+                                          isLoaded = true;
                                         });
                                       }
                                       else {
@@ -492,7 +496,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextFormField(
-                                          // controller: poNumberController,
+                                          controller: poNumberController,
                                           decoration: const InputDecoration(
                                               border: OutlineInputBorder(),
                                               labelText: "PO Num"),
@@ -503,7 +507,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextFormField(
-                                          // controller: poLineController,
+                                          controller: poLineController,
                                           decoration: const InputDecoration(
                                               border: OutlineInputBorder(),
                                               labelText: "PO Line"),
@@ -611,67 +615,33 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     color: Colors.blue),
                               ),
                             ),
-                            buildTruckDetailsFrom(true),
+                            if(!widget.isUpdate)
+                              buildTruckDetailsFrom(true),
+                            if(widget.isUpdate)
+                              TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
                             const SizedBox(height: 20),
-                            ElevatedButton(
-                                onPressed: () async {
-                              if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
-                                    showDialog(context: context, builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('Error'),
-                                        content: const Text(
-                                            'Please fill all the required fields'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                );
-                              } else {
-                                final newLoadId = 'I-${lastLoad + 1}';
-                                final loadDateFormat = '${_selectedDate}T00:00:00';
-                                await createNewLoad({
-                                  "Key1": newLoadId,
-                                  "Company": "EPIC06",
-                                  "ShortChar07": plateNumberController.text,
-                                  "ShortChar05": projectIdController.text,
-                                  "ShortChar01": "Open",
-                                  "ShortChar04": loadConditionValue,
-                                  "ShortChar08": truckIdController.text,
-                                  "ShortChar03": loadTypeValue,
-                                  "Number01": loadedController.text,
-                                  "Number02": "0",
-                                  "Number06": capacityController.text,
-                                  "Number07": volumeController.text,
-                                  "Number08": heightController.text,
-                                  "Number09": widthController.text,
-                                  "Number10": lengthController.text,
-                                  "Date01": loadDateFormat,
-                                  "Character02": driverNameController.text,
-                                  "Character03": driverNumberController.text,
-                                  "Character04": toWarehouseController.text,
-                                  "Character05": toBinController.text,
-                                  "Character06": fromWarehouseController.text,
-                                  "Character09": resourceIdController.text,
-                                });
-                                if(isLoaded){
-                                  if(mounted) {
-                                    showDialog(context: context,
-                                      builder: (BuildContext context) {
+                            if(widget.isUpdate)
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _tabController.animateTo(1);
+                                  });
+                                },
+                                child: const Text('Next'),
+                              ),
+                            if(!widget.isUpdate)
+                              ElevatedButton(
+                                  onPressed: () async {
+                                if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
+                                      showDialog(context: context, builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title: const Text('Success'),
-                                          content: Text(
-                                              'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                          title: const Text('Error'),
+                                          content: const Text(
+                                              'Please fill all the required fields'),
                                           actions: [
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.of(context).pop();
-                                                _tabController.animateTo(1);
                                               },
                                               child: const Text('OK'),
                                             ),
@@ -679,17 +649,64 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         );
                                       }
                                   );
-                                  }
-                                  setState(() {
-                                    loadIDController.text = newLoadId;
+                                } else {
+                                  final newLoadId = 'I-${lastLoad + 1}';
+                                  final loadDateFormat = '${_selectedDate}T00:00:00';
+                                  await createNewLoad({
+                                    "Key1": newLoadId,
+                                    "Company": "EPIC06",
+                                    "ShortChar07": plateNumberController.text,
+                                    "ShortChar05": projectIdController.text,
+                                    "ShortChar01": loadTypeValue,
+                                    "ShortChar04": loadConditionValue,
+                                    "ShortChar08": truckIdController.text,
+                                    "ShortChar03": "Open",
+                                    "Number01": loadedController.text,
+                                    "Number02": "0",
+                                    "Number06": capacityController.text,
+                                    "Number07": volumeController.text,
+                                    "Number08": heightController.text,
+                                    "Number09": widthController.text,
+                                    "Number10": lengthController.text,
+                                    "Date01": loadDateFormat,
+                                    "Character02": driverNameController.text,
+                                    "Character03": driverNumberController.text,
+                                    "Character04": toWarehouseController.text,
+                                    "Character05": toBinController.text,
+                                    "Character06": fromWarehouseController.text,
+                                    "Character09": resourceId,
                                   });
+                                  if(isLoaded){
+                                    if(mounted) {
+                                      showDialog(context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Success'),
+                                            content: Text(
+                                                'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  _tabController.animateTo(1);
+                                                },
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                    );
+                                    }
+                                    setState(() {
+                                      loadIDController.text = newLoadId;
+                                    });
+                                  }
                                 }
-                              }
-                            },
-                            child: const Text(
-                                  'Create Load',
-                                  style: TextStyle(color: Colors.green),
-                                )),
+                              },
+                              child: const Text(
+                                    'Create Load',
+                                    style: TextStyle(color: Colors.green),
+                                  )),
                             const SizedBox(height: 20),
                           ],
                         ),
@@ -861,7 +878,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 fontSize: 18,
                                 color: Colors.blue),),
                           ),
-                          buildTruckDetailsFrom(false),
+                          if(!widget.isUpdate)
+                            buildTruckDetailsFrom(false),
+                          if(widget.isUpdate)
+                            TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
                           const Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text('Selected Elements', style: TextStyle(
@@ -883,34 +903,40 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               onPressed: () async {
                                 debugPrint(selectedElements.length.toString());
                                 for(var e = 0; e < selectedElements.length; e++){
-                                  await updateUD103A({
-                                    "Company": "EPIC06",
-                                    "Key1": loadIDController.text,
-                                    "Character01": selectedElements[e].partId,
-                                    "Character02": selectedElements[e].elementId,
-                                    "Character03": toWarehouseController.text,
-                                    "Character04": toBinController.text,
-                                    "Number01": selectedElements[e].selectedQty,
-                                    "Number03": selectedElements[e].weight,
-                                    "Number04": selectedElements[e].area,
-                                    "Number05": selectedElements[e].volume,
-                                    "Number06": selectedElements[e].erectionSeq,
-                                    "ShortChar07": selectedElements[e].UOM,
-                                    "CheckBox13": false,
-                                  });
+                                  debugPrint(selectedElements[e].toString());
+                                  try {
+                                    await updateUD103A({
+                                      "Company": "EPIC06",
+                                      "Key1": loadIDController.text,
+                                      "Character01": selectedElements[e].partId,
+                                      "Character02": selectedElements[e].elementId,
+                                      "Character03": toWarehouseController.text,
+                                      "Character04": toBinController.text,
+                                      "Number01": selectedElements[e].selectedQty,
+                                      "Number03": selectedElements[e].weight,
+                                      "Number04": selectedElements[e].area,
+                                      "Number05": selectedElements[e].volume,
+                                      "Number06": selectedElements[e].erectionSeq,
+                                      "ShortChar07": selectedElements[e].UOM,
+                                      "CheckBox13": false,
+                                    });
+                                  } on Exception catch (e) {
+                                    debugPrint(e.toString());
+                                  }
                                 }
                                 for (var p = 0; p < selectedParts.length; p++){
-                                  await updateUD103A({
-                                    "Company": "EPIC06",
-                                    "Key1": loadIDController.text,
-                                    "Character01": selectedParts[p].partNum,
-                                    "Character02": selectedParts[p].partDesc,
-                                    "Character03": toWarehouseController.text,
-                                    "Character04": toBinController.text,
-                                    "Number01": selectedParts[p].qty,
-                                    "ShortChar07": selectedParts[p].uom,
-                                    "CheckBox13": true,
-                                  });
+                                  debugPrint(selectedParts[p].toString());
+                                  // await updateUD103A({
+                                  //   "Company": "EPIC06",
+                                  //   "Key1": loadIDController.text,
+                                  //   "Character01": selectedParts[p].partNum,
+                                  //   "Character02": selectedParts[p].partDesc,
+                                  //   "Character03": toWarehouseController.text,
+                                  //   "Character04": toBinController.text,
+                                  //   "Number01": selectedParts[p].qty,
+                                  //   "ShortChar07": selectedParts[p].uom,
+                                  //   "CheckBox13": true,
+                                  // });
                                 }
                             if (mounted) {
                               showDialog(
@@ -1254,7 +1280,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       }
       else {
         debugPrint(response.body);
-        debugPrint(ud103AData.toString());
+        debugPrint(response.statusCode.toString());
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1272,6 +1298,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
+                key: _truckKey,
                 controller: truckIdController,
                 enabled: isEditable,
                 decoration: const InputDecoration(
@@ -1287,6 +1314,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: DropdownSearch(
+                selectedItem: truckIdController.text,
                 popupProps: const PopupProps.modalBottomSheet(
                   showSearchBox: true,
                   searchFieldProps: TextFieldProps(
@@ -1322,9 +1350,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       truckIdController.text)
                       .first['Character02'];
                   await getResourceForTrucks(resourceIdController.text);
-                  if (resourceValue != null) {
-                    _truckFormKey.currentState?.reset();
-                  }
                 },
               ),
             ),
@@ -1348,45 +1373,44 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Form(
-                key: _truckFormKey,
-                child: DropdownSearch(
-                  popupProps: const PopupProps.modalBottomSheet(
-                    showSearchBox: true,
-                    searchFieldProps: TextFieldProps(
-                      decoration: InputDecoration(
-                        suffixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(),
-                        labelText: "Search",
-                      ),
-                    ),
-                  ),
-                  autoValidateMode: AutovalidateMode.onUserInteraction,
-                  dropdownDecoratorProps: const DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
+              child: DropdownSearch(
+                selectedItem: resourceIdController.text,
+                popupProps: const PopupProps.modalBottomSheet(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),
-                      labelText: "Resource",
+                      labelText: "Search",
                     ),
                   ),
-                  items: resourceValue?.map((value) => value['Character01'])
-                      .toList() ?? [],
-                  onChanged: (value) async {
-                    setState(() {
-                      resourceIdController.text = resourceValue!.where((element) => element['Character01'] == value).first['Key1'];
-                    });
-                    getResourceDetailsFromJson(resourceIdController.text);
-                    if(resourceDetails != null){
-                      setState(() {
-                        capacityController.text = resourceDetails!.capacity;
-                        lengthController.text = resourceDetails!.length;
-                        widthController.text = resourceDetails!.width;
-                        heightController.text = resourceDetails!.height;
-                        volumeController.text = resourceDetails!.volume;
-                        loadedController.text = resourceDetails!.loaded;
-                      });
-                    }
-                  },
                 ),
+                autoValidateMode: AutovalidateMode.onUserInteraction,
+                dropdownDecoratorProps: const DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Resource",
+                  ),
+                ),
+                items: resourceValue?.map((value) => value['Character01'])
+                    .toList() ?? [],
+                onChanged: (value) async {
+                  setState(() {
+                    resourceIdController.text = value.toString();
+                    resourceId = resourceValue!.where((element) => element['Character01'] == value).first['Key1'];
+                  });
+                  getResourceDetailsFromJson(resourceIdController.text);
+                  if(resourceDetails != null){
+                    setState(() {
+                      capacityController.text = resourceDetails!.capacity;
+                      lengthController.text = resourceDetails!.length;
+                      widthController.text = resourceDetails!.width;
+                      heightController.text = resourceDetails!.height;
+                      volumeController.text = resourceDetails!.volume;
+                      loadedController.text = resourceDetails!.loaded;
+                    });
+                  }
+                },
               ),
             ),
           ),
@@ -1428,6 +1452,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: DropdownSearch(
+                    selectedItem: driverNameController.text,
                     popupProps: const PopupProps.modalBottomSheet(
                       showSearchBox: true,
                       searchFieldProps: TextFieldProps(

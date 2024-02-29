@@ -184,6 +184,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: DropdownSearch(
+                            selectedItem: truckIdController.text,
                             popupProps: const PopupProps.modalBottomSheet(
                               showSearchBox: true,
                               searchFieldProps: TextFieldProps(
@@ -248,6 +249,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                         child: Form(
                           key: _formKey,
                           child: DropdownSearch(
+                            selectedItem: resourceIdController.text,
                             popupProps: const PopupProps.modalBottomSheet(
                               showSearchBox: true,
                               searchFieldProps: TextFieldProps(
@@ -325,6 +327,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: DropdownSearch(
+                            selectedItem: driverNameController.text,
                             popupProps: const PopupProps.modalBottomSheet(
                               showSearchBox: true,
                               searchFieldProps: TextFieldProps(
