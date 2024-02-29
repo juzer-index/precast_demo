@@ -908,6 +908,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     await updateUD103A({
                                       "Company": "EPIC06",
                                       "Key1": loadIDController.text,
+                                      "ChildKey1": e.toString(),
                                       "Character01": selectedElements[e].partId,
                                       "Character02": selectedElements[e].elementId,
                                       "Character03": toWarehouseController.text,
@@ -925,18 +926,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                   }
                                 }
                                 for (var p = 0; p < selectedParts.length; p++){
-                                  debugPrint(selectedParts[p].toString());
-                                  // await updateUD103A({
-                                  //   "Company": "EPIC06",
-                                  //   "Key1": loadIDController.text,
-                                  //   "Character01": selectedParts[p].partNum,
-                                  //   "Character02": selectedParts[p].partDesc,
-                                  //   "Character03": toWarehouseController.text,
-                                  //   "Character04": toBinController.text,
-                                  //   "Number01": selectedParts[p].qty,
-                                  //   "ShortChar07": selectedParts[p].uom,
-                                  //   "CheckBox13": true,
-                                  // });
+                                  var i = selectedElements.length;
+                                  await updateUD103A({
+                                    "Company": "EPIC06",
+                                    "Key1": loadIDController.text,
+                                    "ChildKey1": i.toString(),
+                                    "Character01": selectedParts[p].partNum,
+                                    "Character02": selectedParts[p].partDesc,
+                                    "Character03": toWarehouseController.text,
+                                    "Character04": toBinController.text,
+                                    "Number01": selectedParts[p].qty,
+                                    "ShortChar07": selectedParts[p].uom,
+                                    "CheckBox13": true,
+                                  });
+                                  i+=1;
                                 }
                             if (mounted) {
                               showDialog(
@@ -945,7 +948,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     return AlertDialog(
                                       title: const Text('Success'),
                                       content: Text(
-                                          'Stock Loading details saved successfully, LoadID: $loadIDController'),
+                                          'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
                                       actions: [
                                         TextButton(
                                           onPressed: () {

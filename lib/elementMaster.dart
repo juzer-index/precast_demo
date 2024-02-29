@@ -330,14 +330,18 @@ class _ElementMasterState extends State<ElementMaster> {
                                           ),
                                           onQRViewCreated: (QRViewController controller) {
                                             this.controller = controller;
-                                            controller.scannedDataStream.listen((scanData) async {
+                                            controller.scannedDataStream
+                                                .listen((scanData) async {
                                               controller.pauseCamera();
-                                              List<String> scanResult = scanData.code!.split('-');
+                                              Navigator.pop(context);
+                                              List<String> scanResult =
+                                                  scanData.code!.split('-');
                                               // String company = scanResult[1];
                                               String partNum = scanResult[2];
                                               String elementId = scanResult[3];
                                               debugPrint('$partNum $elementId');
-                                              await getScannedElement(partNum, elementId);
+                                              await getScannedElement(
+                                                  partNum, elementId);
                                             });
                                           },
                                         ),

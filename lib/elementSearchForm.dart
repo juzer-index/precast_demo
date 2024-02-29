@@ -50,6 +50,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<dynamic> consumables = [];
   List<dynamic> elements = [];
   List<dynamic> lots = [];
+  Map<String, dynamic> elementListData = {};
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -176,6 +177,23 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       }
     }
     on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> getScannedElement(String partNum, String elementId) async {
+    var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
+    try {
+      final response = await http.get(url, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
+      debugPrint(response.statusCode.toString());
+      if (response.statusCode == 200) {
+        elementListData = json.decode(response.body);
+        debugPrint(elementListData.toString());
+      }
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
@@ -310,30 +328,55 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                             onQRViewCreated: (qrController) {
                                               controller = qrController;
                                               controller!.scannedDataStream.listen((
-                                                  scanData) {
-                                                List<String> data = scanData.code!
-                                                    .split('-');
+                                                  scanData) async {
+                                                qrController.pauseCamera();
+                                                Navigator.pop(context);
+                                                List<String> scanResult = scanData.code!.split('-');
+                                                // String company = scanResult[1];
+                                                String partNum = scanResult[2];
+                                                String elementId = scanResult[3];
+                                                debugPrint('$partNum $elementId');
+                                                await getScannedElement(partNum, elementId);
+                                                setState(() {
+                                                  isElement = true;
+                                                  elementDescriptionController.text = elementListData['PartLotDescription'];
+                                                  lotNoController.text = elementListData['LotNum'];
+                                                  uomController.text = elementListData['PartNumSalesUM'];
+                                                  erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
+                                                  weightController.text = elementListData['Ton_c'];
+                                                  areaController.text = elementListData['Area2_c'];
+                                                  volumeController.text = elementListData['Volume2_c'];
+                                                  estErectionDateController.text = elementListData['ErectionPlannedDate_c'];
+                                                  onHandQtyController.text = '1';
+                                                  elementResult = scanData;
+                                                  elementResultCode =
+                                                  elementResult?.code ??
+                                                      'Unknown';
+                                                  elementNumberController.text =
+                                                  partNum;
+                                                });
                                                 // for(var i = 0; i < elements.length; i++){
                                                 //   if(data[0] == elements[i]['ElementId']){
-                                                    setState(() {
-                                                      isElement = true;
-                                                      elementDescriptionController.text = 'Wall Side';
-                                                      uomController.text = 'CUM';
-                                                      erectionSeqController.text = '6';
-                                                      weightController.text = '2301';
-                                                      areaController.text = '100';
-                                                      volumeController.text = '254';
-                                                      estErectionDateController.text = '2022-12-31';
-                                                      onHandQtyController.text = '1';
-                                                      elementResult = scanData;
-                                                      elementResultCode =
-                                                          elementResult?.code ??
-                                                              'Unknown';
-                                                      elementNumberController.text =
-                                                      data[0];
-                                                      lotNoController.text =
-                                                      scanData.code!;
-                                                    });
+                                                //     setState(() {
+                                                //       isElement = true;
+                                                //       elementDescriptionController.text = 'Wall Side';
+                                                //       uomController.text = 'CUM';
+                                                //       erectionSeqController.text = '6';
+                                                //       weightController.text = '2301';
+                                                //       areaController.text = '100';
+                                                //       volumeController.text = '254';
+                                                //       estErectionDateController.text = '2022-12-31';
+                                                //       onHandQtyController.text = '1';
+                                                //       elementResult = scanData;
+                                                //       elementResultCode =
+                                                //           elementResult?.code ??
+                                                //               'Unknown';
+                                                //       elementNumberController.text =
+                                                //       data[0];
+                                                //       lotNoController.text =
+                                                //       scanData.code!;
+                                                //     });
+
                                                 //   }
                                                 // }
                                               });
