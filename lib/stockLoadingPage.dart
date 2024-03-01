@@ -41,8 +41,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController fromWarehouseController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController toBinController = TextEditingController();
-  TextEditingController poNumberController = TextEditingController();
-  TextEditingController poLineController = TextEditingController();
+  TextEditingController? poNumberController = TextEditingController();
+  TextEditingController? poLineController = TextEditingController();
+  TextEditingController? commentsController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   String resourceId = '';
@@ -70,8 +71,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController loadedController = TextEditingController();
   Map<String, dynamic> truckDetails = {};
   ResourceDetails? resourceDetails;
-  TextEditingController foremanId = TextEditingController();
-  TextEditingController foremanName = TextEditingController();
+  TextEditingController? foremanIdController = TextEditingController();
+  TextEditingController? foremanNameController = TextEditingController();
 
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
@@ -81,6 +82,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
+
+  Map<String, dynamic> foremanData = {};
+  List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
   final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
@@ -118,6 +122,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     getDriverList();
     getTrucksFromURL();
     getLastLoadID();
+    getEmployeeInformation();
     super.initState();
   }
 
@@ -663,6 +668,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     "ShortChar03": "Open",
                                     "Number01": loadedController.text,
                                     "Number02": "0",
+                                    "Number04": poNumberController?.text ?? "",
+                                    "Number05": poLineController?.text ?? "",
                                     "Number06": capacityController.text,
                                     "Number07": volumeController.text,
                                     "Number08": heightController.text,
@@ -675,6 +682,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     "Character05": toBinController.text,
                                     "Character06": fromWarehouseController.text,
                                     "Character09": resourceId,
+                                    "EmployeeID_c": foremanIdController?.text ?? "",
+                                    "EmployeeName_c": foremanNameController?.text ?? "",
+                                    "Comments_c": commentsController?.text ?? "",
                                   });
                                   if(isLoaded){
                                     if(mounted) {
@@ -1290,6 +1300,29 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
+  Future<void> getEmployeeInformation() async {
+    try {
+      final response = await http.get(
+          Uri.parse(
+              'https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_EmployeeInformation'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if (response.statusCode == 200) {
+        setState(() {
+          foremanData = json.decode(response.body);
+          foremanValue = foremanData['value'];
+        });
+        debugPrint(foremanValue.toString());
+      } else {
+        throw Exception('Failed to load album');
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Widget buildTruckDetailsFrom(bool isEditable) {
     return Column(
       children: [
@@ -1621,7 +1654,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
                         enabled: isEditable,
-                        controller: foremanId,
+                        controller: foremanNameController,
                         decoration: const InputDecoration(
                             fillColor: Colors.white,
                             filled: true,
@@ -1634,52 +1667,43 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: DropdownButtonFormField(
-                        hint: const Text('Foreman ID'),
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
+                      child: DropdownSearch(
+                        selectedItem: foremanNameController!.text,
+                        enabled: !widget.isUpdate,
+                        popupProps: const PopupProps.modalBottomSheet(
+                          showSearchBox: true,
+                          searchFieldProps: TextFieldProps(
+                            decoration: InputDecoration(
+                              suffixIcon: Icon(Icons.search),
+                              border: OutlineInputBorder(),
+                              labelText: "Search",
+                            ),
+                          ),
                         ),
-
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Foreman 1',
-                            child: Text('Foreman 1'),
+                        autoValidateMode: AutovalidateMode.onUserInteraction,
+                        dropdownDecoratorProps: const DropDownDecoratorProps(
+                          dropdownSearchDecoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: "Foreman Name",
                           ),
-                          DropdownMenuItem(
-                            value: 'Foreman 2',
-                            child: Text('Foreman 2'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Foreman 3',
-                            child: Text('Foreman 3'),
-                          ),
-                        ],
+                        ),
+                        items: foremanValue.map((emp) => emp['EmpBasic_Name']).toList(),
                         onChanged: (value) {
                           setState(() {
-                            // foremanName = value.toString();
+                            foremanNameController!.text = value.toString();
+                            foremanIdController!.text = fetchedProjectValue.firstWhere((project) => project['EmpBasic_Name'] == value)['EmpBasic_EmpID'];
                           });
                         },
                       ),
                     ),
                   ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Foreman Name"),
-                    ),
-                  ),
-                ),
               ],
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextFormField(
+                controller: commentsController,
+                maxLines: 3,
                 enabled: isEditable,
                 decoration: const InputDecoration(
                     fillColor: Colors.white,

@@ -32,6 +32,9 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   TextEditingController widthController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
+  TextEditingController? foremanNameController;
+  TextEditingController? foremanIdController;
+  TextEditingController? commentsController;
   Map<String, dynamic> truckDetails = {};
   ResourceDetails? resourceDetails;
 
@@ -154,6 +157,8 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
       widthController.text = widget.truckDetails?.resourceWidth ?? '';
       heightController.text = widget.truckDetails?.resourceHeight ?? '';
       volumeController.text = widget.truckDetails?.resourceVolume ?? '';
+      foremanNameController?.text = widget.truckDetails?.foremanName ?? '';
+      foremanIdController?.text = widget.truckDetails?.foremanId ?? '';
     }
     if(widget.truckMasterDetails !=null){
 
@@ -483,50 +488,19 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                   title: const Text('Foreman Details'),
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         //add dropdown item list with label truck ID
                         Expanded(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: DropdownButtonFormField(
-                              hint: const Text('Foreman Name'),
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                ),
-
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'Foreman 1',
-                                    child: Text('Foreman 1'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'Foreman 2',
-                                    child: Text('Foreman 2'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'Foreman 3',
-                                    child: Text('Foreman 3'),
-                                  ),
-                                ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    // foremanName = value.toString();
-                                  });
-                                },
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
+                              controller: foremanNameController,
                               enabled: widget.isEdit,
                               decoration: const InputDecoration(
                                   fillColor: Colors.white,
                                   filled: true,
                                   border: OutlineInputBorder(),
-                                  labelText: "Department"),
+                                  labelText: "Foreman ID"),
                             ),
                           ),
                         ),
@@ -537,6 +511,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                         Expanded(child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
+                            maxLines: 3,
                             enabled: widget.isEdit,
                             decoration: const InputDecoration(
                                 fillColor: Colors.white,
