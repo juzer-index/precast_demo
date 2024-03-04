@@ -88,7 +88,8 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             //style: ElevatedButton.styleFrom(
                             //  backgroundColor: Colors.blueGrey),
-                            child: const Text('Login', style: TextStyle(color: Colors.blueGrey),),
+                            child: const Text('Login'
+                            ),
                           ),
                         ],
                       ),
