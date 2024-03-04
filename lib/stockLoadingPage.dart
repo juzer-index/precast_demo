@@ -587,7 +587,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     padding: const EdgeInsets.all(8.0),
                                     child: DropdownSearch(
                                       selectedItem: toBinController.text,
-                                      enabled: !widget.isUpdate,
+                                      enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty,
                                       popupProps: const PopupProps.modalBottomSheet(
                                         showSearchBox: true,
                                         searchFieldProps: TextFieldProps(
@@ -1260,6 +1260,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     await getProjectList();
     await getWarehouseList();
     await getTrucksFromURL();
+    await getDriverList();
+    await getLastLoadID();
   }
   Future<void> getProjectList() async {
     final String basicAuth = 'Basic ${base64Encode(

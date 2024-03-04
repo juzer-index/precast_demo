@@ -3,6 +3,14 @@ import 'package:flutter/material.dart';
 
 final ThemeData myTheme = ThemeData(
   // Define your theme properties here
+  progressIndicatorTheme: const ProgressIndicatorThemeData(
+    color: Colors.blue,
+  ),
+  radioTheme: RadioThemeData(
+    fillColor: MaterialStateProperty.all<Color>(Colors.blue), // Set the fill color
+    // You can add more properties here to customize the radio button style
+  ),
+
   primaryColor: Colors.blue.shade300,
   dividerColor: Colors.transparent,
   inputDecorationTheme: InputDecorationTheme(
@@ -56,5 +64,6 @@ final ThemeData myTheme = ThemeData(
       ),
     ),
   ),
+
   // ... other theme properties
 );
