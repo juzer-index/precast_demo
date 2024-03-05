@@ -12,7 +12,8 @@ import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  String firstName = '';
+   HomePage({super.key, required this.firstName});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -40,7 +41,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(
-                  'Welcome, Joe',
+                  'Welcome, ${widget.firstName}',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade400,),
                 ),
               ),

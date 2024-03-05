@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 
 final ThemeData myTheme = ThemeData(
-  // Define your theme properties here
+  // Define your theme properties her
+
+  textSelectionTheme: const TextSelectionThemeData(
+    cursorColor: Colors.blue,
+    selectionColor: Colors.blue,
+    selectionHandleColor: Colors.blue,
+  ),
   progressIndicatorTheme: const ProgressIndicatorThemeData(
     color: Colors.blue,
   ),
@@ -11,9 +17,13 @@ final ThemeData myTheme = ThemeData(
     // You can add more properties here to customize the radio button style
   ),
 
-  primaryColor: Colors.blue.shade300,
+  primaryColor:  Color.fromRGBO(1, 176, 241, 1.0),
   dividerColor: Colors.transparent,
+  indicatorColor: Colors.blue.shade300,
+
+
   inputDecorationTheme: InputDecorationTheme(
+
     focusedBorder: OutlineInputBorder(
       borderSide: BorderSide(
         color: Colors.blue.shade300,
@@ -21,6 +31,9 @@ final ThemeData myTheme = ThemeData(
 
     ),
     floatingLabelStyle: TextStyle(
+      color: Colors.blue.shade800,
+    ),
+    hintStyle: TextStyle(
       color: Colors.blue.shade800,
     ),
   ),
@@ -32,11 +45,15 @@ final ThemeData myTheme = ThemeData(
     ),
   ),
   secondaryHeaderColor: Colors.grey.shade800,
+
   textTheme: TextTheme(
     labelMedium: TextStyle(
+
       color: Colors.blueGrey.shade800,
       fontSize: 18,
       fontWeight: FontWeight.bold,
+
+
     ),
     displayMedium: const TextStyle(
       color: Colors.black,
@@ -54,7 +71,7 @@ final ThemeData myTheme = ThemeData(
 
 
       backgroundColor: MaterialStateProperty.all<Color>(
-        Colors.blue.shade300,
+        Color.fromRGBO(1, 176, 241, 1.0),
       ),
       textStyle: MaterialStateProperty.all<TextStyle>(
         TextStyle(

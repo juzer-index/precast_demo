@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
@@ -40,7 +41,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController projectIdController = TextEditingController();
   TextEditingController fromWarehouseController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
+  TextEditingController toWarehouseNameController = TextEditingController();
+
   TextEditingController toBinController = TextEditingController();
+  TextEditingController toBinNameController = TextEditingController();
+
   TextEditingController? poNumberController = TextEditingController();
   TextEditingController? poLineController = TextEditingController();
   TextEditingController? commentsController = TextEditingController();
@@ -112,12 +117,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final String nextLoad;
 
   final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
-
+  late final Future dataloaded;
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    MakeSureDataLoaded();
+    dataloaded=MakeSureDataLoaded();
     super.initState();
   }
 
@@ -210,7 +215,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             ),
           ),
           body: FutureBuilder(
-            future: MakeSureDataLoaded(),
+            future: dataloaded,
               builder:(context,sapshot){
                if(fetchedProjectData.isEmpty){
                     return  Stack(
@@ -369,7 +374,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           }
                                           return DropdownSearch(
                                             selectedItem: projectIdController.text,
-                                            enabled: true,
+                                            enabled: !widget.isUpdate,
                                             popupProps: const PopupProps.modalBottomSheet(
                                               showSearchBox: true,
                                               searchFieldProps: TextFieldProps(
@@ -575,6 +580,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               onChanged: (value) {
                                                 setState(() {
                                                   toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
+                                                  toWarehouseNameController.text = value.toString();
                                                 });
                                                 getBinsFromWarehouse(toWarehouseController.text);
                                               },
@@ -609,6 +615,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       onChanged: (value) {
                                         setState(() {
                                           toBinController.text = fetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
+                                          toBinNameController.text = value.toString();
                                         });
                                       },
                                     ),
@@ -785,18 +792,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               "ShortChar04": loadConditionValue,
                                               "ShortChar08": truckIdController.text,
                                               "ShortChar03": "Open",
-                                              "Number01": loadedController.text,
+                                              "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
                                               "Number02": "0",
-                                              "Number06": capacityController.text,
-                                              "Number07": volumeController.text,
-                                              "Number08": heightController.text,
-                                              "Number09": widthController.text,
-                                              "Number10": lengthController.text,
+                                              "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
+                                              "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
+                                              "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
+                                              "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
+                                              "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
                                               "Date01": loadDateFormat,
                                               "Character02": driverNameController.text,
                                               "Character03": driverNumberController.text,
-                                              "Character04": toWarehouseController.text,
-                                              "Character05": toBinController.text,
+                                              "Character04": toWarehouseNameController.text,
+                                              "Character05": toBinNameController.text,
+                                              "Character07": toWarehouseController.text,
+                                              "Character08": toBinController.text,
                                               "Character06": fromWarehouseController.text,
                                               "Character09": resourceId,
                                             });
@@ -1042,7 +1051,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             "Number05": selectedElements[e].volume,
                                             "Number06": selectedElements[e].erectionSeq,
                                             "ShortChar07": selectedElements[e].UOM,
+                                            "CheckBox05":false,
+                                            "CheckBox01":true,
+                                            "CheckBox02":false,
+                                            "CheckBox03":false,
                                             "CheckBox13": false,
+
                                           });
                                         } on Exception catch (e) {
                                           debugPrint(e.toString());

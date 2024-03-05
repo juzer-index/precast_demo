@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'elementMaster.dart';
 import 'loginPage.dart';
 
-
+import 'package:shared_preferences/shared_preferences.dart';
 Drawer SideBarMenu(BuildContext context) {
   return Drawer(
     shadowColor: Colors.blueGrey.shade800,
@@ -133,6 +133,11 @@ Drawer SideBarMenu(BuildContext context) {
             ),
             title: const Text('Logout'),
             onTap: () {
+              SharedPreferences.getInstance().then((value) {
+                value.remove('userManagement');
+                value.remove('tenantConfig');
+              });
+
               Navigator.push(
                   context,
                   MaterialPageRoute(

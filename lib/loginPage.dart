@@ -1,28 +1,104 @@
-import 'package:flutter/material.dart';
 
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'homepage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
   State<LoginPage> createState() => _LoginPageState();
+
+
 }
 
 class _LoginPageState extends State<LoginPage> {
+  String username = '' ;
+  String password = '';
+  String tenantId = '';
+  String firstName = '';
+  bool RememberMe=false ;
+  SharedPreferences? prefs;
+  Future<void> login() async {
+    if(username.isNotEmpty && password.isNotEmpty && tenantId.isNotEmpty){
+    var url = Uri.parse('https://indexinfo.colanonline.net/Account/${tenantId}/Login');
+      var response =  http.MultipartRequest('POST', url);
+      response.fields['username'] = username;
+      response.fields['password'] = password;
+      response.fields['tenantId'] = tenantId;
+      var res = await response.send();
+      if(res.statusCode == 200){
+
+        var responseData= json.decode(await res.stream.bytesToString());
+        var userManagement = responseData['message']['userManagement'];
+        var tenantConfig = responseData['message']['tenantConfig'];
+        firstName= userManagement['firstName'];
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if(RememberMe) {
+          prefs.setString('userManagement', json.encode(userManagement));
+          prefs.setString('tenantConfig', json.encode(tenantConfig));
+        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(firstName:firstName)),
+        );
+      }
+      else if(res.statusCode == 500){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Server Error'),
+          ),
+        );
+      }
+      else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid Credentials'),
+          ),
+        );
+      }
+    }
+    else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid Credentials'),
+        ),
+      );
+    }
+  }
+  isLogged() async {
+
+    SharedPreferences prefs =  await  SharedPreferences.getInstance();
+    if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
+      var userManagement = json.decode(prefs.getString('userManagement') as String);
+      var tenantConfig = json.decode(prefs.getString('tenantConfig') as String);
+      firstName= userManagement['firstName'];
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage(firstName:firstName)),
+      );
+    }
+  }
   @override
   void initState() {
     super.initState();
+    isLogged();
+
   }
+
 
   @override
   Widget build(BuildContext context) {
     var Imagepath = 'assets/Index-Logo.jpg';
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).secondaryHeaderColor,
+        backgroundColor: Theme.of(context).primaryColor,
         title: const Text(
           'Precast Demo',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.white,fontSize: 30),
         ),
       ),
       body: Container(
@@ -45,8 +121,14 @@ class _LoginPageState extends State<LoginPage> {
                   Card(
                     child: Container(
                       alignment: Alignment.center,
-                      height: 300,
+                      height: 350,
                       width: 375,
+
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
+                      ),
+
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -61,6 +143,11 @@ class _LoginPageState extends State<LoginPage> {
                                   return 'Please enter your email';
                                 }
                                 return null;
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  username = value;
+                                });
                               },
                             ),
                           ),
@@ -77,14 +164,48 @@ class _LoginPageState extends State<LoginPage> {
                                 }
                                 return null;
                               },
+                              onChanged: (value) {
+                                setState(() {
+                                  password = value;
+                                });
+                              },
                             ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: TextFormField(
+                              decoration: const InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  labelText: "Tenant ID"),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please Enter Your Tenant ID';
+                                }
+                                return null;
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  tenantId = value;
+                                });
+                              },
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            height: 40,
+                            alignment: Alignment.centerLeft,
+
+                          child:
+                          Row( children:[Checkbox(value: RememberMe , onChanged: (bool?value) {
+                            if(value != null)
+                            setState(() {
+                              RememberMe = value;
+                            });
+                          },),Text('Remember Me')]),
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => HomePage()));
+                              login();
                             },
                             //style: ElevatedButton.styleFrom(
                             //  backgroundColor: Colors.blueGrey),
@@ -100,6 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                   )
                 ],
               ),
+
             ),
           ),
         ),
