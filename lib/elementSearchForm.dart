@@ -16,7 +16,8 @@ class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading});
+  dynamic Warehouse;
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse });
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -37,7 +38,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   TextEditingController lotNoController = TextEditingController();
-
+  
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
   Map<String, dynamic> elementData = {};
@@ -71,10 +72,15 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   var consumableURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_NonTrackPart');
 
 
+
   Future<void> getAllParts() async {
+
+    
     try {
+
       final response = await http.get(
-          partURL,
+           widget.isOffloading ? partURL : Uri.parse(
+               'https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_P_PartDetails_V1?\$filter=PartWhse_WarehouseCode eq \'${Uri.encodeQueryComponent(widget.Warehouse)}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

@@ -872,7 +872,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: ElementSearchForm(onElementsSelected: updateElementInformation, isOffloading: false, ),
+                                          child: ElementSearchForm(onElementsSelected: updateElementInformation, isOffloading: false, Warehouse:fromWarehouseController.text  ),
                                         ),
                                       ),
                                       const SizedBox(height: 20,),
@@ -1043,8 +1043,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             "Key1": loadIDController.text,
                                             "Character01": selectedElements[e].partId,
                                             "Character02": selectedElements[e].elementId,
-                                            "Character03": toWarehouseController.text,
-                                            "Character04": toBinController.text,
+                                            "Character03": fromWarehouseController.text,
+                                            "Character07": toWarehouseController.text,
+                                            "Character08": toBinController.text,
                                             "Number01": selectedElements[e].selectedQty,
                                             "Number03": selectedElements[e].weight,
                                             "Number04": selectedElements[e].area,
@@ -1370,6 +1371,75 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         debugPrint(response.body);
         setState(() {
           isLoaded = true;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         });
       }
     } on Exception catch (e) {
