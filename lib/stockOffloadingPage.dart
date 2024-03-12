@@ -868,7 +868,7 @@ class _StockOffloadingState extends State<StockOffloading>
                               "Character01": selectedElements[v].elementId,
                               "Company": 'EPIC06',
                               "CheckBox02": true,
-                              "Date10": loadDateFormat,
+                              "Date02": loadDateFormat,
                             });
                             debugPrint(selectedElements[v].elementId);
                           }
