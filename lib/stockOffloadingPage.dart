@@ -861,13 +861,14 @@ class _StockOffloadingState extends State<StockOffloading>
                             "Company": 'EPIC06',
                             "ShortChar03": loadStatus,
                           });
-
+                          final loadDateFormat = '${_selectedDate}T00:00:00';
                           for (var v = 0; v < selectedElements.length; v++) {
                             await updateUD103A({
                               "Key1": loadIDController.text,
                               "Character01": selectedElements[v].elementId,
                               "Company": 'EPIC06',
                               "CheckBox02": true,
+                              "Date10": loadDateFormat,
                             });
                             debugPrint(selectedElements[v].elementId);
                           }
