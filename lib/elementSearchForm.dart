@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/part_model.dart';
@@ -30,6 +31,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   TextEditingController erectionSeqController = TextEditingController();
   TextEditingController estErectionDateController = TextEditingController();
   TextEditingController weightController = TextEditingController();
+  TextEditingController CompanyController =TextEditingController();
   TextEditingController areaController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
   TextEditingController onHandQtyController = TextEditingController();
@@ -38,7 +40,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   TextEditingController lotNoController = TextEditingController();
-  
+
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
   Map<String, dynamic> elementData = {};
@@ -59,36 +61,43 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   final String basicAuth = 'Basic ${base64Encode(
-      utf8.encode('manager:manager'))}';
+      utf8.encode('manager:Adp@2023'))}';
 
   bool isElement = false;
   // bool isConsumable = false;
 
-  late Future _dataFuture;
+ // late Future _dataFuture;
 
   var partURL = Uri.parse(
-      'https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_P_PartDetails_V1');
-  var elementLotURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_PartAndLotNumber');
-  var consumableURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_NonTrackPart');
+      'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
 
 
 
-  Future<void> getAllParts() async {
+
+
+
+  Future<void> getAllParts(String PartNum) async {
 
     
     try {
 
       final response = await http.get(
-           widget.isOffloading ? partURL : Uri.parse(
-               'https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_P_PartDetails_V1?\$filter=PartWhse_WarehouseCode eq \'${Uri.encodeQueryComponent(widget.Warehouse)}\''),
+            Uri.parse(
+               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           }
       );
+      debugPrint(response.toString());
       if (response.statusCode == 200) {
         partData = jsonDecode(response.body);
-        partValue = partData['value'];
+         setState(() {
+            partValue = partData['value'];
+         });
+
+
+
         debugPrint(partValue.length.toString());
       } else {
         debugPrint(response.statusCode.toString());
@@ -99,8 +108,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     }
   }
 
+
   Future<void> getLotForElements() async {
     try {
+       String PartNum =elementNumberController.text;
+      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$PartNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
@@ -111,11 +123,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       if (response.statusCode == 200) {
         elementData = jsonDecode(response.body);
         elementValue = elementData['value'];
-        for (var i = 0; i < elementValue.length; i++) {
-          if (elementValue[i]['PartLot_PartNum'] == elementNumberController.text) {
-            elements.add(elementValue[i]['PartLot_LotNum']);
-          }
-        }
+
+        elements= elementValue.map((e) => e['PartLot_LotNum']).toList();
+
         debugPrint(elements.toString());
       } else {
         debugPrint(response.statusCode.toString());
@@ -129,7 +139,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Future<void> getElementDetailsFromLot(String lotNo, String partNum) async {
     try {
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$lotNo)'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(158095,$partNum,$lotNo)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -160,6 +170,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getConsumableDetails(String partNum) async {
     try {
+      var consumableURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_NonTrackPart/?\$filter=Part_PartNum eq \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           // Uri.parse('https://localhost/iit_vertical_precast/api/v1/Erp.BO.PartSvc/Parts($company,$partNum)'),
         consumableURL,
@@ -191,7 +202,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -209,7 +220,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   @override
   void initState() {
     super.initState();
-    _dataFuture = getAllParts();
+   // _dataFuture = getAllParts();
     if(widget.isOffloading){
       isElement = true;
     }
@@ -217,10 +228,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _dataFuture,
-      builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.done){
+    // return FutureBuilder(
+    //   future: _dataFuture,
+    //   builder: (context, snapshot) {
+    //     if(snapshot.connectionState == ConnectionState.done){
           return Column(
             children: [
               Row(
@@ -240,12 +251,23 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: IconButton(
-                      onPressed: () {
+                      onPressed: () async {
+
                         elements.clear();
                         lotNoController.text = '';
                         if (!widget.isOffloading) {
                           if (elementNumberController.text.isNotEmpty) {
-                            for (var i = 0; i < partValue.length; i++) {
+                            Map<String,dynamic> firstElement;
+                            await getAllParts(elementNumberController.text);
+                            if(partValue[0]['Part_IsElementPart_c'] == true){
+                              isElement = true;
+                              await getLotForElements();
+                            }
+                            else{
+                              isElement = false;
+                              await getConsumableDetails(elementNumberController.text);
+                            }
+/*                            for (var i = 0; i < partValue.length; i++) {
                               if (partValue[i]['Part_PartNum'] ==
                                   elementNumberController.text &&
                                   partValue[i]['Part_IsElementPart_c'] == true) {
@@ -263,11 +285,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   isElement = false;
                                 });
                                 break;
-                              }
+                              }*/
                             }
                           }
-                        }
-                        if(widget.isOffloading){
+
+                       if(widget.isOffloading){
                           if(elementNumberController.text.isNotEmpty){
                             for(var i = 0; i < widget.arrivedElements!.length; i++){
                               if(widget.arrivedElements![i].partId == elementNumberController.text){
@@ -446,7 +468,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         labelText: "Lot No.",
                       ),
                     ),
-                    items: elements,
+                    items: elements.isNotEmpty?elements:[],
                     onChanged: (value) async {
                       await getElementDetailsFromLot(value, elementNumberController.text);
                     },
@@ -692,9 +714,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
               ),
             ],
           );
-        }
+/*       *//* }
         return const Center(child: CircularProgressIndicator());
-      },
-    );
+      },*//*
+    );*/
   }
 }

@@ -1,16 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
+import 'package:advanced_datatable/advanced_datatable_source.dart';
+import 'package:advanced_datatable/datatable.dart'as ad;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:precast_demo/indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
-import 'detailsPage.dart';
 
+import 'detailsPage.dart';
+class ElementDataSource extends ChangeNotifier {
+  List<dynamic> partElementList = [];
+
+  void updateList(List<dynamic> newList) {
+    partElementList = newList;
+
+    notifyListeners();
+  }
+
+
+}
 
 class ElementMaster extends StatefulWidget {
-  const ElementMaster({super.key});
+  const ElementMaster({Key? key}) ;
 
   @override
   State<ElementMaster> createState() => _ElementMasterState();
@@ -19,6 +33,17 @@ class ElementMaster extends StatefulWidget {
 class MyDataTableSource extends DataTableSource{
   final List<dynamic> _elementData;
   final BuildContext dialogContext;
+  bool _hasMore = false;
+  @override
+  bool get hasMore => _hasMore;
+
+
+  set hasMore(bool value) {
+    _hasMore = value;
+  }
+
+
+
 
   MyDataTableSource(this._elementData, this.dialogContext);
 
@@ -56,7 +81,7 @@ class MyDataTableSource extends DataTableSource{
               final String partNum = row["PartLot_PartNum"];
               Map<String, dynamic> elementDetails = {};
               final String basicAuth = 'Basic ${base64Encode(
-                  utf8.encode('manager:manager'))}';
+                  utf8.encode('manager:Adp@2023'))}';
               try {
                 final response = await http.get(
                   Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
@@ -119,8 +144,8 @@ class MyDataTableSource extends DataTableSource{
 
   @override
   int get selectedRowCount => 0;
-}
 
+}
 
 
 class _ElementMasterState extends State<ElementMaster> {
@@ -136,7 +161,7 @@ class _ElementMasterState extends State<ElementMaster> {
 
   bool isSingleElement = false;
 
-  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -144,8 +169,20 @@ class _ElementMasterState extends State<ElementMaster> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   bool isScanned = false;
+  bool isElement = false;
+  int offset = 0;
+  int currentPageIndex = 0;
+  final GlobalKey<PaginatedDataTableState> DataTablekey = GlobalKey();
 
-  Future<void> getElementList() async {
+  @override
+  void initState() {
+
+    super.initState();
+
+  }
+
+
+  /*Future<void> getElementList() async {
     var url = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_AllElement');
     try {
       final response = await http.get(url, headers: {
@@ -160,8 +197,49 @@ class _ElementMasterState extends State<ElementMaster> {
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
-  }
+  }*/
+  Future<void> getElementList(String Param, bool isElement,int offset) async {
+    var url;
+    int page = offset == 0 ? 11: 10;
+    if(!isElement) {
+      url = Uri.parse(
+          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_PartNum eq \'$Param\'&\$top=$page''&\$skip=$offset');
 
+    }
+
+    else {
+      url = Uri.parse(
+          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset');
+      isElement = true;
+    }
+    try {
+      final String basicAuth = 'Basic ${base64Encode(
+          utf8.encode('manager:Adp@2023'))}';
+      final response = await http.get(url, headers: {
+
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+
+
+      });
+      if (response.statusCode == 200) {
+        var elementListData = json.decode(response.body);
+        var elementListValue = elementListData['value'];
+        setState(() {
+          partElementList+=elementListValue;
+          offset += elementListValue.length as int;
+        });
+
+
+        debugPrint(elementListValue.toString());
+      }
+      else {
+        debugPrint(response.statusCode.toString());
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> getScannedElement(String partNum, String elementId) async {
     var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
     try {
@@ -203,11 +281,7 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _elementListFuture = getElementList();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -241,6 +315,8 @@ class _ElementMasterState extends State<ElementMaster> {
                                 onTap: () {
                                   setState(() {
                                     elementIdController.clear();
+                                    currentPageIndex= 0;
+
                                   });
                                 },
                                 controller: partNumController,
@@ -278,31 +354,36 @@ class _ElementMasterState extends State<ElementMaster> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: FutureBuilder(
+                            child: /*FutureBuilder(
                               future: _elementListFuture,
-                              builder: (BuildContext context, AsyncSnapshot snapshot) {
-                                if (snapshot.connectionState == ConnectionState.done) {
-                                  return IconButton(
+                              builder: (BuildContext context, AsyncSnapshot snapshot) {*/
+                               /* if (snapshot.connectionState == ConnectionState.done) {*/
+                                 /* return */IconButton(
                                     onPressed: () async {
                                       partElementList.clear();
+                                      setState(() {
+                                        currentPageIndex = 0;
+                                      });
+                                      DataTablekey.currentState?.pageTo(0);
                                       if(partNumController.text.isNotEmpty) {
                                         setState(() {
                                           isSingleElement = false;
                                         });
-                                        await getPartElementList(partNumController.text);
+
+                                        await getElementList(partNumController.text, false, 0);
                                       }
                                       if(elementIdController.text.isNotEmpty){
                                         setState(() {
                                           isSingleElement = true;
                                         });
-                                        await getPartElementList(elementIdController.text);
+                                        await getElementList(elementIdController.text, true,0);
                                       }
                                     },
-                                    icon: const Icon(Icons.search),
-                                  );
+                                    icon: const Icon(Icons.search),/*
+                                  ),
                                 }
                                 return const CircularProgressIndicator();
-                              },
+                              },*/
                             ),
                           ),
                           Padding(
@@ -349,14 +430,30 @@ class _ElementMasterState extends State<ElementMaster> {
                       ),
                     ),
                   ),
-                  SizedBox(
+
+                SizedBox(
                     child: Card(
                       color: Colors.lightBlue.shade100,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: SingleChildScrollView(
+
                                 child: PaginatedDataTable(
-                                  headingRowColor: MaterialStateColor.resolveWith((states) {return Theme.of(context).primaryColor;}),
+                                  key : DataTablekey,
+                                  onPageChanged: (page) async {
+
+                                    debugPrint(offset.toString());
+                                    if(page>offset){
+                                      offset=max(offset, page);
+                                      isElement ? await getElementList(elementIdController.text, true, page) : await getElementList(partNumController.text, false, page);
+
+                                    }
+
+
+                                   },
+
+
+                                  initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
+
                                   columnSpacing: 30,
                                   columns: const [
                                     DataColumn(label: Text('Element ID')),
@@ -365,12 +462,15 @@ class _ElementMasterState extends State<ElementMaster> {
                                     DataColumn(label: Text('Project')),
                                     DataColumn(label: Text('Status')),
                                   ],
-                                  source: MyDataTableSource(partElementList, context),
+                                  source: partElementList.isNotEmpty ?
+                                  MyDataTableSource(partElementList, context)
+                                      :
+                                  MyDataTableSource(partElementList, context),
                                   )
                               )
                         ),
                       ),
-                    ),
+
                 ],
               ),
             ],

@@ -19,31 +19,42 @@ class _LoginPageState extends State<LoginPage> {
   String username = '' ;
   String password = '';
   String tenantId = '';
-  String firstName = '';
+  dynamic UserManagement;
+  dynamic TenantConfig;
   bool RememberMe=false ;
+  bool isLoading = false;
+  bool Checked = false;
   SharedPreferences? prefs;
   Future<void> login() async {
     if(username.isNotEmpty && password.isNotEmpty && tenantId.isNotEmpty){
+      setState(() {
+        isLoading = true;
+      });
+
     var url = Uri.parse('https://indexinfo.colanonline.net/Account/${tenantId}/Login');
       var response =  http.MultipartRequest('POST', url);
       response.fields['username'] = username;
       response.fields['password'] = password;
       response.fields['tenantId'] = tenantId;
       var res = await response.send();
+      setState(() {
+        isLoading = false;
+      });
+
       if(res.statusCode == 200){
 
         var responseData= json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
-        firstName= userManagement['firstName'];
         SharedPreferences prefs = await SharedPreferences.getInstance();
         if(RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
+          UserManagement = userManagement;
         }
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(firstName:firstName)),
+          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
         );
       }
       else if(res.statusCode == 500){
@@ -75,10 +86,10 @@ class _LoginPageState extends State<LoginPage> {
     if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
       var userManagement = json.decode(prefs.getString('userManagement') as String);
       var tenantConfig = json.decode(prefs.getString('tenantConfig') as String);
-      firstName= userManagement['firstName'];
+      UserManagement = userManagement;
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => HomePage(firstName:firstName)),
+        MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
       );
     }
   }
@@ -95,10 +106,12 @@ class _LoginPageState extends State<LoginPage> {
     var Imagepath = 'assets/Index-Logo.jpg';
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: Colors.white,
         title: const Text(
           'Precast Demo',
-          style: TextStyle(color: Colors.white,fontSize: 30),
+          style: TextStyle(
+              color: Colors.lightBlue,
+              fontSize: 20 , fontWeight: FontWeight.bold),
         ),
       ),
       body: Container(
@@ -129,7 +142,8 @@ class _LoginPageState extends State<LoginPage> {
                         color: Colors.white,
                       ),
 
-                      child: Column(
+                      child: isLoading ? const CircularProgressIndicator() :
+                      Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           Padding(
@@ -201,7 +215,9 @@ class _LoginPageState extends State<LoginPage> {
                             setState(() {
                               RememberMe = value;
                             });
-                          },),Text('Remember Me')]),
+                          },
+                          fillColor: RememberMe?MaterialStateProperty.all<Color>(Theme.of(context).primaryColor):MaterialStateProperty.all<Color>(Colors.white),
+                          ),Text('Remember Me')]),
                           ),
                           ElevatedButton(
                             onPressed: () {
@@ -218,7 +234,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(
                     height: 60,
-                  )
+                  ),
+
+
+
+
                 ],
               ),
 

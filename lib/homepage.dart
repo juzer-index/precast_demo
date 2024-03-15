@@ -12,8 +12,8 @@ import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 
 class HomePage extends StatefulWidget {
-  String firstName = '';
-   HomePage({super.key, required this.firstName});
+  dynamic userManagement;
+   HomePage({super.key, required this.userManagement}) ;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -41,7 +41,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(
-                  'Welcome, ${widget.firstName}',
+                  'Welcome, ${widget.userManagement['firstName']}',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade400,),
                 ),
               ),
@@ -71,8 +71,8 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'ID: 408',
+                                   Text(
+                                  'ID: ${widget.userManagement['id']}',
                                     style: TextStyle(
                                         fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
@@ -108,7 +108,7 @@ class _HomePageState extends State<HomePage> {
                                                         .size
                                                         .width *
                                                     0.5,
-                                                child: const Padding(
+                                                child: Padding(
                                                     padding:
                                                         EdgeInsets.all(12.0),
                                                     child: Column(
@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           SizedBox(height: 10),
                                                           Text(
-                                                            'Name: Joe',
+                                                            'Name: ${widget.userManagement['firstName']} ${widget.userManagement['lastName']}',
                                                             style: TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           SizedBox(height: 10),
                                                           Text(
-                                                            'ID: 408',
+                                                            'ID: ${widget.userManagement['id']}',
                                                             style: TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           SizedBox(height: 10),
                                                           Text(
-                                                            'Department: Sales',
+                                                            'tenant ID: ${widget.userManagement['tenantId']}',
                                                             style: TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -156,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           SizedBox(height: 10),
                                                           Text(
-                                                            'Shift: Morning',
+                                                            'Email: ${widget.userManagement['userFile_EMailAddress']}',
                                                             style: TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:

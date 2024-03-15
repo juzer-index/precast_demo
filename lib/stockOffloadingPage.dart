@@ -14,6 +14,14 @@ import 'elementSearchForm.dart';
 import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'PdfViewer.dart';
+import 'package:image/image.dart' as img;
+
+
 
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
@@ -47,10 +55,11 @@ class _StockOffloadingState extends State<StockOffloading>
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
+
   List<PartData> arrivedParts = [];
 
   final String username = 'manager';
-  final String password = 'manager';
+  final String password = 'Adp@2023';
 
   LoadData? offloadData;
 
@@ -60,10 +69,15 @@ class _StockOffloadingState extends State<StockOffloading>
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
+
+  final detailsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As');
+
+
+
+
 
   Future<void> fetchLoadDataFromURL() async {
+    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
       final response = await http.get(
@@ -73,16 +87,23 @@ class _StockOffloadingState extends State<StockOffloading>
           HttpHeaders.contentTypeHeader: 'application/json',
         }
       );
-      final jsonResponse = json.decode(response.body);
-      setState(() {
-        loadData = jsonResponse;
-        loadValue = loadData['value'];
-      });
-      return jsonResponse;
+      if(response.statusCode == 200){
+        final jsonResponse = json.decode(response.body);
+        setState(() {
+          loadData = jsonResponse;
+          loadValue = loadData['value'];
+        });
+      }
+      else {
+        debugPrint('PDF Count Fetch Failed');
+      }
     } on Exception catch (e) {
       debugPrint(e.toString());
+
     }
+
   }
+
 
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty){
@@ -91,7 +112,40 @@ class _StockOffloadingState extends State<StockOffloading>
     }
     return null;
   }
+Future <void> fetchElementANDPartsDataFromURL() async {
+    final stringBasicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final detailsURL2 = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Key1 eq \'${loadIDController.text}\'');
+    try {
+      final response = await http.get(
+          detailsURL2,
+          headers: {
+            HttpHeaders.authorizationHeader: stringBasicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if(response.statusCode ==200) {
+        final jsonResponse = json.decode(response.body);
 
+        elementData = jsonResponse;
+        elementValue =
+            elementData['value'].where((element) =>
+            element['CheckBox13'] ==
+                false).toList();
+        partData = jsonResponse;
+        partValue = partData['value']
+            .where((part) => part['CheckBox13'] == true)
+            .toList();
+        setState(() {
+          arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
+          arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
+        });
+      }
+
+
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+}
   Future<void> fetchElementDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
@@ -164,6 +218,7 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> updateLoadStatus(Map<String, dynamic> statusData) async {
+    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
       final response = await http.post(
@@ -187,6 +242,19 @@ class _StockOffloadingState extends State<StockOffloading>
       debugPrint(e.toString());
     }
   }
+  Future<Uint8List> DeliveryNote(String base64String) async {
+    Uint8List decodedBytes = base64.decode(base64String);
+    final pdf = pw.Document();
+    final font = pw.Font.ttf(await rootBundle.load('assets/fonts/OpenSans-Regular.ttf'));
+    final directory = await getApplicationDocumentsDirectory();
+    final output = File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
+
+    await pdf.save();
+    await output.writeAsBytes(decodedBytes, flush: true);
+
+    return output.readAsBytesSync();
+  }
+
 
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
@@ -225,13 +293,13 @@ class _StockOffloadingState extends State<StockOffloading>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    fetchLoadDataFromURL();
-    fetchElementDataFromURL();
+   /* fetchLoadDataFromURL();
+    fetchElementDataFromURL();*/
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build (BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
@@ -273,6 +341,9 @@ class _StockOffloadingState extends State<StockOffloading>
                     },
                   ),
                 ),
+
+
+
               ],
           )
         ],
@@ -291,7 +362,7 @@ class _StockOffloadingState extends State<StockOffloading>
           ],
         ),
       ),
-      body: Padding(
+      body:Padding(
         padding: const EdgeInsets.all(8.0),
         child: TabBarView(
           controller: _tabController,
@@ -332,8 +403,9 @@ class _StockOffloadingState extends State<StockOffloading>
                             IconButton(
                               onPressed: () async {
                                 await fetchLoadDataFromURL();
-                                await fetchElementDataFromURL();
-                                await fetchPartDataFromURL();
+/*                                await fetchElementDataFromURL();
+                                await fetchPartDataFromURL();*/
+                                await fetchElementANDPartsDataFromURL();
                                 String projectLoadID = loadIDController.text;
                                 offloadData = getLoadObjectFromJson(projectLoadID);
                                 getElementObjectFromJson(projectLoadID);
@@ -755,6 +827,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           fontSize: 18,
                           color: Colors.blue),
                     ),
+
                     ElementTable(selectedElements: selectedElements),
                     const SizedBox(
                       height: 20,
@@ -766,6 +839,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           fontSize: 18,
                           color: Colors.blue),
                     ),
+
                     PartTable(selectedParts: arrivedParts),
                     const SizedBox(
                       height: 20,
@@ -899,3 +973,10 @@ class _StockOffloadingState extends State<StockOffloading>
     );
   }
 }
+
+
+
+
+
+
+

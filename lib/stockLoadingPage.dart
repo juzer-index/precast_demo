@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,12 @@ import 'part_model.dart';
 import 'element_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'PdfViewer.dart';
+import 'PdfViewer.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
@@ -92,11 +99,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
-  final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
+  final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s');
+  final detailsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As');
 
-  var truckURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As');
+  var truckURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102s');
+  var resourceURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
@@ -116,8 +123,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final int l2;
   late final String nextLoad;
 
-  final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+  final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
   late final Future dataloaded;
+  bool isPrinting = false ;
+  int PDFCount =0;
   @override
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
@@ -196,6 +205,70 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       },
                     ),
                   ),
+                      PopupMenuItem(
+                      child: ListTile(
+                      leading: const Icon(Icons.adf_scanner),
+                      title: const Text('Generate Delivery Note'),
+
+                        onTap: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            isPrinting = true;
+                          });
+                          fetchPDFCounts().then((value) => {
+                            if( value!= null ){
+                              setState(() {
+                                PDFCount = value.length;
+                              })
+                            },
+                            SubmitReport().then((value) => {
+                              if(value){
+                                Future.delayed(Duration(seconds: 2), () {
+                                  // Function to execute after the delay
+
+
+
+                                  fetchPDFCounts().then((value) => {
+                                    if( value!= null ){
+                                      if(true){
+
+                                        setState(() {
+                                          isPrinting = false;
+                                        }),
+                                        Navigator.push(context, MaterialPageRoute(builder: (context) => PdfViewerPage(filePath:'DeliveryNote${loadIDController.text}.pdf',generatePdf: DeliveryNote(value[0]['SysRptLst_RptData']))))
+                                      }
+                                      else{
+                                        setState(() {
+                                          isPrinting = false;
+                                        }),
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text('Error'),
+                                              content: const Text('Delivery Note Generation Failed'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('Close'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        )
+                                      }
+                                    }
+                                  });
+                                })
+                              }
+                            })
+                          });
+
+
+                        },
+                ),),
                 ];
               }
               ) ],
@@ -214,7 +287,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               ],
             ),
           ),
-          body: FutureBuilder(
+          body:      isPrinting?
+            Center(
+            child: CircularProgressIndicator(),
+         )
+
+        :FutureBuilder(
             future: dataloaded,
               builder:(context,sapshot){
                if(fetchedProjectData.isEmpty){
@@ -785,7 +863,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             final loadDateFormat = '${_selectedDate}T00:00:00';
                                             await createNewLoad({
                                               "Key1": newLoadId,
-                                              "Company": "EPIC06",
+                                              "Company": "158095",
                                               "ShortChar07": plateNumberController.text,
                                               "ShortChar05": projectIdController.text,
                                               "ShortChar01": loadTypeValue,
@@ -1039,18 +1117,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         debugPrint(selectedElements[e].toString());
                                         try {
                                           await updateUD103A({
-                                            "Company": "EPIC06",
+                                            "Company": "158095",
                                             "Key1": loadIDController.text,
                                             "Character01": selectedElements[e].partId,
                                             "Character02": selectedElements[e].elementId,
                                             "Character03": fromWarehouseController.text,
                                             "Character07": toWarehouseController.text,
                                             "Character08": toBinController.text,
-                                            "Number01": selectedElements[e].selectedQty,
-                                            "Number03": selectedElements[e].weight,
-                                            "Number04": selectedElements[e].area,
-                                            "Number05": selectedElements[e].volume,
-                                            "Number06": selectedElements[e].erectionSeq,
+                                            "Number01": selectedElements[e].selectedQty.toString().isNotEmpty? selectedElements[e].selectedQty.toString() : '0',
+                                            "Number03": selectedElements[e].weight.toString().isNotEmpty ? selectedElements[e].weight : '0',
+                                            "Number04": selectedElements[e].area.toString().isNotEmpty ? selectedElements[e].area : '0',
+                                            "Number05": selectedElements[e].volume.toString().isNotEmpty ? selectedElements[e].volume : '0',
+                                            "Number06": selectedElements[e].erectionSeq.toString().isNotEmpty  ? selectedElements[e].erectionSeq : '0',
                                             "ShortChar07": selectedElements[e].UOM,
                                             "CheckBox05":false,
                                             "CheckBox01":true,
@@ -1278,13 +1356,152 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     await getDriverList();
     await getLastLoadID();
   }
+  Future<bool> SubmitReport() async {
+    dynamic body={
+
+    "ds": {
+    "extensionTables": [],
+    "BAQReportParam": [
+    {
+
+    "Summary": false,
+    "BAQRptID": "",
+    "ReportID": "IIT_DeliveryNot",
+    "Option01": loadIDController.text,
+    "SysRowID": "00000000-0000-0000-0000-000000000000",
+    "AutoAction": "SSRSGenerate",
+    "PrinterName": "Microsoft Print to PDF",
+    "AgentSchedNum": 0,
+    "AgentID": "",
+    "AgentTaskNum": 0,
+    "RecurringTask": false,
+    "RptPageSettings": "Color=True,Landscape=False,AutoRotate=False,PaperSize=[Kind=\"Custom\" PaperName=\"Custom\" Height=0 Width=0],PaperSource=[SourceName=\"Automatically Select\" Kind=\"Custom\"],PrinterResolution=[]",
+    "RptPrinterSettings": "PrinterName=\"Microsoft Print to PDF\",Copies=1,Collate=False,Duplex=Default,FromPage=1,ToPage=0",
+    "RptVersion": "",
+    "ReportStyleNum": 1002,
+    "WorkstationID": "web_Manager",
+    "AttachmentType": "PDF",
+    "ReportCurrencyCode": "USD",
+    "ReportCultureCode": "en-US",
+    "SSRSRenderFormat": "PDF",
+    "UIXml": "",
+    "PrintReportParameters": false,
+    "SSRSEnableRouting": false,
+    "DesignMode": false,
+    "RowMod": "A"
+    }
+    ],
+    "ReportStyle": [
+
+    {
+    "Company": "158095",
+    "ReportID": "IIT_DeliveryNot",
+    "StyleNum": 1002,
+    "StyleDescription": "Delivery Note Report - SSRS",
+    "RptTypeID": "SSRS",
+    "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
+    "PrintProgramOptions": "",
+    "RptDefID": "IIT_DeliveryNot",
+    "CompanyList": "158095",
+    "ServerNum": 0,
+    "OutputLocation": "Database",
+    "OutputEDI": "",
+    "SystemFlag": false,
+    "CGCCode": "",
+    "SysRevID": 93280823,
+    "SysRowID": "724b1ca9-4a67-4db8-840a-24b73be01b80",
+    "RptCriteriaSetID": null,
+    "RptStructuredOutputDefID": null,
+    "StructuredOutputEnabled": false,
+    "RequireSubmissionID": false,
+    "AllowResetAfterSubmit": false,
+    "CertificateID": null,
+    "LangNameID": "",
+    "FormatCulture": "",
+    "StructuredOutputCertificateID": null,
+    "StructuredOutputAlgorithm": null,
+    "HasBAQOrEI": false,
+    "RoutingRuleEnabled": false,
+    "CertificateIsAllComp": false,
+    "CertificateIsSystem": false,
+    "CertExpiration": null,
+    "Status": 0,
+    "StatusMessage": "",
+    "RptDefSystemFlag": false,
+    "LangNameIDDescription": "",
+    "IsBAQReport": false,
+    "StructuredOutputCertificateIsAllComp": false,
+    "StructuredOutputCertificateIsSystem": false,
+    "StructuredOutputCertificateExpirationDate": null,
+    "AllowGenerateEDI": false,
+    "BitFlag": 0,
+    "ReportRptDescription": "",
+    "RptDefRptDescription": "",
+    "RptTypeRptTypeDescription": "",
+    "RowMod": "",
+    "SSRSRenderFormat": "PDF"
+    }
+
+    ]
+    },
+    "agentID": "",
+    "agentSchedNum": 0,
+    "agentTaskNum": 0,
+    "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
+    };
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    try {
+      final SumbitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final response = await http.post(
+          SumbitReportURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+          body: jsonEncode(body)
+      );
+      if(response.statusCode == 200){
+        return true;
+      }
+      else {
+        return false;
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
+
+  Future<dynamic> fetchPDFCounts() async {
+    final String basicAuth = 'Basic ${base64Encode(
+        utf8.encode('manager:Adp@2023'))}';
+    try {
+      final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)');
+      final response = await http.get(
+          PDFCountsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        return jsonResponse['value'];
+      }
+      else {
+        return null;
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> getProjectList() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:manager'))}';
+        utf8.encode('manager:Adp@2023'))}';
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/iit_vertical_precast/api/v1/Erp.Bo.ProjectSvc/List/'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.ProjectSvc/List/'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1302,12 +1519,23 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
+  Future<Uint8List> DeliveryNote(String base64String) async {
+    Uint8List decodedBytes = base64.decode(base64String);
+    final pdf = pw.Document();
+    final font = pw.Font.ttf(await rootBundle.load('assets/fonts/OpenSans-Regular.ttf'));
+    final directory = await getApplicationDocumentsDirectory();
+    final output = File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
 
+    await pdf.save();
+    await output.writeAsBytes(decodedBytes, flush: true);
+
+    return output.readAsBytesSync();
+  }
   Future<void> getWarehouseList() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
     try {
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Erp.Bo.WarehseSvc/Warehses'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.WarehseSvc/Warehses'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1328,10 +1556,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getBinsFromWarehouse (String warehouseCode) async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:manager'))}';
+        utf8.encode('manager:Adp@2023'))}';
     try {
       final response = await http.get(
-          Uri.parse("https://77.92.189.102/iit_vertical_precast/api/v1/Erp.BO.WhseBinSvc/WhseBins?\$filter=WarehouseCode eq '$warehouseCode'"),
+          Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.WhseBinSvc/WhseBins?\$filter=WarehouseCode eq '$warehouseCode'"),
           headers: {
       HttpHeaders.authorizationHeader: basicAuth,
       HttpHeaders.contentTypeHeader: 'application/json',
@@ -1356,10 +1584,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> createNewLoad(Map<String, dynamic> loadItems) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
     try{
       final response = await http.post(
-          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1371,74 +1599,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         debugPrint(response.body);
         setState(() {
           isLoaded = true;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         });
       }
@@ -1479,7 +1639,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final response = await http.get(
           urL,
@@ -1503,7 +1663,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getDriverList() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_DriverName(158095)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1524,7 +1684,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getLastLoadID() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(158095)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1642,7 +1802,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     try {
       final response = await http.post(
-          Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
