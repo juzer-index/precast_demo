@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/stockLoadingPage.dart';
@@ -38,6 +39,8 @@ class _StockOffloadingState extends State<StockOffloading>
   TextEditingController loadDateController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController toBinController = TextEditingController();
+  TextEditingController offloadDateController = TextEditingController();
+  String _selectedDate = '';
   late TabController _tabController;
   String loadTypeValue = '';
   String loadConditionValue = '';
@@ -502,6 +505,44 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                           ),
                         ),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          controller: offloadDateController,
+                          onTap: () async {
+                            final DateTime? date = await showDatePicker(
+                              builder: (BuildContext context, Widget? child) {
+                                return Theme(
+                                  data: ThemeData.light().copyWith(
+                                    colorScheme: ColorScheme.light(
+                                      primary :Theme.of(context).primaryColor,
+                                      background: Colors.white,
+                                      secondary: Theme.of(context).primaryColor,
+                                      outline: Colors.cyanAccent,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2018),
+                              lastDate: DateTime(2030),
+                            );
+                            if (date != null) {
+                              setState(() {
+                                offloadDateController.text =
+                                "${date.day}/${date.month}/${date
+                                    .year}";
+                                _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                              });
+                            }
+                          },
+                          decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "OffLoad Date"),
+                        ),
+                      ),
                       Row(
                         children: [
                           Expanded(
@@ -775,6 +816,21 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextFormField(
+                        controller: offloadDateController,
+                        enabled: false,
+                        decoration: const InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.blue),
+                          ),
+                          label: Text('Offload Date'),
+                        ),
+                      ),
+                    ),
                     Row(
                       children: [
                         Expanded(
@@ -879,13 +935,14 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                             "Company": 'EPIC06',
                             "ShortChar03": loadStatus,
                           });
-
+                          final loadDateFormat = '${_selectedDate}T00:00:00';
                           for (var v = 0; v < selectedElements.length; v++) {
                             await updateUD103A({
                               "Key1": loadIDController.text,
                               "Character01": selectedElements[v].elementId,
                               "Company": 'EPIC06',
                               "CheckBox02": true,
+                              "Date02": loadDateFormat,
                             });
                             debugPrint(selectedElements[v].elementId);
                           }

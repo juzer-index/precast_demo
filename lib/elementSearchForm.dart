@@ -385,30 +385,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   elementNumberController.text =
                                                   partNum;
                                                 });
-                                                // for(var i = 0; i < elements.length; i++){
-                                                //   if(data[0] == elements[i]['ElementId']){
-                                                //     setState(() {
-                                                //       isElement = true;
-                                                //       elementDescriptionController.text = 'Wall Side';
-                                                //       uomController.text = 'CUM';
-                                                //       erectionSeqController.text = '6';
-                                                //       weightController.text = '2301';
-                                                //       areaController.text = '100';
-                                                //       volumeController.text = '254';
-                                                //       estErectionDateController.text = '2022-12-31';
-                                                //       onHandQtyController.text = '1';
-                                                //       elementResult = scanData;
-                                                //       elementResultCode =
-                                                //           elementResult?.code ??
-                                                //               'Unknown';
-                                                //       elementNumberController.text =
-                                                //       data[0];
-                                                //       lotNoController.text =
-                                                //       scanData.code!;
-                                                //     });
-
-                                                //   }
-                                                // }
                                               });
                                             },
                                           ),
