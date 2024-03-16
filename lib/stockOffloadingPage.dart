@@ -60,8 +60,8 @@ class _StockOffloadingState extends State<StockOffloading>
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final loadURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD103Svc/UD103As');
+  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s');
+  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As');
 
   Future<void> fetchLoadDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';

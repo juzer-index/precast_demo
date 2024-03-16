@@ -66,9 +66,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   late Future _dataFuture;
 
   var partURL = Uri.parse(
-      'https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_P_PartDetails_V1');
-  var elementLotURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_PartAndLotNumber');
-  var consumableURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_NonTrackPart');
+      'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_P_PartDetails_V1');
+  var elementLotURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_PartAndLotNumber');
+  var consumableURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_NonTrackPart');
 
 
   Future<void> getAllParts() async {
@@ -105,6 +105,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       if (response.statusCode == 200) {
         elementData = jsonDecode(response.body);
         elementValue = elementData['value'];
+        debugPrint('these are the elements ${elementValue.toString()}');
         for (var i = 0; i < elementValue.length; i++) {
           if (elementValue[i]['PartLot_PartNum'] == elementNumberController.text) {
             elements.add(elementValue[i]['PartLot_LotNum']);
@@ -123,7 +124,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Future<void> getElementDetailsFromLot(String lotNo, String partNum) async {
     try {
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$lotNo)'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$lotNo)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -185,7 +186,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

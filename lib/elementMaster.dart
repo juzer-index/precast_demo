@@ -59,7 +59,7 @@ class MyDataTableSource extends DataTableSource{
                   utf8.encode('manager:manager'))}';
               try {
                 final response = await http.get(
-                  Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+                  Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
                     headers: {
                       HttpHeaders.authorizationHeader: basicAuth,
                       HttpHeaders.contentTypeHeader: 'application/json',
@@ -146,7 +146,7 @@ class _ElementMasterState extends State<ElementMaster> {
   bool isScanned = false;
 
   Future<void> getElementList() async {
-    var url = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_AllElement');
+    var url = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_AllElement');
     try {
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
@@ -163,7 +163,7 @@ class _ElementMasterState extends State<ElementMaster> {
   }
 
   Future<void> getScannedElement(String partNum, String elementId) async {
-    var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
+    var url = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
     try {
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
