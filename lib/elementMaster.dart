@@ -97,8 +97,8 @@ class MyDataTableSource extends DataTableSource{
       ),
       DataCell(
         Container(
-          height: 20,
-          width: 100,
+          height: MediaQuery.of(dialogContext).size.height * 0.03,
+          width: MediaQuery.of(dialogContext).size.width * 0.2,
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), color: statusColor),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -402,6 +402,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                     DataColumn(label: Text('Status')),
                                   ],
                                   source: MyDataTableSource(partElementList, context),
+                                  dataRowMinHeight: MediaQuery.of(context).size.height * 0.05,
                                   )
                               )
                         ),
