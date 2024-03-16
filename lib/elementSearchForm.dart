@@ -334,54 +334,95 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   scanData) async {
                                                 qrController.pauseCamera();
                                                 Navigator.pop(context);
-                                                List<String> scanResult = scanData.code!.split('-');
-                                                // String company = scanResult[1];
-                                                String partNum = scanResult[2];
-                                                String elementId = scanResult[3];
-                                                debugPrint('$partNum $elementId');
-                                                await getScannedElement(partNum, elementId);
-                                                setState(() {
-                                                  isElement = true;
-                                                  elementDescriptionController.text = elementListData['PartLotDescription'];
-                                                  lotNoController.text = elementListData['LotNum'];
-                                                  uomController.text = elementListData['PartNumSalesUM'];
-                                                  erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
-                                                  weightController.text = elementListData['Ton_c'];
-                                                  areaController.text = elementListData['Area2_c'];
-                                                  volumeController.text = elementListData['Volume2_c'];
-                                                  estErectionDateController.text = elementListData['ErectionPlannedDate_c'];
-                                                  onHandQtyController.text = '1';
-                                                  elementResult = scanData;
-                                                  elementResultCode =
-                                                  elementResult?.code ??
-                                                      'Unknown';
-                                                  elementNumberController.text =
-                                                  partNum;
-                                                });
-                                                // for(var i = 0; i < elements.length; i++){
-                                                //   if(data[0] == elements[i]['ElementId']){
-                                                //     setState(() {
-                                                //       isElement = true;
-                                                //       elementDescriptionController.text = 'Wall Side';
-                                                //       uomController.text = 'CUM';
-                                                //       erectionSeqController.text = '6';
-                                                //       weightController.text = '2301';
-                                                //       areaController.text = '100';
-                                                //       volumeController.text = '254';
-                                                //       estErectionDateController.text = '2022-12-31';
-                                                //       onHandQtyController.text = '1';
-                                                //       elementResult = scanData;
-                                                //       elementResultCode =
-                                                //           elementResult?.code ??
-                                                //               'Unknown';
-                                                //       elementNumberController.text =
-                                                //       data[0];
-                                                //       lotNoController.text =
-                                                //       scanData.code!;
-                                                //     });
+                                                String partNum = '';
+                                                String elementId = '';
+                                                // List<String> scanResult = scanData.code!.split('-');
+                                                // // String company = scanResult[1];
+                                                // String partNum = scanResult[2];
+                                                // String elementId = scanResult[3];
+                                                // debugPrint('$partNum $elementId');
+                                                String qrCode = scanData.code!;
+                                                int fourthHyphenIndex = qrCode.indexOf("-", qrCode.indexOf("-", qrCode.indexOf("-") + 1) + 1);
+                                                int lastHyphenIndex = qrCode.lastIndexOf("-");
 
-                                                //   }
-                                                // }
+                                                if (fourthHyphenIndex != -1 && lastHyphenIndex != -1 && fourthHyphenIndex < lastHyphenIndex) {
+                                                  String extractedValue = qrCode
+                                                      .substring(
+                                                      fourthHyphenIndex + 1,
+                                                      lastHyphenIndex);
+                                                  debugPrint(extractedValue);
+                                                  List<
+                                                      String> parts = extractedValue
+                                                      .split("-");
+                                                  if (parts.length >= 2) {
+                                                    partNum = parts[0];
+                                                    elementId = parts
+                                                        .sublist(1).join("-");
+                                                    debugPrint(
+                                                        "PartNum: $partNum");
+                                                    debugPrint(
+                                                        "ElementNum: $elementId");
+                                                  }
+
+
+                                                  await getScannedElement(
+                                                      partNum, elementId);
+                                                  setState(() {
+                                                    isElement = true;
+                                                    elementDescriptionController
+                                                        .text =
+                                                    elementListData['PartLotDescription'];
+                                                    lotNoController.text =
+                                                    elementListData['LotNum'];
+                                                    uomController.text =
+                                                    elementListData['PartNumSalesUM'];
+                                                    erectionSeqController.text =
+                                                        elementListData['ErectionSequence_c']
+                                                            .toString();
+                                                    weightController.text =
+                                                    elementListData['Ton_c'];
+                                                    areaController.text =
+                                                    elementListData['Area2_c'];
+                                                    volumeController.text =
+                                                    elementListData['Volume2_c'];
+                                                    estErectionDateController
+                                                        .text =
+                                                    elementListData['ErectionPlannedDate_c'];
+                                                    onHandQtyController.text =
+                                                    '1';
+                                                    elementResult = scanData;
+                                                    elementResultCode =
+                                                        elementResult?.code ??
+                                                            'Unknown';
+                                                    elementNumberController
+                                                        .text =
+                                                        partNum;
+                                                  });
+                                                  // for(var i = 0; i < elements.length; i++){
+                                                  //   if(data[0] == elements[i]['ElementId']){
+                                                  //     setState(() {
+                                                  //       isElement = true;
+                                                  //       elementDescriptionController.text = 'Wall Side';
+                                                  //       uomController.text = 'CUM';
+                                                  //       erectionSeqController.text = '6';
+                                                  //       weightController.text = '2301';
+                                                  //       areaController.text = '100';
+                                                  //       volumeController.text = '254';
+                                                  //       estErectionDateController.text = '2022-12-31';
+                                                  //       onHandQtyController.text = '1';
+                                                  //       elementResult = scanData;
+                                                  //       elementResultCode =
+                                                  //           elementResult?.code ??
+                                                  //               'Unknown';
+                                                  //       elementNumberController.text =
+                                                  //       data[0];
+                                                  //       lotNoController.text =
+                                                  //       scanData.code!;
+                                                  //     });
+
+                                                  //   }
+                                                  // }
+                                                }
                                               });
                                             },
                                           ),

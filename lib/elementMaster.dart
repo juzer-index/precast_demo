@@ -326,14 +326,50 @@ class _ElementMasterState extends State<ElementMaster> {
                                                 .listen((scanData) async {
                                               controller.pauseCamera();
                                               Navigator.pop(context);
-                                              List<String> scanResult =
-                                                  scanData.code!.split('-');
+                                              // List<String> scanResult =
+                                              //     scanData.code!.split('-');
                                               // String company = scanResult[1];
-                                              String partNum = scanResult[2];
-                                              String elementId = scanResult[3];
-                                              debugPrint('$partNum $elementId');
-                                              await getScannedElement(
-                                                  partNum, elementId);
+                                              // String partNum = scanResult[2];
+                                              // String elementId = scanResult[3];
+                                              // debugPrint('$partNum $elementId');
+                                              String qrCode = scanData.code!;
+                                              int fourthHyphenIndex = qrCode.indexOf("-", qrCode.indexOf("-", qrCode.indexOf("-") + 1) + 1);
+                                              int lastHyphenIndex = qrCode.lastIndexOf("-");
+
+                                              if (fourthHyphenIndex != -1 && lastHyphenIndex != -1 && fourthHyphenIndex < lastHyphenIndex) {
+                                                String extractedValue = qrCode.substring(fourthHyphenIndex + 1, lastHyphenIndex);
+                                                debugPrint(extractedValue);
+                                                List<String> parts = extractedValue.split("-");
+                                                if (parts.length >= 2) {
+                                                  String partNum = parts[0];
+                                                  String elementNum = parts
+                                                      .sublist(1).join("-");
+                                                  debugPrint(
+                                                      "PartNum: $partNum");
+                                                  debugPrint(
+                                                      "ElementNum: $elementNum");
+                                                  await getScannedElement(
+                                                      partNum, elementNum);
+                                                }
+                                              } else {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Invalid QR Code'),
+                                                      content: const Text('Please scan a valid QR code'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(context);
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              }
                                             });
                                           },
                                         ),
