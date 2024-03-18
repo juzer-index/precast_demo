@@ -90,8 +90,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Company eq \'Precast\'');
   final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Company eq \'Precast\'');
 
-  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?\$filter=Company eq \'Precast\'');
-  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Company eq \'Precast\'');
+  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?\$filter= Company eq \'Precast\'');
+  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter= Company eq \'Precast\'');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
