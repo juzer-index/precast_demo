@@ -87,11 +87,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
-  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As');
+  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?filter = Company eq \'Precast\'');
+  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?filter = Company eq \'Precast\'');
 
-  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As');
+  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?filtert=Company eq "Precast"');
+  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?filter = Company eq \'Precast\'');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
@@ -670,11 +670,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     "Number02": "0",
                                     // "Number04": poNumberController?.text ?? "0",
                                     // "Number05": poLineController?.text ?? "0",
-                                    "Number06": capacityController.text,
-                                    "Number07": volumeController.text,
-                                    "Number08": heightController.text,
-                                    "Number09": widthController.text,
-                                    "Number10": lengthController.text,
+                                    "Number06": capacityController.text.isEmpty?"0" : capacityController.text,
+                                    "Number07": volumeController.text.isEmpty?"0" : volumeController.text,
+                                    "Number08": heightController.text.isEmpty?"0" : heightController.text,
+                                    "Number09": widthController.text.isEmpty?"0" : widthController.text,
+                                    "Number10": lengthController.text.isEmpty?"0" : lengthController.text,
                                     "Date01": loadDateFormat,
                                     "Character02": driverNameController.text,
                                     "Character03": driverNumberController.text,
@@ -991,7 +991,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.ProjectSvc/List/'),
+              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.ProjectSvc/List/?\$filter= Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1014,7 +1014,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
     try {
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.WarehseSvc/Warehses'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.WarehseSvc/Warehses?filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1066,7 +1066,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
     try{
       final response = await http.post(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?filter = Company eq \'Precast\''),
+
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1118,7 +1119,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID' && Company eq 'Precast'");
     try {
       final response = await http.get(
           urL,
@@ -1142,7 +1143,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getDriverList() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_DriverName'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_DriverName?filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1281,7 +1282,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     try {
       final response = await http.post(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1304,7 +1305,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_EmployeeInformation'),
+              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_EmployeeInformation?filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
