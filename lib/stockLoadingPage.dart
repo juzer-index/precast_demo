@@ -87,11 +87,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
-  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?filter = Company eq \'Precast\'');
-  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?filter = Company eq \'Precast\'');
+  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Company eq \'Precast\'');
+  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Company eq \'Precast\'');
 
-  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?filtert=Company eq "Precast"');
-  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?filter = Company eq \'Precast\'');
+  var truckURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?\$filter=Company eq \'Precast\'');
+  var resourceURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Company eq \'Precast\'');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
@@ -536,27 +536,33 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   color: Colors.blue),
                                             ),
                                           ),
-                                          RadioListTile(
-                                            title: const Text('Return Trip'),
-                                            value: 'Delivery',
-                                            groupValue: loadTypeValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                loadTypeValue =
-                                                    value.toString();
-                                              });
-                                            },
+                                          AbsorbPointer(
+                                            absorbing: widget.isUpdate,
+                                            child: RadioListTile(
+                                              title: const Text('Return Trip'),
+                                              value: 'Return',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
                                           ),
-                                          RadioListTile(
-                                            title: const Text('Delivery Trip'),
-                                            value: 'Return',
-                                            groupValue: loadTypeValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                loadTypeValue =
-                                                    value.toString();
-                                              });
-                                            },
+                                          AbsorbPointer(
+                                            absorbing: widget.isUpdate,
+                                            child: RadioListTile(
+                                              title: const Text('Delivery Trip'),
+                                              value: 'Issue Load',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ]
                                     ),
@@ -573,38 +579,47 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   color: Colors.blue),
                                             ),
                                           ),
-                                          RadioListTile(
-                                            title: const Text('External'),
-                                            value: 'External',
-                                            groupValue: loadConditionValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                loadConditionValue =
-                                                    value.toString();
-                                              });
-                                            },
+                                          AbsorbPointer(
+                                            absorbing: widget.isUpdate,
+                                            child: RadioListTile(
+                                              title: const Text('External'),
+                                              value: 'External',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
                                           ),
-                                          RadioListTile(
-                                            title: const Text('Internal'),
-                                            value: 'Internal',
-                                            groupValue: loadConditionValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                loadConditionValue =
-                                                    value.toString();
-                                              });
-                                            },
+                                          AbsorbPointer(
+                                            absorbing: widget.isUpdate,
+                                            child: RadioListTile(
+                                              title: const Text('Internal'),
+                                              value: 'Internal Truck',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
                                           ),
-                                          RadioListTile(
-                                            title: const Text('Ex-Factory'),
-                                            value: 'Ex-Factory',
-                                            groupValue: loadConditionValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                loadConditionValue =
-                                                    value.toString();
-                                              });
-                                            },
+                                          AbsorbPointer(
+                                            absorbing: widget.isUpdate,
+                                            child: RadioListTile(
+                                              title: const Text('Ex-Factory'),
+                                              value: 'Ex-Factory',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
                                           )
                                         ]
                                     ),
@@ -1016,7 +1031,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
     try {
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.WarehseSvc/Warehses?filter=Company eq \'Precast\''),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Erp.Bo.WarehseSvc/Warehses?\$filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1147,7 +1162,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getDriverList() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_DriverName?filter=Company eq \'Precast\''),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_DriverName(Precast)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1168,7 +1183,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> getLastLoadID() async {
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test'),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(Precast)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1286,7 +1301,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     try {
       final response = await http.post(
-          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?filter=Company eq \'Precast\''),
+          Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1309,7 +1324,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     try {
       final response = await http.get(
           Uri.parse(
-              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_EmployeeInformation?filter=Company eq \'Precast\''),
+              'https://77.92.189.102/IIPrecastVerticalDemo/api/v1/BaqSvc/IIT_EmployeeInformation?\$filter=Company eq \'Precast\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

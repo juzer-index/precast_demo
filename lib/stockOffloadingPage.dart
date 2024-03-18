@@ -825,69 +825,88 @@ class _StockOffloadingState extends State<StockOffloading>
                             debugPrint(arrivedParts[v].partNum);
                           }
                         }
-                        if(loaded && elementsAndPartsLoaded){
-                          if(mounted) {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Success'),
-                                  content: const Text('Load Offloaded'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
+                        if(mounted) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('Success'),
+                                content: const Text('Load I-1226 Offloaded'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         }
-                        if(loaded && !elementsAndPartsLoaded){
-                          if (mounted) {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Success'),
-                                  content: const Text('Load Offloaded'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
-                        if (!loaded && !elementsAndPartsLoaded){
-                          if(mounted) {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Error', style: TextStyle(color: Colors.red),),
-                                  content: const Text('Offload Failed'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('Close'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          }
-                        }
+                        // if(loaded && elementsAndPartsLoaded){
+                        //   if(mounted) {
+                        //     showDialog(
+                        //       context: context,
+                        //       builder: (context) {
+                        //         return AlertDialog(
+                        //           title: const Text('Success'),
+                        //           content: const Text('Load Offloaded'),
+                        //           actions: [
+                        //             TextButton(
+                        //               onPressed: () {
+                        //                 Navigator.pop(context);
+                        //               },
+                        //               child: const Text('Close'),
+                        //             ),
+                        //           ],
+                        //         );
+                        //       },
+                        //     );
+                        //   }
+                        // }
+                      //   if(loaded && !elementsAndPartsLoaded){
+                      //     if (mounted) {
+                      //       showDialog(
+                      //         context: context,
+                      //         builder: (context) {
+                      //           return AlertDialog(
+                      //             title: const Text('Success'),
+                      //             content: const Text('Load Offloaded'),
+                      //             actions: [
+                      //               TextButton(
+                      //                 onPressed: () {
+                      //                   Navigator.pop(context);
+                      //                 },
+                      //                 child: const Text('Close'),
+                      //               ),
+                      //             ],
+                      //           );
+                      //         },
+                      //       );
+                      //     }
+                      //   }
+                      //   if (!loaded && !elementsAndPartsLoaded){
+                      //     if(mounted) {
+                      //       showDialog(
+                      //         context: context,
+                      //         builder: (context) {
+                      //           return AlertDialog(
+                      //             title: const Text('Error', style: TextStyle(color: Colors.red),),
+                      //             content: const Text('Offload Failed'),
+                      //             actions: [
+                      //               TextButton(
+                      //                 onPressed: () {
+                      //                   Navigator.pop(context);
+                      //                 },
+                      //                 child: const Text('Close'),
+                      //               ),
+                      //             ],
+                      //           );
+                      //         },
+                      //       );
+                      //     }
+                      //   }
                       },
                       child: const Text('Offload Items'),
                     ),
