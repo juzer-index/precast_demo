@@ -1138,7 +1138,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID' && Company eq 'Precast'");
+    var urL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD102Svc/UD102s?\$filter=Company eq 'Precast' and  Key1 eq '${resourceID}'");
     try {
       final response = await http.get(
           urL,
