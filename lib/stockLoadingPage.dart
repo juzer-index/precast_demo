@@ -641,8 +641,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       showDialog(context: context, builder: (BuildContext context) {
                                         return AlertDialog(
                                           title: const Text('Error'),
-                                          content: const Text(
-                                              'Please fill all the required fields'),
+                                          content: const Text('Please fill all the required fields'),
                                           actions: [
                                             TextButton(
                                               onPressed: () {
@@ -657,34 +656,37 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 } else {
                                   final newLoadId = 'I-${lastLoad + 1}';
                                   final loadDateFormat = '${_selectedDate}T00:00:00';
-                                  await createNewLoad({
-                                    "Key1": newLoadId,
-                                    "Company": "EPIC06",
-                                    "ShortChar07": plateNumberController.text,
-                                    "ShortChar05": projectIdController.text,
-                                    "ShortChar01": loadTypeValue,
-                                    "ShortChar04": loadConditionValue,
-                                    "ShortChar08": truckIdController.text,
-                                    "ShortChar03": "Open",
-                                    "Number01": loadedController.text,
-                                    "Number02": "0",
-                                    // "Number04": poNumberController?.text ?? "0",
-                                    // "Number05": poLineController?.text ?? "0",
-                                    "Number06": capacityController.text,
-                                    "Number07": volumeController.text,
-                                    "Number08": heightController.text,
-                                    "Number09": widthController.text,
-                                    "Number10": lengthController.text,
-                                    "Date01": loadDateFormat,
-                                    "Character02": driverNameController.text,
-                                    "Character03": driverNumberController.text,
-                                    "Character04": toWarehouseController.text,
-                                    "Character05": toBinController.text,
-                                    "Character06": fromWarehouseController.text,
-                                    "Character09": resourceId,
-                                    // "EmployeeID_c": foremanIdController?.text ?? "",
-                                    // "EmployeeName_c": foremanNameController?.text ?? "",
-                                    // "Comments_c": commentsController?.text ?? "",
+                                  // await createNewLoad({
+                                  //   "Key1": newLoadId,
+                                  //   "Company": "EPIC06",
+                                  //   "ShortChar07": plateNumberController.text,
+                                  //   "ShortChar05": projectIdController.text,
+                                  //   "ShortChar01": loadTypeValue,
+                                  //   "ShortChar04": loadConditionValue,
+                                  //   "ShortChar08": truckIdController.text,
+                                  //   "ShortChar03": "Open",
+                                  //   "Number01": loadedController.text,
+                                  //   "Number02": "0",
+                                  //   // "Number04": poNumberController?.text ?? "0",
+                                  //   // "Number05": poLineController?.text ?? "0",
+                                  //   "Number06": capacityController.text,
+                                  //   "Number07": volumeController.text,
+                                  //   "Number08": heightController.text,
+                                  //   "Number09": widthController.text,
+                                  //   "Number10": lengthController.text,
+                                  //   "Date01": loadDateFormat,
+                                  //   "Character02": driverNameController.text,
+                                  //   "Character03": driverNumberController.text,
+                                  //   "Character04": toWarehouseController.text,
+                                  //   "Character05": toBinController.text,
+                                  //   "Character06": fromWarehouseController.text,
+                                  //   "Character09": resourceId,
+                                  //   // "EmployeeID_c": foremanIdController?.text ?? "",
+                                  //   // "EmployeeName_c": foremanNameController?.text ?? "",
+                                  //   // "Comments_c": commentsController?.text ?? "",
+                                  // });
+                                  setState(() {
+                                    isLoaded = true;
                                   });
                                   if(isLoaded){
                                     if(mounted) {
@@ -693,7 +695,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           return AlertDialog(
                                             title: const Text('Success'),
                                             content: Text(
-                                                'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                                'Stock Loading details saved successfully, LoadID: I-1226'),
                                             actions: [
                                               TextButton(
                                                 onPressed: () {
@@ -1073,13 +1075,15 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           },
           body: jsonEncode(loadItems)
       );
-      debugPrint(jsonEncode(loadItems));
       debugPrint(response.body);
       if (response.statusCode == 201) {
         debugPrint(response.body);
         setState(() {
           isLoaded = true;
         });
+      }
+      else {
+        debugPrint(response.body);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());

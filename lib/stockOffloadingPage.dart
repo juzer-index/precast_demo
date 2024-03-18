@@ -60,8 +60,8 @@ class _StockOffloadingState extends State<StockOffloading>
   Barcode? result;
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  final loadURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As');
+  final loadURL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Company eq 'Precast'");
+  final detailsURL = Uri.parse("https://77.92.189.102/IIPrecastVerticalDemo/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Company eq 'Precast'");
 
   Future<void> fetchLoadDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
@@ -181,7 +181,7 @@ class _StockOffloadingState extends State<StockOffloading>
         });
       }
       else {
-        debugPrint('Load Status Update Failed');
+        debugPrint(response.body);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
