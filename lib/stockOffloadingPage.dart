@@ -940,7 +940,7 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                             await updateUD103A({
                               "Key1": loadIDController.text,
                               "Character01": selectedElements[v].elementId,
-                              "Company": 'EPIC06',
+                              "Company": '158095',
                               "CheckBox02": true,
                               "Date02": loadDateFormat,
                             });
@@ -950,13 +950,13 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                             await updateUD103A({
                               "Key1": loadIDController.text,
                               "Character01": arrivedParts[v].partNum,
-                              "Company": 'EPIC06',
+                              "Company": '158095',
                               "CheckBox02": true,
                             });
                             debugPrint(arrivedParts[v].partNum);
                           }
                         }
-                        if(loaded && elementsAndPartsLoaded){
+                        if(loaded /*&& elementsAndPartsLoaded*/){
                           if(mounted) {
                             showDialog(
                               context: context,
@@ -998,7 +998,7 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                             );
                           }
                         }
-                        if (!loaded && !elementsAndPartsLoaded){
+                        if (!loaded /*&& !elementsAndPartsLoaded*/){
                           if(mounted) {
                             showDialog(
                               context: context,

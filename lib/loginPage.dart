@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
         var responseData= json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
-        SharedPreferences prefs = await SharedPreferences.getInstance();
+        SharedPreferences prefs =  await  SharedPreferences.getInstance();
         if(RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));

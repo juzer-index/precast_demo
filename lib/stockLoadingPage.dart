@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:precast_demo/elementTable.dart';
 import 'package:precast_demo/partTable.dart';
 import 'package:precast_demo/elementSearchForm.dart';
@@ -59,6 +60,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   String resourceId = '';
+  int ChildCount = 0;
 
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
@@ -859,7 +861,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             }
                                             );
                                           } else {
-                                            final newLoadId = 'I-${lastLoad + 1}';
+                                            final newLoadId = 'I-${lastLoad!=50?lastLoad + 1:50}';
                                             final loadDateFormat = '${_selectedDate}T00:00:00';
                                             await createNewLoad({
                                               "Key1": newLoadId,
@@ -1118,6 +1120,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         try {
                                           await updateUD103A({
                                             "Company": "158095",
+                                            "ChildKey1": "${++ChildCount}",
                                             "Key1": loadIDController.text,
                                             "Character01": selectedElements[e].partId,
                                             "Character02": selectedElements[e].elementId,
@@ -1143,17 +1146,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       }
                                       for (var p = 0; p < selectedParts.length; p++){
                                         debugPrint(selectedParts[p].toString());
-                                        // await updateUD103A({
-                                        //   "Company": "EPIC06",
-                                        //   "Key1": loadIDController.text,
-                                        //   "Character01": selectedParts[p].partNum,
-                                        //   "Character02": selectedParts[p].partDesc,
-                                        //   "Character03": toWarehouseController.text,
-                                        //   "Character04": toBinController.text,
-                                        //   "Number01": selectedParts[p].qty,
-                                        //   "ShortChar07": selectedParts[p].uom,
-                                        //   "CheckBox13": true,
-                                        // });
+                                         await updateUD103A({
+                                           "Company": "158095",
+                                           "Key1": loadIDController.text,
+                                           "ChildKey1": "${++ChildCount}",
+                                           "Character01": selectedParts[p].partNum,
+                                           "Character02": selectedParts[p].partDesc,
+                                           "Character03": toWarehouseController.text,
+                                           "Character04": toBinController.text,
+                                           "Number01": selectedParts[p].qty,
+                                           "ShortChar07": selectedParts[p].uom,
+                                           "CheckBox13": true,
+                                        });
                                       }
                                       if (mounted) {
                                         showDialog(
@@ -1745,17 +1749,19 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   
   Future<void> fetchLoadDataFromURL() async {
     try {
-      final response = await http.get(
-          loadURL,
+      final url= Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID");
+      final response = await http.post(
+          url,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
-          }
+          },
+          body: jsonEncode({"Company": "158095","key1": "I-100"})
       );
       final jsonResponse = json.decode(response.body);
       setState(() {
         loadData = jsonResponse;
-        loadValue = loadData['value'];
+        loadValue = loadData['returnObj']['UD103'];
       });
       return jsonResponse;
     } on Exception catch (e) {
