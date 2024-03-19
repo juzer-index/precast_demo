@@ -18,13 +18,13 @@ class ElementData {
       partId: json['Character01'],
       elementId: json['Character02'],
       elementDesc: json['Character02'],
-      erectionSeq: json['Number06'],
+      erectionSeq: json['Number06'].toString(),
       erectionDate: json['Date01'] ?? '',
       UOM: json['ShortChar07'],
-      weight: json['Number01'],
-      area: json['Number02'],
-      volume: json['Number03'],
-      quantity: json['Number04'],
+      weight: json['Number01'].toString(),
+      area: json['Number02'].toString(),
+      volume: json['Number03'].toString(),
+      quantity: json['Number04'].toString(),
     );
   }
 

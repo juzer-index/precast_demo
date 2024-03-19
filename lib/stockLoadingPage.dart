@@ -360,8 +360,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           IconButton(
                                             onPressed: () async {
                                               await fetchLoadDataFromURL();
-                                              await fetchElementDataFromURL();
-                                              await fetchPartDataFromURL();
+                                             // await fetchElementDataFromURL();
+                                              //await fetchPartDataFromURL();
                                               String projectLoadID = loadIDController.text;
                                               offloadData = getLoadObjectFromJson(projectLoadID);
                                               getElementObjectFromJson(projectLoadID);
@@ -1517,7 +1517,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           fetchedProjectValue = fetchedProjectData['value'];
         });
       } else {
-        throw Exception('Failed to load album');
+        throw Exception('Failed to load Project');
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1706,7 +1706,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> fetchPartDataFromURL() async {
+/*  Future<void> fetchPartDataFromURL() async {
     try {
       final response = await http.get(
           detailsURL,
@@ -1724,9 +1724,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
-  }
+  }*/
 
-  Future<void> fetchElementDataFromURL() async {
+  /*Future<void> fetchElementDataFromURL() async {
     try {
       final response = await http.get(
           detailsURL,
@@ -1745,10 +1745,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
-  }
+  }*/
   
   Future<void> fetchLoadDataFromURL() async {
     try {
+      Map<String, dynamic> body = {
+        "key1": loadIDController.text,
+        "key2": "",
+        "key3": "",
+        "key4": "",
+        "key5": ""
+      };
       final url= Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID");
       final response = await http.post(
           url,
@@ -1756,12 +1763,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode({"Company": "158095","key1": "I-100"})
+          body: json.encode(body)
+
+
       );
+
       final jsonResponse = json.decode(response.body);
+      debugPrint(jsonResponse.toString());
       setState(() {
-        loadData = jsonResponse;
-        loadValue = loadData['returnObj']['UD103'];
+        loadData = jsonResponse['returnObj'];
+        loadValue = loadData['UD103'];
+
+        elementValue = loadData['UD103A'].where((element) => element['CheckBox13'] == false).toList();
+        partValue = loadData['UD103A'].where((part) => part['CheckBox13'] == true).toList();
+
       });
       return jsonResponse;
     } on Exception catch (e) {
@@ -1771,7 +1786,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty){
-      LoadData loadObject = LoadData.fromJson(loadValue.where((element) => element['Key1'] == loadID).first);
+
+    LoadData loadObject = LoadData.fromJson(loadValue[0]);
       return loadObject;
     }
     return null;

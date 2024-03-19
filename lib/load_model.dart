@@ -13,15 +13,15 @@ class LoadData {
   late final String plateNumber;
   late final String driverName;
   late final String driverNumber;
-  late final String resourceCapacity;
-  late final String resourceLoaded;
-  late final String resourceLength;
-  late final String resourceWidth;
-  late final String resourceHeight;
-  late final String resourceVolume;
-  late final String foremanId;
-  late final String foremanName;
-  late final String comments;
+  late final dynamic resourceCapacity;
+  late final dynamic resourceLoaded;
+  late final dynamic resourceLength;
+  late final dynamic resourceWidth;
+  late final dynamic resourceHeight;
+  late final dynamic resourceVolume;
+  late final dynamic foremanId;
+  late final dynamic foremanName;
+  late final dynamic comments;
   LoadData({
     required this.projectId,
     required this.loadDate,

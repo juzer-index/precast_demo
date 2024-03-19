@@ -65,7 +65,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getTrucksFromURL() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
     try {
       final response = await http.get(
           truckURL,
@@ -147,18 +147,18 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   @override
   Widget build(BuildContext context) {
     if(widget.truckDetails != null && widget.truckMasterDetails == null){
-      truckIdController.text = widget.truckDetails?.truckId ?? '';
-      resourceIdController.text = widget.truckDetails?.resourceId ?? '';
-      plateNumberController.text = widget.truckDetails?.plateNumber ?? '';
-      driverNameController.text = widget.truckDetails?.driverName ?? '';
-      driverNumberController.text = widget.truckDetails?.driverNumber ?? '';
-      capacityController.text = widget.truckDetails?.resourceCapacity ?? '';
-      lengthController.text = widget.truckDetails?.resourceLength ?? '';
-      widthController.text = widget.truckDetails?.resourceWidth ?? '';
-      heightController.text = widget.truckDetails?.resourceHeight ?? '';
-      volumeController.text = widget.truckDetails?.resourceVolume ?? '';
-      foremanNameController?.text = widget.truckDetails?.foremanName ?? '';
-      foremanIdController?.text = widget.truckDetails?.foremanId ?? '';
+      truckIdController.text = widget.truckDetails?.truckId.toString() ?? '';
+      resourceIdController.text = widget.truckDetails?.resourceId.toString() ?? '';
+      plateNumberController.text = widget.truckDetails?.plateNumber.toString() ?? '';
+      driverNameController.text = widget.truckDetails?.driverName.toString() ?? '';
+      driverNumberController.text = widget.truckDetails?.driverNumber.toString() ?? '';
+      capacityController.text = widget.truckDetails?.resourceCapacity.toString() ?? '';
+      lengthController.text = widget.truckDetails?.resourceLength.toString() ?? '';
+      widthController.text = widget.truckDetails?.resourceWidth.toString() ?? '';
+      heightController.text = widget.truckDetails?.resourceHeight.toString() ?? '';
+      volumeController.text = widget.truckDetails?.resourceVolume.toString() ?? '';
+      foremanNameController?.text = widget.truckDetails?.foremanName.toString() ?? '';
+      foremanIdController?.text = widget.truckDetails?.foremanId.toString() ?? '';
     }
     if(widget.truckMasterDetails !=null){
 

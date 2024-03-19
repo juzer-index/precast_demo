@@ -39,6 +39,7 @@ class _LoginPageState extends State<LoginPage> {
       var res = await response.send();
       setState(() {
         isLoading = false;
+
       });
 
       if(res.statusCode == 200){
@@ -50,11 +51,14 @@ class _LoginPageState extends State<LoginPage> {
         if(RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
-          UserManagement = userManagement;
+          setState(() {
+            UserManagement = userManagement;
+          });
+
         }
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
+          MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement,)),
         );
       }
       else if(res.statusCode == 500){

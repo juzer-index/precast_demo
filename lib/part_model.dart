@@ -12,7 +12,7 @@ class PartData {
     return PartData(
       partNum: json['Character01'],
       partDesc: json['Character02'],
-      qty: json['Number01'],
+      qty: json['Number01'].toString(),
       uom: json['ShortChar07'],
     );
   }

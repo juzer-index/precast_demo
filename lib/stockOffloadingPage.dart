@@ -80,21 +80,40 @@ class _StockOffloadingState extends State<StockOffloading>
 
 
   Future<void> fetchLoadDataFromURL() async {
-    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
+    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID');
+    Map<String, dynamic> body = {
+      "key1": loadIDController.text,
+      "key2": "",
+      "key3": "",
+      "key4": "",
+      "key5": ""
+    };
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
-      final response = await http.get(
+      final response = await http.post(
           loadURL,
         headers: {
           HttpHeaders.authorizationHeader: basicAuth,
           HttpHeaders.contentTypeHeader: 'application/json',
-        }
+        },
+        body: jsonEncode(body)
       );
       if(response.statusCode == 200){
         final jsonResponse = json.decode(response.body);
         setState(() {
-          loadData = jsonResponse;
-          loadValue = loadData['value'];
+          loadData = jsonResponse['returnObj'];
+          loadValue = loadData['UD103'];
+
+          elementValue =
+              loadData['UD103A']?.where((element) =>
+              element['CheckBox13'] ==
+                  false).toList();
+          partValue = loadData['UD103A']?.where((part) => part['CheckBox13'] == true)
+              .toList();
+          setState(() {
+            arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
+            arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
+          });
         });
       }
       else {
@@ -115,7 +134,7 @@ class _StockOffloadingState extends State<StockOffloading>
     }
     return null;
   }
-Future <void> fetchElementANDPartsDataFromURL() async {
+/*Future <void> fetchElementANDPartsDataFromURL() async {
     final stringBasicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     final detailsURL2 = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Key1 eq \'${loadIDController.text}\'');
     try {
@@ -148,7 +167,7 @@ Future <void> fetchElementANDPartsDataFromURL() async {
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
-}
+}*/
   Future<void> fetchElementDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
@@ -408,7 +427,7 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                                 await fetchLoadDataFromURL();
 /*                                await fetchElementDataFromURL();
                                 await fetchPartDataFromURL();*/
-                                await fetchElementANDPartsDataFromURL();
+                                /*await fetchElementANDPartsDataFromURL();*/
                                 String projectLoadID = loadIDController.text;
                                 offloadData = getLoadObjectFromJson(projectLoadID);
                                 getElementObjectFromJson(projectLoadID);
@@ -932,7 +951,7 @@ Future <void> fetchElementANDPartsDataFromURL() async {
                         else {
                           await updateLoadStatus({
                             "Key1": loadIDController.text,
-                            "Company": 'EPIC06',
+                            "Company": '158095',
                             "ShortChar03": loadStatus,
                           });
                           final loadDateFormat = '${_selectedDate}T00:00:00';
