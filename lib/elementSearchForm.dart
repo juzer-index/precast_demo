@@ -223,9 +223,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   void initState() {
     super.initState();
    // _dataFuture = getAllParts();
-    if(widget.isOffloading){
+/*    if(widget.isOffloading){
       isElement = true;
-    }
+    }*/
     totalElements = widget.arrivedElements!;
   }
 
@@ -318,14 +318,16 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
                        if(widget.isOffloading){
                           if(elementNumberController.text.isNotEmpty){
-                            for(var i = 0; i < widget.arrivedElements!.length; i++){
-                              if(widget.arrivedElements![i].partId == elementNumberController.text){
-                                elements.add(widget.arrivedElements![i].elementId);
+                            for(var i = 0; i < widget.arrivedElements!.length; i++) {
+                              if (widget.arrivedElements![i].partId ==
+                                  elementNumberController.text) {
+                                elements.add(widget.arrivedElements![i]
+                                    .elementId);
                                 setState(() {
                                   isElement = true;
                                 });
                               }
-                              else{
+                            }}else{
                                 showDialog(context: context, builder: (BuildContext context){
                                   return AlertDialog(
                                     title: const Text('Error'),
@@ -342,9 +344,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                 });
                               }
                             }
-                          }
+
                         }
-                      },
+                      ,
                       icon: const Icon(Icons.search),
                     ),
                   ),

@@ -571,8 +571,8 @@ class _StockOffloadingState extends State<StockOffloading>
                                 /*await fetchElementANDPartsDataFromURL();*/
                                 String projectLoadID = loadIDController.text;
                                 offloadData = getLoadObjectFromJson(projectLoadID);
-                                getElementObjectFromJson(projectLoadID);
-                                getPartObjectFromJson(projectLoadID);
+/*                                getElementObjectFromJson(projectLoadID);
+                                getPartObjectFromJson(projectLoadID);*/
                                 if (offloadData != null) {
                                   if(offloadData!.loadStatus == 'Closed'){
                                     Offloaded = true;
