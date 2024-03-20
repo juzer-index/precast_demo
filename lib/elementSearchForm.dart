@@ -64,6 +64,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       utf8.encode('manager:Adp@2023'))}';
 
   bool isElement = false;
+  bool isLoading = false;
   // bool isConsumable = false;
 
  // late Future _dataFuture;
@@ -153,8 +154,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           uomController.text = lotData['PartNumSalesUM'];
           erectionSeqController.text = lotData['ErectionSequence_c'].toString();
           weightController.text = lotData['Ton_c'];
-          areaController.text = lotData['Area2_c'];
-          volumeController.text = lotData['Volume2_c'];
+          areaController.text = lotData['M2_c'];
+          volumeController.text = lotData['M3_c'];
           estErectionDateController.text = lotData['ErectionPlannedDate_c'];
           onHandQtyController.text = '1';
           selectedQtyController.text = '1';
@@ -250,7 +251,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: IconButton(
+                    child: isLoading? Center(
+                      child: CircularProgressIndicator(),
+
+                    ):IconButton(
                       onPressed: () async {
 
                         elements.clear();
@@ -258,7 +262,28 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         if (!widget.isOffloading) {
                           if (elementNumberController.text.isNotEmpty) {
                             Map<String,dynamic> firstElement;
+                            setState(() {
+                              isLoading = true;
+                              lotNoController.text = '';
+                              elementDescriptionController.text = '';
+                              lotNoController.text = '';
+                              uomController.text = '';
+                              erectionSeqController.text = '';
+                              weightController.text = '';
+                              areaController.text = '';
+                              volumeController.text = '';
+                              estErectionDateController.text = '';
+                            });
+                            setState(() {
+                              isElement = false;
+                            });
                             await getAllParts(elementNumberController.text);
+                            setState(() {
+                              isLoading = false;
+
+
+                            });
+
                             if(partValue[0]['Part_IsElementPart_c'] == true){
                               isElement = true;
                               await getLotForElements();
@@ -425,7 +450,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
               if(isElement)
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: DropdownSearch(
+                  child:Stack(children: [ DropdownSearch(
+                    enabled: elements.isNotEmpty,
                     selectedItem: lotNoController.text,
                     popupProps: const PopupProps.modalBottomSheet(
                       showSearchBox: true,
@@ -446,9 +472,15 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     ),
                     items: elements.isNotEmpty?elements:[],
                     onChanged: (value) async {
+
                       await getElementDetailsFromLot(value, elementNumberController.text);
+
                     },
                   ),
+                    if(elements.isEmpty) const SizedBox(
+                        height: 60,
+                        child:Center(child: CircularProgressIndicator())),
+                  ]),
                 ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

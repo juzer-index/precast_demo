@@ -70,6 +70,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Map<String, dynamic> fetchedBinData = {};
   List<dynamic> fetchedBinValue = [];
+  List<dynamic> subfetchedBinValue = [];
 
   TextEditingController truckIdController = TextEditingController();
   TextEditingController resourceIdController = TextEditingController();
@@ -133,7 +134,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   void initState() {
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    dataloaded=MakeSureDataLoaded();
+    if(!widget.isUpdate) {dataloaded=MakeSureDataLoaded();
+    }else{
+      dataloaded = Future.value(true);
+      setState(() {
+        isLoaded = true;
+      });
+    };
     super.initState();
   }
 
@@ -296,8 +303,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
         :FutureBuilder(
             future: dataloaded,
-              builder:(context,sapshot){
-               if(fetchedProjectData.isEmpty){
+              builder:(context,snapshot){
+               if(snapshot.connectionState == ConnectionState.waiting){
                     return  Stack(
                       children: [
                         const Center(
@@ -411,47 +418,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
                                         future: getProjectList(),
                                         builder:(context,snapshot){
-                                          if(fetchedProjectData.isEmpty){
-                                            return  Stack(
-                                              children: [
-                                                DropdownSearch(
-                                                  selectedItem: projectIdController.text,
-                                                  enabled: false, // Disable the DropdownSearch
-                                                  popupProps: const PopupProps.modalBottomSheet(
-                                                    showSearchBox: true,
-                                                    searchFieldProps: TextFieldProps(
-                                                      decoration: InputDecoration(
-                                                        suffixIcon: Icon(Icons.search),
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "Search",
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                  dropdownDecoratorProps: DropDownDecoratorProps(
-                                                    dropdownSearchDecoration: InputDecoration(
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Project ID",
-                                                    ),
-                                                  ),
-                                                  items: fetchedProjectValue.map((project) => project['Description']).toList(),
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Description'] == value)['ProjectID'];
-                                                    });
-                                                  },
-                                                ),
-
-                                                Positioned.fill(
-                                                  child:Center(
-                                                    child: CircularProgressIndicator(
-                                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                                    ), // Show spinner when disabled
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          }
+                                          
                                           return DropdownSearch(
                                             selectedItem: projectIdController.text,
                                             enabled: !widget.isUpdate,
@@ -606,7 +573,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           padding: const EdgeInsets.all(8.0),
                                           child: DropdownSearch(
                                             selectedItem: fromWarehouseController.text,
-                                            enabled: !fetchedProjectData.isEmpty,
+                                            enabled: !widget.isUpdate,
                                             popupProps: const PopupProps.modalBottomSheet(
                                               showSearchBox: true,
                                               searchFieldProps: TextFieldProps(
@@ -638,7 +605,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             padding: const EdgeInsets.all(8.0),
                                             child: DropdownSearch(
                                               selectedItem: toWarehouseController.text,
-                                              enabled:  !fetchedProjectData.isEmpty,
+                                              enabled:  !widget.isUpdate,
                                               popupProps: const PopupProps.modalBottomSheet(
                                                 showSearchBox: true,
                                                 searchFieldProps: TextFieldProps(
@@ -661,8 +628,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 setState(() {
                                                   toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
                                                   toWarehouseNameController.text = value.toString();
+                                                  subfetchedBinValue = fetchedBinValue.where((bin) => bin['WarehouseCode'] == toWarehouseController.text).toList();
                                                 });
-                                                getBinsFromWarehouse(toWarehouseController.text);
+
                                               },
                                             ),
                                           )
@@ -691,10 +659,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           labelText: "To Bin",
                                         ),
                                       ),
-                                      items: fetchedBinValue.map((bin) => bin['Description']).toList(),
+                                      items: subfetchedBinValue.map((bin) => bin['Description']).toList(),
                                       onChanged: (value) {
                                         setState(() {
-                                          toBinController.text = fetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
+                                          toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
                                           toBinNameController.text = value.toString();
                                         });
                                       },
@@ -1354,11 +1322,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   }
   Future<void> MakeSureDataLoaded() async {
-    await getProjectList();
-    await getWarehouseList();
-    await getTrucksFromURL();
-    await getDriverList();
-    await getLastLoadID();
+    if(!widget.isUpdate) {
+      await Future.wait([
+        getProjectList(),
+        getBinsFromWarehouse(),
+        getWarehouseList(),
+        getTrucksFromURL(),
+        getDriverList(),
+        getLastLoadID(),
+      ]);
+    }
+
+
   }
   Future<bool> SubmitReport() async {
     dynamic body={
@@ -1558,12 +1533,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getBinsFromWarehouse (String warehouseCode) async {
+  Future<void> getBinsFromWarehouse () async {
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('manager:Adp@2023'))}';
     try {
       final response = await http.get(
-          Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.WhseBinSvc/WhseBins?\$filter=WarehouseCode eq '$warehouseCode'"),
+          Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
           headers: {
       HttpHeaders.authorizationHeader: basicAuth,
       HttpHeaders.contentTypeHeader: 'application/json',
@@ -1572,6 +1547,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         setState(() {
           fetchedBinData = json.decode(response.body);
           fetchedBinValue = fetchedBinData['value'];
+
         });
       }
     }
