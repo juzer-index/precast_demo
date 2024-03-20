@@ -46,6 +46,7 @@ class _StockOffloadingState extends State<StockOffloading>
   String loadConditionValue = '';
   String loadStatus = '';
   String inputTypeValue = 'Manual';
+  bool Offloaded = false;
   final _formKey = GlobalKey<FormState>();
 
   Map<String, dynamic> loadData = {};
@@ -68,6 +69,8 @@ class _StockOffloadingState extends State<StockOffloading>
 
   bool loaded = false;
   bool elementsAndPartsLoaded = false;
+  bool isPrinting = false ;
+  int PDFCount =0;
 
   Barcode? result;
   QRViewController? controller;
@@ -77,7 +80,121 @@ class _StockOffloadingState extends State<StockOffloading>
 
 
 
+  Future<bool> SubmitReport() async {
+    dynamic body={
 
+      "ds": {
+        "extensionTables": [],
+        "BAQReportParam": [
+          {
+
+            "Summary": false,
+            "BAQRptID": "",
+            "ReportID": "IIT_DeliveryNot",
+            "Option01": loadIDController.text,
+            "SysRowID": "00000000-0000-0000-0000-000000000000",
+            "AutoAction": "SSRSGenerate",
+            "PrinterName": "Microsoft Print to PDF",
+            "AgentSchedNum": 0,
+            "AgentID": "",
+            "AgentTaskNum": 0,
+            "RecurringTask": false,
+            "RptPageSettings": "Color=True,Landscape=False,AutoRotate=False,PaperSize=[Kind=\"Custom\" PaperName=\"Custom\" Height=0 Width=0],PaperSource=[SourceName=\"Automatically Select\" Kind=\"Custom\"],PrinterResolution=[]",
+            "RptPrinterSettings": "PrinterName=\"Microsoft Print to PDF\",Copies=1,Collate=False,Duplex=Default,FromPage=1,ToPage=0",
+            "RptVersion": "",
+            "ReportStyleNum": 1002,
+            "WorkstationID": "web_Manager",
+            "AttachmentType": "PDF",
+            "ReportCurrencyCode": "USD",
+            "ReportCultureCode": "en-US",
+            "SSRSRenderFormat": "PDF",
+            "UIXml": "",
+            "PrintReportParameters": false,
+            "SSRSEnableRouting": false,
+            "DesignMode": false,
+            "RowMod": "A"
+          }
+        ],
+        "ReportStyle": [
+
+          {
+            "Company": "158095",
+            "ReportID": "IIT_DeliveryNot",
+            "StyleNum": 1002,
+            "StyleDescription": "Delivery Note Report - SSRS",
+            "RptTypeID": "SSRS",
+            "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
+            "PrintProgramOptions": "",
+            "RptDefID": "IIT_DeliveryNot",
+            "CompanyList": "158095",
+            "ServerNum": 0,
+            "OutputLocation": "Database",
+            "OutputEDI": "",
+            "SystemFlag": false,
+            "CGCCode": "",
+            "SysRevID": 93280823,
+            "SysRowID": "724b1ca9-4a67-4db8-840a-24b73be01b80",
+            "RptCriteriaSetID": null,
+            "RptStructuredOutputDefID": null,
+            "StructuredOutputEnabled": false,
+            "RequireSubmissionID": false,
+            "AllowResetAfterSubmit": false,
+            "CertificateID": null,
+            "LangNameID": "",
+            "FormatCulture": "",
+            "StructuredOutputCertificateID": null,
+            "StructuredOutputAlgorithm": null,
+            "HasBAQOrEI": false,
+            "RoutingRuleEnabled": false,
+            "CertificateIsAllComp": false,
+            "CertificateIsSystem": false,
+            "CertExpiration": null,
+            "Status": 0,
+            "StatusMessage": "",
+            "RptDefSystemFlag": false,
+            "LangNameIDDescription": "",
+            "IsBAQReport": false,
+            "StructuredOutputCertificateIsAllComp": false,
+            "StructuredOutputCertificateIsSystem": false,
+            "StructuredOutputCertificateExpirationDate": null,
+            "AllowGenerateEDI": false,
+            "BitFlag": 0,
+            "ReportRptDescription": "",
+            "RptDefRptDescription": "",
+            "RptTypeRptTypeDescription": "",
+            "RowMod": "",
+            "SSRSRenderFormat": "PDF"
+          }
+
+        ]
+      },
+      "agentID": "",
+      "agentSchedNum": 0,
+      "agentTaskNum": 0,
+      "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
+    };
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    try {
+      final SumbitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final response = await http.post(
+          SumbitReportURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+          body: jsonEncode(body)
+      );
+      if(response.statusCode == 200){
+        return true;
+      }
+      else {
+        return false;
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
 
   Future<void> fetchLoadDataFromURL() async {
     final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID');
@@ -117,7 +234,7 @@ class _StockOffloadingState extends State<StockOffloading>
         });
       }
       else {
-        debugPrint('PDF Count Fetch Failed');
+        debugPrint('Load Data Fetch Failed');
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -168,6 +285,29 @@ class _StockOffloadingState extends State<StockOffloading>
       debugPrint(e.toString());
     }
 }*/
+  Future<dynamic> fetchPDFCounts() async {
+    final String basicAuth = 'Basic ${base64Encode(
+        utf8.encode('manager:Adp@2023'))}';
+    try {
+      final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)?\$top=1&');
+      final response = await http.get(
+          PDFCountsURL,
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        return jsonResponse['value'];
+      }
+      else {
+        return null;
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> fetchElementDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
     try {
@@ -384,7 +524,8 @@ class _StockOffloadingState extends State<StockOffloading>
           ],
         ),
       ),
-      body:Padding(
+      body:isPrinting? const Center(child: CircularProgressIndicator(),)
+          :Padding(
         padding: const EdgeInsets.all(8.0),
         child: TabBarView(
           controller: _tabController,
@@ -434,12 +575,13 @@ class _StockOffloadingState extends State<StockOffloading>
                                 getPartObjectFromJson(projectLoadID);
                                 if (offloadData != null) {
                                   if(offloadData!.loadStatus == 'Closed'){
+                                    Offloaded = true;
                                     if(mounted) {
                                       showDialog(
                                         context: context,
                                         builder: (context) {
                                           return AlertDialog(
-                                            title: const Text('Error'),
+                                            title: const Text('Warning'),
                                             content: const Text('This Load has already been delivered'),
                                             actions: [
                                               TextButton(
@@ -919,6 +1061,25 @@ class _StockOffloadingState extends State<StockOffloading>
                     const SizedBox(
                       height: 20,
                     ),
+                    Offloaded? ElevatedButton(onPressed: () async {
+                      setState(() {
+                        isPrinting = true;
+                      });
+                      SubmitReport().then((value) => {
+                        if(value!=null){
+                          Future.delayed(Duration(seconds:2),(){
+                            fetchPDFCounts().then((value)=>{
+                              if(value!=null){
+                                setState(() {
+                                  isPrinting = false;
+                                }),
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => PdfViewerPage(filePath:'DeliveryNote${loadIDController.text}.pdf',generatePdf: DeliveryNote(value[0]['SysRptLst_RptData']))))
+                              }
+                            });
+                          })
+                        }
+                      });
+                    }, child: Text('Generate Delivery Note')):
                     ElevatedButton(
                       onPressed: () async {
                         if(offloadData!.loadStatus == 'Closed'){
@@ -997,6 +1158,9 @@ class _StockOffloadingState extends State<StockOffloading>
                           }
                         }
                         if(loaded && !elementsAndPartsLoaded){
+                          setState(() {
+                            Offloaded = true;
+                          });
                           if (mounted) {
                             showDialog(
                               context: context,
