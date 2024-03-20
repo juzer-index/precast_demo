@@ -34,6 +34,7 @@ class MyDataTableSource extends DataTableSource{
   final List<dynamic> _elementData;
   final BuildContext dialogContext;
   bool _hasMore = false;
+
   @override
   bool get hasMore => _hasMore;
 
@@ -84,7 +85,7 @@ class MyDataTableSource extends DataTableSource{
                   utf8.encode('manager:Adp@2023'))}';
               try {
                 final response = await http.get(
-                  Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+                  Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
                     headers: {
                       HttpHeaders.authorizationHeader: basicAuth,
                       HttpHeaders.contentTypeHeader: 'application/json',
@@ -160,6 +161,7 @@ class _ElementMasterState extends State<ElementMaster> {
   TextEditingController elementIdController = TextEditingController();
 
   bool isSingleElement = false;
+  bool isSearching = false;
 
   final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
 
@@ -241,7 +243,7 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
   Future<void> getScannedElement(String partNum, String elementId) async {
-    var url = Uri.parse('https://77.92.189.102/IIT_vertical_precast/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
+    var url = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
     try {
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
@@ -358,8 +360,15 @@ class _ElementMasterState extends State<ElementMaster> {
                               future: _elementListFuture,
                               builder: (BuildContext context, AsyncSnapshot snapshot) {*/
                                /* if (snapshot.connectionState == ConnectionState.done) {*/
-                                 /* return */IconButton(
+                                 /* return */isSearching?
+
+                                   CircularProgressIndicator()
+                                 :IconButton(
                                     onPressed: () async {
+                                      setState(() {
+                                        isSearching = true;
+                                      });
+
                                       partElementList.clear();
                                       setState(() {
                                         currentPageIndex = 0;
@@ -378,6 +387,9 @@ class _ElementMasterState extends State<ElementMaster> {
                                         });
                                         await getElementList(elementIdController.text, true,0);
                                       }
+                                      setState(() {
+                                        isSearching = false;
+                                      });
                                     },
                                     icon: const Icon(Icons.search),/*
                                   ),
