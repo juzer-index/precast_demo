@@ -38,7 +38,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   TextEditingController selectedQtyController = TextEditingController();
   TextEditingController uomController = TextEditingController();
   List<ElementData> selectedElements = [];
-  List<PartData> selectedParts = [];
+  List<PartData> selectedParts  = [];
   TextEditingController lotNoController = TextEditingController();
 
   Map<String, dynamic> partData = {};
@@ -54,6 +54,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<dynamic> elements = [];
   List<dynamic> lots = [];
   Map<String, dynamic> elementListData = {};
+  List<ElementData> totalElements = [];
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -225,6 +226,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     if(widget.isOffloading){
       isElement = true;
     }
+    totalElements = widget.arrivedElements!;
   }
 
   @override
@@ -712,7 +714,12 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                           }
                         }
                         // setElementData();
-                        widget.onElementsSelected(selectedElements, selectedParts);
+
+                        totalElements += selectedElements;
+
+
+                          widget.onElementsSelected(totalElements,selectedParts);
+
                       },
                       child: const Text('Select'),
 
