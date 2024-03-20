@@ -712,7 +712,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 ),
                                                 RadioListTile(
                                                   title: const Text('Return Trip'),
-                                                  value: 'Delivery',
+                                                  value: 'Return',
                                                   groupValue: loadTypeValue,
                                                   onChanged: (value) {
                                                     setState(() {
@@ -723,7 +723,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 ),
                                                 RadioListTile(
                                                   title: const Text('Delivery Trip'),
-                                                  value: 'Return',
+                                                  value: 'Issue Load',
                                                   groupValue: loadTypeValue,
                                                   onChanged: (value) {
                                                     setState(() {
@@ -760,7 +760,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 ),
                                                 RadioListTile(
                                                   title: const Text('Internal'),
-                                                  value: 'Internal',
+                                                  value: 'Internal Truck',
                                                   groupValue: loadConditionValue,
                                                   onChanged: (value) {
                                                     setState(() {
