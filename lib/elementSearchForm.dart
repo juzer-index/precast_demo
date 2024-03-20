@@ -66,6 +66,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   bool isElement = false;
   bool isLoading = false;
+  bool selectable = false;
   // bool isConsumable = false;
 
  // late Future _dataFuture;
@@ -157,9 +158,12 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           weightController.text = lotData['Ton_c'];
           areaController.text = lotData['M2_c'];
           volumeController.text = lotData['M3_c'];
-          estErectionDateController.text = lotData['ErectionPlannedDate_c'];
+          estErectionDateController.text = lotData['ErectionPlannedDate_c']!=null?lotData['ErectionPlannedDate_c']:'';
           onHandQtyController.text = '1';
           selectedQtyController.text = '1';
+        });
+        setState(() {
+          selectable = true;
         });
       } else {
         debugPrint(response.statusCode.toString());
@@ -476,7 +480,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     ),
                     items: elements.isNotEmpty?elements:[],
                     onChanged: (value) async {
-
+                      setState(() {
+                        selectable = false;
+                      });
                       await getElementDetailsFromLot(value, elementNumberController.text);
 
                     },
@@ -631,7 +637,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ElevatedButton(
-                      onPressed: () {
+
+                      onPressed:!selectable? ()=>null: () {
                         if (isElement) {
                           selectedElements.add(ElementData(
                             partId: elementNumberController.text,
@@ -724,7 +731,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
                       },
                       child: const Text('Select'),
-
+                      style: !selectable?ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.grey),
+                      ):null,
                     ),
                   ),
                 ],
