@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'package:advanced_datatable/advanced_datatable_source.dart';
-import 'package:advanced_datatable/datatable.dart'as ad;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:precast_demo/indexAppBar.dart';
+import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
@@ -412,21 +409,39 @@ class _ElementMasterState extends State<ElementMaster> {
                                         height: MediaQuery.of(context).size.height * 0.35,
                                         child: QRView(
                                           key: qrKey,
-
                                           onQRViewCreated: (QRViewController controller) {
                                             this.controller = controller;
-                                            controller.scannedDataStream
-                                                .listen((scanData) async {
+                                            controller.scannedDataStream.listen((scanData) async {
+                                              String elementId = '';
+                                              String partNum = '';
                                               controller.pauseCamera();
                                               Navigator.pop(context);
-                                              List<String> scanResult =
-                                                  scanData.code!.split('-');
-                                              // String company = scanResult[1];
-                                              String partNum = scanResult[2];
-                                              String elementId = scanResult[3];
-                                              debugPrint('$partNum $elementId');
-                                              await getScannedElement(
-                                                  partNum, elementId);
+                                              debugPrint('this is the code ${scanData.code}');
+                                              List<String> scanResult = scanData.code!.split('-');
+                                              if (scanResult.length >= 4) {
+                                                elementId = scanResult.sublist(3).join("-");
+                                                partNum = scanResult[2];
+                                                await getScannedElement(partNum, elementId);
+                                              } else {
+                                                showDialog(context: context, builder: (context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Invalid QR Code'),
+                                                    content: const Text('Please scan a valid QR code'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(context);
+                                                        },
+                                                        child: const Text('OK'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                });
+                                              }
+                                              // // String company = scanResult[1];
+                                              // String partNum = scanResult[2];
+                                              // String elementId = scanResult[3];
+                                              // debugPrint('$partNum $elementId');
                                             });
                                           },
                                         ),

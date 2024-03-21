@@ -5,7 +5,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:precast_demo/part_model.dart';
+import 'package:IIT_precast_app/part_model.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'elementMaster.dart';
 import 'element_model.dart';
@@ -204,7 +204,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     try {
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(158095,$partNum,$elementId)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -253,9 +253,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: isLoading? Center(
+                    child: isLoading? const Center(
                       child: CircularProgressIndicator(),
-
                     ):IconButton(
                       onPressed: () async {
 
@@ -282,8 +281,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             await getAllParts(elementNumberController.text);
                             setState(() {
                               isLoading = false;
-
-
                             });
 
                             if(partValue[0]['Part_IsElementPart_c'] == true){
@@ -388,24 +385,48 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                               controller = qrController;
                                               controller!.scannedDataStream.listen((
                                                   scanData) async {
-                                                qrController.pauseCamera();
+                                                String elementId = '';
+                                                String partNum = '';
+                                                controller!.pauseCamera();
                                                 Navigator.pop(context);
+                                                debugPrint('this is the code ${scanData.code}');
                                                 List<String> scanResult = scanData.code!.split('-');
-                                                // String company = scanResult[1];
-                                                String partNum = scanResult[2];
-                                                String elementId = scanResult[3];
-                                                debugPrint('$partNum $elementId');
+                                                if (scanResult.length >= 4) {
+                                                  elementId = scanResult.sublist(3).join("-");
+                                                  partNum = scanResult[2];
+                                                  await getScannedElement(partNum, elementId);
+                                                } else {
+                                                  showDialog(context: context, builder: (context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Invalid QR Code'),
+                                                      content: const Text('Please scan a valid QR code'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(context);
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                                }
+                                                // // String company = scanResult[1];
+                                                // String partNum = scanResult[2];
+                                                // String elementId = scanResult[3];
+                                                // debugPrint('$partNum $elementId');
                                                 await getScannedElement(partNum, elementId);
                                                 setState(() {
                                                   isElement = true;
+                                                  elementNumberController.text = partNum;
                                                   elementDescriptionController.text = elementListData['PartLotDescription'];
                                                   lotNoController.text = elementListData['LotNum'];
                                                   uomController.text = elementListData['PartNumSalesUM'];
                                                   erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
                                                   weightController.text = elementListData['Ton_c'];
-                                                  areaController.text = elementListData['Area2_c'];
-                                                  volumeController.text = elementListData['Volume2_c'];
-                                                  estErectionDateController.text = elementListData['ErectionPlannedDate_c'];
+                                                  areaController.text = elementListData['M2_c'];
+                                                  volumeController.text = elementListData['M3_c'];
+                                                  estErectionDateController.text = elementListData['ErectionPlannedDate_c'] ?? '';
                                                   onHandQtyController.text = '1';
                                                   elementResult = scanData;
                                                   elementResultCode =
@@ -483,7 +504,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   ),
                     if(elements.isEmpty) const SizedBox(
                         height: 60,
-                        child:Center(child: CircularProgressIndicator())),
+                        child:Center(child: CircularProgressIndicator())
+                    ),
                   ]),
                 ),
               Padding(

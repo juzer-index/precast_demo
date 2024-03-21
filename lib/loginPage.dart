@@ -112,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          'Precast Demo',
+          'IIT Precast App',
           style: TextStyle(
               color: Colors.lightBlue,
               fontSize: 20 , fontWeight: FontWeight.bold),
