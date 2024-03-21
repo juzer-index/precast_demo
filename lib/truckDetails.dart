@@ -40,8 +40,8 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  var truckURL = Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As');
+  var truckURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102s');
+  var resourceURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As');
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
   Map<String, dynamic> resourceData = {};
@@ -86,8 +86,8 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
-    var urL = Uri.parse("https://77.92.189.102/iit_vertical_precast/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    var urL = Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final response = await http.get(
           urL,
@@ -114,10 +114,10 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getDriverList() async {
-    final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:manager'))}';
+    final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
     try{
       final response = await http.get(
-          Uri.parse('https://77.92.189.102/IITPrecastVertical/api/v1/BaqSvc/IIT_DriverName'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_DriverName'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

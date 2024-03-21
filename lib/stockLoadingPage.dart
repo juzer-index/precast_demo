@@ -62,6 +62,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   String resourceId = '';
   int ChildCount = 0;
 
+
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
 
@@ -214,7 +215,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       },
                     ),
                   ),
-                      PopupMenuItem(
+                      /*PopupMenuItem(
                       child: ListTile(
                       leading: const Icon(Icons.adf_scanner),
                       title: const Text('Generate Delivery Note'),
@@ -277,7 +278,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
 
                         },
-                ),),
+                ),),*/
                 ];
               }
               ) ],
