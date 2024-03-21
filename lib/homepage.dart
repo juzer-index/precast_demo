@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart';
-import 'package:precast_demo/stockLoadingPage.dart';
-import 'package:precast_demo/indexAppBar.dart';
-import 'package:precast_demo/sideBarMenu.dart';
-import 'package:precast_demo/stockOffloadingPage.dart';
+import 'package:IIT_precast_app/stockLoadingPage.dart';
+import 'package:IIT_precast_app/indexAppBar.dart';
+import 'package:IIT_precast_app/sideBarMenu.dart';
+import 'package:IIT_precast_app/stockOffloadingPage.dart';
 import 'loginPage.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
