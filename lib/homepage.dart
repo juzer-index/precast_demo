@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                                 children: [
                                    Text(
                                   'ID: ${widget.userManagement['id']}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
                                   Text(
@@ -109,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                                                     0.5,
                                                 child: Padding(
                                                     padding:
-                                                        EdgeInsets.all(12.0),
+                                                        const EdgeInsets.all(12.0),
                                                     child: Column(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          Text(
+                                                          const Text(
                                                             'Profile Information',
                                                             style: TextStyle(
                                                                 fontSize: 20,
@@ -126,43 +126,43 @@ class _HomePageState extends State<HomePage> {
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          SizedBox(height: 10),
+                                                          const SizedBox(height: 10),
                                                           Text(
                                                             'Name: ${widget.userManagement['firstName']} ${widget.userManagement['lastName']}',
-                                                            style: TextStyle(
+                                                            style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          SizedBox(height: 10),
+                                                          const SizedBox(height: 10),
                                                           Text(
                                                             'ID: ${widget.userManagement['id']}',
-                                                            style: TextStyle(
+                                                            style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          SizedBox(height: 10),
+                                                          const SizedBox(height: 10),
                                                           Text(
                                                             'tenant ID: ${widget.userManagement['tenantId']}',
-                                                            style: TextStyle(
+                                                            style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
                                                                 FontWeight
                                                                     .bold),
                                                           ),
-                                                          SizedBox(height: 10),
+                                                          const SizedBox(height: 10),
                                                           Text(
                                                             'Email: ${widget.userManagement['userFile_EMailAddress']}',
-                                                            style: TextStyle(
+                                                            style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
                                                                 FontWeight
                                                                     .bold),
                                                           ),
-                                                          SizedBox(height: 10),
+                                                          const SizedBox(height: 10),
                                                         ]
                                                     )
                                                 )
@@ -198,7 +198,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ElementMaster(),
+                              builder: (context) => const ElementMaster(),
                             ),
                           );
                         },
@@ -258,7 +258,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockOffloading(initialTabIndex: 0,),
+                              builder: (context) => const StockOffloading(initialTabIndex: 0,),
                             ),
                           );
                         },
