@@ -13,15 +13,12 @@ class ElementDataSource extends ChangeNotifier {
 
   void updateList(List<dynamic> newList) {
     partElementList = newList;
-
     notifyListeners();
   }
-
-
 }
 
 class ElementMaster extends StatefulWidget {
-  const ElementMaster({Key? key}) ;
+  const ElementMaster({super.key}) ;
 
   @override
   State<ElementMaster> createState() => _ElementMasterState();
@@ -30,15 +27,7 @@ class ElementMaster extends StatefulWidget {
 class MyDataTableSource extends DataTableSource{
   final List<dynamic> _elementData;
   final BuildContext dialogContext;
-  bool _hasMore = false;
-
-  @override
-  bool get hasMore => _hasMore;
-
-
-  set hasMore(bool value) {
-    _hasMore = value;
-  }
+  bool hasMore = false;
 
 
 
@@ -148,8 +137,6 @@ class MyDataTableSource extends DataTableSource{
 
 class _ElementMasterState extends State<ElementMaster> {
 
-  late Future _elementListFuture;
-
   Map<String, dynamic> elementListData = {};
   List<dynamic> elementListValue = [];
   List<dynamic> partElementList = [];
@@ -171,7 +158,7 @@ class _ElementMasterState extends State<ElementMaster> {
   bool isElement = false;
   int offset = 0;
   int currentPageIndex = 0;
-  final GlobalKey<PaginatedDataTableState> DataTablekey = GlobalKey();
+  final GlobalKey<PaginatedDataTableState> dataTablekey = GlobalKey();
 
   @override
   void initState() {
@@ -180,46 +167,24 @@ class _ElementMasterState extends State<ElementMaster> {
 
   }
 
-
-  /*Future<void> getElementList() async {
-    var url = Uri.parse('https://77.92.189.102/iit_vertical_precast/api/v1/BaqSvc/IIT_AllElement');
-    try {
-      final response = await http.get(url, headers: {
-        HttpHeaders.authorizationHeader: basicAuth,
-        HttpHeaders.contentTypeHeader: 'application/json',
-      });
-      if (response.statusCode == 200) {
-        elementListData = json.decode(response.body);
-        elementListValue = elementListData['value'];
-        debugPrint(elementListValue.toString());
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }*/
-  Future<void> getElementList(String Param, bool isElement,int offset) async {
-    var url;
+  Future<void> getElementList(String param, bool isElement,int offset) async {
+    Uri url;
     int page = offset == 0 ? 11: 10;
     if(!isElement) {
       url = Uri.parse(
-          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_PartNum eq \'$Param\'&\$top=$page''&\$skip=$offset');
-
+          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
     }
-
     else {
       url = Uri.parse(
-          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset');
+          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
       isElement = true;
     }
     try {
       final String basicAuth = 'Basic ${base64Encode(
           utf8.encode('manager:Adp@2023'))}';
       final response = await http.get(url, headers: {
-
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
-
-
       });
       if (response.statusCode == 200) {
         var elementListData = json.decode(response.body);
@@ -228,8 +193,6 @@ class _ElementMasterState extends State<ElementMaster> {
           partElementList+=elementListValue;
           offset += elementListValue.length as int;
         });
-
-
         debugPrint(elementListValue.toString());
       }
       else {
@@ -239,8 +202,8 @@ class _ElementMasterState extends State<ElementMaster> {
       debugPrint(e.toString());
     }
   }
-  Future<void> getScannedElement(String partNum, String elementId) async {
-    var url = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)');
+  Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
+    var url = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
     try {
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
@@ -249,10 +212,12 @@ class _ElementMasterState extends State<ElementMaster> {
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         elementListData = json.decode(response.body);
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DetailsPage(elementId: elementId, elementDetails: elementListData, statusColor: Colors.transparent)),
-        );
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DetailsPage(elementId: elementId, elementDetails: elementListData, statusColor: Colors.transparent)),
+          );
+        }
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -353,13 +318,8 @@ class _ElementMasterState extends State<ElementMaster> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: /*FutureBuilder(
-                              future: _elementListFuture,
-                              builder: (BuildContext context, AsyncSnapshot snapshot) {*/
-                               /* if (snapshot.connectionState == ConnectionState.done) {*/
-                                 /* return */isSearching?
-
-                                   CircularProgressIndicator()
+                            child: isSearching?
+                                   const CircularProgressIndicator()
                                  :IconButton(
                                     onPressed: () async {
                                       setState(() {
@@ -370,7 +330,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                       setState(() {
                                         currentPageIndex = 0;
                                       });
-                                      DataTablekey.currentState?.pageTo(0);
+                                      dataTablekey.currentState?.pageTo(0);
                                       if(partNumController.text.isNotEmpty) {
                                         setState(() {
                                           isSingleElement = false;
@@ -414,6 +374,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                             controller.scannedDataStream.listen((scanData) async {
                                               String elementId = '';
                                               String partNum = '';
+                                              String companyId = '';
                                               controller.pauseCamera();
                                               Navigator.pop(context);
                                               debugPrint('this is the code ${scanData.code}');
@@ -421,7 +382,8 @@ class _ElementMasterState extends State<ElementMaster> {
                                               if (scanResult.length >= 4) {
                                                 elementId = scanResult.sublist(3).join("-");
                                                 partNum = scanResult[2];
-                                                await getScannedElement(partNum, elementId);
+                                                companyId = scanResult[1];
+                                                await getScannedElement(partNum, elementId, companyId);
                                               } else {
                                                 showDialog(context: context, builder: (context) {
                                                   return AlertDialog(
@@ -438,10 +400,6 @@ class _ElementMasterState extends State<ElementMaster> {
                                                   );
                                                 });
                                               }
-                                              // // String company = scanResult[1];
-                                              // String partNum = scanResult[2];
-                                              // String elementId = scanResult[3];
-                                              // debugPrint('$partNum $elementId');
                                             });
                                           },
                                         ),
@@ -465,20 +423,15 @@ class _ElementMasterState extends State<ElementMaster> {
                         padding: const EdgeInsets.all(8.0),
 
                                 child: PaginatedDataTable(
-                                  key : DataTablekey,
+                                  key : dataTablekey,
                                   onPageChanged: (page) async {
 
                                     debugPrint(offset.toString());
                                     if(page>offset){
                                       offset=max(offset, page);
                                       isElement ? await getElementList(elementIdController.text, true, page) : await getElementList(partNumController.text, false, page);
-
                                     }
-
-
                                    },
-
-
                                   initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
 
                                   columnSpacing: 30,

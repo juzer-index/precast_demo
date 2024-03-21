@@ -2,12 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:IIT_precast_app/part_model.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'elementMaster.dart';
 import 'element_model.dart';
 
 import 'package:http/http.dart' as http;
@@ -17,8 +14,8 @@ class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  dynamic Warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse });
+  dynamic warehouse;
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.warehouse });
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -31,7 +28,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   TextEditingController erectionSeqController = TextEditingController();
   TextEditingController estErectionDateController = TextEditingController();
   TextEditingController weightController = TextEditingController();
-  TextEditingController CompanyController =TextEditingController();
+  TextEditingController companyController =TextEditingController();
   TextEditingController areaController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
   TextEditingController onHandQtyController = TextEditingController();
@@ -48,7 +45,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Map<String, dynamic> consumableData = {};
   List<dynamic> consumableValue = [];
   Map<String, dynamic> lotData = {};
-  // List<dynamic> lotValue = [];
 
   List<dynamic> consumables = [];
   List<dynamic> elements = [];
@@ -61,31 +57,18 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
-  final String basicAuth = 'Basic ${base64Encode(
-      utf8.encode('manager:Adp@2023'))}';
+  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
 
   bool isElement = false;
   bool isLoading = false;
-  // bool isConsumable = false;
 
- // late Future _dataFuture;
-
-  var partURL = Uri.parse(
-      'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
-
-
-
-
-
-
-  Future<void> getAllParts(String PartNum) async {
-
-    
+  var partURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
+  Future<void> getAllParts(String partNum) async {
     try {
 
       final response = await http.get(
             Uri.parse(
-               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''),
+               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'$partNum\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -113,8 +96,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getLotForElements() async {
     try {
-       String PartNum =elementNumberController.text;
-      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$PartNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+       String partNum =elementNumberController.text;
+      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
@@ -173,9 +156,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Future<void> getConsumableDetails(String partNum) async {
     try {
       var consumableURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_NonTrackPart/?\$filter=Part_PartNum eq \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
-      final response = await http.get(
-          // Uri.parse('https://localhost/iit_vertical_precast/api/v1/Erp.BO.PartSvc/Parts($company,$partNum)'),
-        consumableURL,
+      final response = await http.get(consumableURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -199,12 +180,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
-
-  Future<void> getScannedElement(String partNum, String elementId) async {
+  Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
     try {
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(158095,$partNum,$elementId)'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -218,23 +198,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
-
   @override
   void initState() {
     super.initState();
-   // _dataFuture = getAllParts();
-/*    if(widget.isOffloading){
-      isElement = true;
-    }*/
     totalElements = widget.arrivedElements!;
   }
-
   @override
   Widget build(BuildContext context) {
-    // return FutureBuilder(
-    //   future: _dataFuture,
-    //   builder: (context, snapshot) {
-    //     if(snapshot.connectionState == ConnectionState.done){
           return Column(
             children: [
               Row(
@@ -255,14 +225,12 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     padding: const EdgeInsets.all(4.0),
                     child: isLoading? const Center(
                       child: CircularProgressIndicator(),
-                    ):IconButton(
+                    ) : IconButton(
                       onPressed: () async {
-
                         elements.clear();
                         lotNoController.text = '';
                         if (!widget.isOffloading) {
                           if (elementNumberController.text.isNotEmpty) {
-                            Map<String,dynamic> firstElement;
                             setState(() {
                               isLoading = true;
                               lotNoController.text = '';
@@ -290,29 +258,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             else{
                               isElement = false;
                               await getConsumableDetails(elementNumberController.text);
-                            }
-/*                            for (var i = 0; i < partValue.length; i++) {
-                              if (partValue[i]['Part_PartNum'] ==
-                                  elementNumberController.text &&
-                                  partValue[i]['Part_IsElementPart_c'] == true) {
-                                getLotForElements();
-                                setState(() {
-                                  isElement = true;
-                                });
-                                break;
-                              }
-                              if (partValue[i]['Part_PartNum'] ==
-                                  elementNumberController.text &&
-                                  partValue[i]['Part_IsElementPart_c'] == false) {
-                                getConsumableDetails(elementNumberController.text);
-                                setState(() {
-                                  isElement = false;
-                                });
-                                break;
-                              }*/
-                            }
+                            }}
                           }
-
                        if(widget.isOffloading){
                           if(elementNumberController.text.isNotEmpty){
                             for(var i = 0; i < widget.arrivedElements!.length; i++) {
@@ -324,24 +271,26 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   isElement = true;
                                 });
                               }
-                            }}else{
-                                showDialog(context: context, builder: (BuildContext context){
-                                  return AlertDialog(
-                                    title: const Text('Error'),
-                                    content: const Text('Part not found in arrived elements'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                });
+                            }
+                          } else{
+                                if (mounted) {
+                                  showDialog(context: context, builder: (BuildContext context){
+                                    return AlertDialog(
+                                      title: const Text('Error'),
+                                      content: const Text('Part not found in arrived elements'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    );
+                                  });
+                                }
                               }
                             }
-
                         }
                       ,
                       icon: const Icon(Icons.search),
@@ -387,6 +336,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   scanData) async {
                                                 String elementId = '';
                                                 String partNum = '';
+                                                String companyId = '';
                                                 controller!.pauseCamera();
                                                 Navigator.pop(context);
                                                 debugPrint('this is the code ${scanData.code}');
@@ -394,7 +344,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                 if (scanResult.length >= 4) {
                                                   elementId = scanResult.sublist(3).join("-");
                                                   partNum = scanResult[2];
-                                                  await getScannedElement(partNum, elementId);
+                                                  companyId = scanResult[1];
+                                                  await getScannedElement(partNum, elementId, companyId);
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
                                                     return AlertDialog(
@@ -411,11 +362,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                     );
                                                   });
                                                 }
-                                                // // String company = scanResult[1];
-                                                // String partNum = scanResult[2];
-                                                // String elementId = scanResult[3];
-                                                // debugPrint('$partNum $elementId');
-                                                await getScannedElement(partNum, elementId);
+                                                await getScannedElement(partNum, elementId, companyId);
                                                 setState(() {
                                                   isElement = true;
                                                   elementNumberController.text = partNum;
@@ -737,13 +684,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             }
                           }
                         }
-                        // setElementData();
-
                         totalElements += selectedElements;
-
-
-                          widget.onElementsSelected(totalElements,selectedParts);
-
+                        widget.onElementsSelected(totalElements,selectedParts);
                       },
                       child: const Text('Select'),
 

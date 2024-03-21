@@ -920,7 +920,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements,isOffloading: false, Warehouse:fromWarehouseController.text  ),
+                                          child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements,isOffloading: false, warehouse:fromWarehouseController.text  ),
                                         ),
                                       ),
                                       const SizedBox(height: 20,),
