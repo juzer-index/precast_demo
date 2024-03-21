@@ -508,7 +508,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
                     },
                   ),
-                    if(elements.isEmpty) const SizedBox(
+                    if(elements.isEmpty&&elementListData.isEmpty) const SizedBox(
                         height: 60,
                         child:Center(child: CircularProgressIndicator())
                     ),
