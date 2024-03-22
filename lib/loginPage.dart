@@ -1,6 +1,3 @@
-
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -43,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if(res.statusCode == 200){
-
         var responseData= json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
@@ -56,10 +52,12 @@ class _LoginPageState extends State<LoginPage> {
           });
 
         }
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement,)),
-        );
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement)),
+          );
+        }
       }
       else if(res.statusCode == 500){
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,12 +87,13 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs =  await  SharedPreferences.getInstance();
     if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
       var userManagement = json.decode(prefs.getString('userManagement') as String);
-      var tenantConfig = json.decode(prefs.getString('tenantConfig') as String);
       UserManagement = userManagement;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
-      );
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
+        );
+      }
     }
   }
   @override
@@ -110,12 +109,15 @@ class _LoginPageState extends State<LoginPage> {
     var Imagepath = 'assets/Index-Logo.jpg';
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: const Text(
-          'IIT Precast App',
-          style: TextStyle(
-              color: Colors.lightBlue,
-              fontSize: 20 , fontWeight: FontWeight.bold),
+        title: const Center(
+          child: Text(
+            'IIT Precast App',
+            style: TextStyle(
+                color: Colors.lightBlue,
+                fontSize: 20 , fontWeight: FontWeight.bold),
+          ),
         ),
       ),
       body: Container(

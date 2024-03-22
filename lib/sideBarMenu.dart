@@ -138,7 +138,7 @@ Drawer SideBarMenu(BuildContext context) {
                 value.remove('tenantConfig');
               });
 
-              Navigator.push(
+              Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const LoginPage()));

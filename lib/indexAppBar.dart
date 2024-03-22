@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'themeData.dart';
 
 class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
+  final bool? isHomePage;
 
-  IndexAppBar({super.key, required this.title});
+  const IndexAppBar({super.key, required this.title, this.isHomePage});
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
+      automaticallyImplyLeading: isHomePage!,
       backgroundColor: Theme.of(context).primaryColor,
       title: Center(
         child: Row(
