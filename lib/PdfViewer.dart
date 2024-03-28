@@ -1,25 +1,19 @@
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart' as pw;
 import 'package:printing/printing.dart';
 
 class PdfViewerPage extends StatelessWidget {
-   String filePath;
+   final String filePath;
    final Future<Uint8List> generatePdf;
 
-  PdfViewerPage({required this.filePath ,  required  this.generatePdf}){
-
-  }
+  const PdfViewerPage({super.key, required this.filePath ,  required  this.generatePdf});
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Delivery Note'),
+        title: const Text('Delivery Note'),
       ),
       body: FutureBuilder(
         future: generatePdf, // Your function that generates the PDF data
@@ -32,7 +26,7 @@ class PdfViewerPage extends StatelessWidget {
           } else if (snapshot.hasError) {
             return Text('Error generating PDF: ${snapshot.error}');
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),
