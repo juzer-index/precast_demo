@@ -714,7 +714,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   ),
                                                 ),
                                                 RadioListTile(
-                                                  title: const Text('Return Trip'),
+                                                  title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                   value: 'Return',
                                                   groupValue: loadTypeValue,
                                                   onChanged: (value) {
@@ -725,7 +725,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   },
                                                 ),
                                                 RadioListTile(
-                                                  title: const Text('Delivery Trip'),
+                                                  title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                   value: 'Issue Load',
                                                   groupValue: loadTypeValue,
                                                   onChanged: (value) {
@@ -751,7 +751,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   ),
                                                 ),
                                                 RadioListTile(
-                                                  title: const Text('External'),
+                                                  title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                   value: 'External',
                                                   groupValue: loadConditionValue,
                                                   onChanged: (value) {
@@ -762,7 +762,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   },
                                                 ),
                                                 RadioListTile(
-                                                  title: const Text('Internal'),
+                                                  title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                   value: 'Internal Truck',
                                                   groupValue: loadConditionValue,
                                                   onChanged: (value) {
@@ -773,7 +773,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   },
                                                 ),
                                                 RadioListTile(
-                                                  title: const Text('Ex-Factory'),
+                                                  title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                   value: 'Ex-Factory',
                                                   groupValue: loadConditionValue,
                                                   onChanged: (value) {
@@ -1511,7 +1511,6 @@ child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedEle
   Future<Uint8List> DeliveryNote(String base64String) async {
     Uint8List decodedBytes = base64.decode(base64String);
     final pdf = pw.Document();
-    final font = pw.Font.ttf(await rootBundle.load('assets/fonts/OpenSans-Regular.ttf'));
     final directory = await getApplicationDocumentsDirectory();
     final output = File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
 

@@ -760,7 +760,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 AbsorbPointer(
                                   child: RadioListTile(
-                                    title: const Text('Return Trip'),
+                                    title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                     value: 'Return',
                                     groupValue: loadTypeValue,
                                     onChanged: (value) {
@@ -772,7 +772,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 AbsorbPointer(
                                   child: RadioListTile(
-                                    title: const Text('Delivery Trip'),
+                                    title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                     value: 'Issue Load',
                                     groupValue: loadTypeValue,
                                     onChanged: (value) {
@@ -786,19 +786,16 @@ class _StockOffloadingState extends State<StockOffloading>
                             ),
                             Expanded(
                               child: Column(children: [
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
                                   child: Text(
                                     'Load Condition',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Colors.blue),
+                                      style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)
                                   ),
                                 ),
                                 AbsorbPointer(
                                   child: RadioListTile(
-                                    title: const Text('External'),
+                                    title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                     value: 'External',
                                     groupValue: loadConditionValue,
                                     onChanged: (value) {
@@ -810,7 +807,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 AbsorbPointer(
                                   child: RadioListTile(
-                                    title: const Text('Internal'),
+                                    title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                     value: 'Internal Truck',
                                     groupValue: loadConditionValue,
                                     onChanged: (value) {
@@ -822,7 +819,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 AbsorbPointer(
                                   child: RadioListTile(
-                                    title: const Text('Ex-Factory'),
+                                    title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                     value: 'Ex-Factory',
                                     groupValue: loadConditionValue,
                                     onChanged: (value) {
