@@ -60,7 +60,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   String resourceId = '';
-  int ChildCount = 0;
+  int ChildCount = 1;
 
 
   Map<String, dynamic> fetchedProjectData = {};
@@ -133,6 +133,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   int PDFCount =0;
   @override
   void initState() {
+    fromWarehouseController.text='Default';
+    toWarehouseController.text='Site';
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     if(!widget.isUpdate) {dataloaded=MakeSureDataLoaded();
@@ -440,10 +442,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 labelText: "Project ID",
                                               ),
                                             ),
-                                            items: fetchedProjectValue.map((project) => project['Description']).toList(),
+                                            items: fetchedProjectValue.map((project) => project['ProjectID']).toList(),
                                             onChanged: (value) {
                                               setState(() {
-                                                projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Description'] == value)['ProjectID'];
+                                                projectIdController.text = fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ProjectID'];
                                               });
                                             },
 
@@ -574,7 +576,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           padding: const EdgeInsets.all(8.0),
                                           child: DropdownSearch(
                                             selectedItem: fromWarehouseController.text,
-                                            enabled: !widget.isUpdate,
+                                            enabled: false,
                                             popupProps: const PopupProps.modalBottomSheet(
                                               showSearchBox: true,
                                               searchFieldProps: TextFieldProps(
@@ -606,7 +608,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             padding: const EdgeInsets.all(8.0),
                                             child: DropdownSearch(
                                               selectedItem: toWarehouseController.text,
-                                              enabled:  !widget.isUpdate,
+                                              enabled:  false,
                                               popupProps: const PopupProps.modalBottomSheet(
                                                 showSearchBox: true,
                                                 searchFieldProps: TextFieldProps(
@@ -921,7 +923,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         ),
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
-                                          child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements,isOffloading: false, warehouse:fromWarehouseController.text  ),
+         
+child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement),
+
                                         ),
                                       ),
                                       const SizedBox(height: 20,),
@@ -937,7 +941,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         fontSize: 18,
                                         color: Colors.blue),
                                   ),
-                                  ElementTable(selectedElements: selectedElements),
+                                  ElementTable(selectedElements: selectedElements!=null?selectedElements:[]),
                                   const SizedBox(
                                     height: 20,
                                   ),
@@ -1089,7 +1093,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         try {
                                           await updateUD103A({
                                             "Company": "158095",
-                                            "ChildKey1": "${++ChildCount}",
+                                            "ChildKey1": "${selectedElements[e].ChildKey1}",
                                             "Key1": loadIDController.text,
                                             "Character01": selectedElements[e].partId,
                                             "Character02": selectedElements[e].elementId,
@@ -1109,6 +1113,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             "CheckBox13": false,
 
                                           });
+                                          ChildCount++;
                                         } on Exception catch (e) {
                                           debugPrint(e.toString());
                                         }
@@ -1118,7 +1123,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                          await updateUD103A({
                                            "Company": "158095",
                                            "Key1": loadIDController.text,
-                                           "ChildKey1": "${++ChildCount}",
+/*                                           "ChildKey1": "${++ChildCount}",*/
                                            "Character01": selectedParts[p].partNum,
                                            "Character02": selectedParts[p].partDesc,
                                            "Character03": toWarehouseController.text,
@@ -1327,7 +1332,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       await Future.wait([
         getProjectList(),
         getBinsFromWarehouse(),
-        getWarehouseList(),
         getTrucksFromURL(),
         getDriverList(),
         getLastLoadID(),
@@ -1335,6 +1339,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
 
 
+  }
+  void _AddElement(ElementData element){
+    setState(() {
+      selectedElements.add(element);
+    });
   }
   Future<bool> SubmitReport() async {
     dynamic body={
@@ -1548,6 +1557,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         setState(() {
           fetchedBinData = json.decode(response.body);
           fetchedBinValue = fetchedBinData['value'];
+          subfetchedBinValue = fetchedBinValue.where((bin) => bin['WarehouseCode'] == toWarehouseController.text).toList();
 
         });
       }

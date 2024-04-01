@@ -12,10 +12,12 @@ import 'package:http/http.dart' as http;
 
 class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
+  final Function(ElementData) AddElement;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  dynamic warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.warehouse });
+
+  dynamic Warehouse;
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -66,13 +68,25 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
  // late Future _dataFuture;
 
-  var partURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
-  Future<void> getAllParts(String partNum) async {
+  var partURL = Uri.parse(
+      'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
+
+
+
+
+
+
+  Future<void> getAllParts(String PartNum ) async {
+
+    
     try {
 
       final response = await http.get(
             Uri.parse(
-               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'$partNum\''),
+                widget.Warehouse == null?
+               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''
+                    :
+                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -96,8 +110,17 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
-
-
+  
+  int specifyMaxChildKey(){
+    List<ElementData>elements=this.totalElements;
+    int max = 0;
+    for(var i = 0; i < elements.length; i++){
+      if(int.parse(elements[i].ChildKey1) > max){
+        max = int.parse(elements[i].ChildKey1);
+      }
+    }
+    return max;
+  }
   Future<void> getLotForElements() async {
     try {
        String partNum =elementNumberController.text;
@@ -611,20 +634,24 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     child: ElevatedButton(
 
                       onPressed:!selectable? ()=>null: () {
-                        if (isElement) {
-                          selectedElements.add(ElementData(
-                            partId: elementNumberController.text,
-                            elementId: lotNoController.text,
-                            elementDesc: elementDescriptionController.text,
-                            erectionSeq: erectionSeqController.text,
-                            erectionDate: estErectionDateController.text,
-                            UOM: uomController.text,
-                            weight: weightController.text,
-                            area: areaController.text,
-                            volume: volumeController.text,
-                            quantity: onHandQtyController.text,
-                            selectedQty: selectedQtyController.text,
-                          ));
+                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty){
+                          setState(() {
+                            selectedElements.add(ElementData(
+                              partId: elementNumberController.text,
+                              elementId: lotNoController.text,
+                              elementDesc: elementDescriptionController.text,
+                              erectionSeq: erectionSeqController.text,
+                              erectionDate: estErectionDateController.text,
+                              UOM: uomController.text,
+                              weight: weightController.text,
+                              area: areaController.text,
+                              volume: volumeController.text,
+                              quantity: onHandQtyController.text,
+                              selectedQty: selectedQtyController.text,
+                              ChildKey1: '${specifyMaxChildKey() + 1}',
+                            ));
+                          });
+
                         }
                         if (!isElement){
                           if(int.parse(onHandQtyController.text) < int.parse(selectedQtyController.text)){
@@ -695,7 +722,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                           }
                         }
                         totalElements += selectedElements;
-                        widget.onElementsSelected(totalElements,selectedParts);
+                        setState(() {
+                          selectedElements.clear();
+
+                        });
+
+
+                          widget.onElementsSelected(totalElements,selectedParts);
+
                       },
                       child: const Text('Select'),
                       style: !selectable?ButtonStyle(

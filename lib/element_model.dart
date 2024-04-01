@@ -11,7 +11,8 @@ class ElementData {
   late final String quantity;
   late final String? selectedQty;
   // late final bool is
-  ElementData({required this.partId, required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.UOM, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty});
+ late final String ChildKey1;
+  ElementData({required this.partId, required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.UOM, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty, required this.ChildKey1});
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(
@@ -25,6 +26,7 @@ class ElementData {
       area: json['Number02'].toString(),
       volume: json['Number03'].toString(),
       quantity: json['Number04'].toString(),
+      ChildKey1: json['ChildKey1'],
     );
   }
 

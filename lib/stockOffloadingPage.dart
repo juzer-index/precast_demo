@@ -52,6 +52,7 @@ class _StockOffloadingState extends State<StockOffloading>
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
 
+
   Map<String, dynamic> elementData = {};
   List<dynamic> elementValue = [];
   List<ElementData> arrivedElements = [];
@@ -879,7 +880,7 @@ class _StockOffloadingState extends State<StockOffloading>
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
-                              child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,),
+                              child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, ),
                             ),
                           ),
                           const SizedBox(height: 20,),
@@ -1065,20 +1066,57 @@ class _StockOffloadingState extends State<StockOffloading>
                       setState(() {
                         isPrinting = true;
                       });
-                      SubmitReport().then((value) => {
-                        if(value!=null){
-                          Future.delayed(Duration(seconds:2),(){
-                            fetchPDFCounts().then((value)=>{
-                              if(value!=null){
-                                setState(() {
+                      fetchPDFCounts().then((count) {
+                        if (count != null) {
+                          setState(() {
+                            PDFCount = count[0]['Calculated_Count'];
+                          });
+
+
+                          SubmitReport().then((value) async {
+                            if (value != null) {
+                              for (int i = 0; i < 3; i++) {
+                                await Future.delayed(Duration(seconds: 2));
+                                var updatedCounts = await fetchPDFCounts();
+                                if (updatedCounts != null &&
+                                    updatedCounts[0]['Calculated_Count'] > PDFCount) {
+                                  setState(() {
+                                    isPrinting = false;
+                                  });
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => PdfViewerPage(filePath: 'DeliveryNote${loadIDController.text}.pdf',generatePdf: DeliveryNote(updatedCounts[0]['SysRptLst1_RptData']))));
+                                  break; // Exit the loop if condition is met
+                                }
+                                if(i==2){
                                   isPrinting = false;
-                                }),
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => PdfViewerPage(filePath:'DeliveryNote${loadIDController.text}.pdf',generatePdf: DeliveryNote(value[0]['SysRptLst_RptData']))))
+
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Error'),
+                                        content: const Text('Failed to Generate Delivery Note'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
                               }
-                            });
-                          })
+
+                            }
+                          });
                         }
                       });
+
                     }, child: Text('Generate Delivery Note')):
                     ElevatedButton(
                       onPressed: () async {
@@ -1121,7 +1159,11 @@ class _StockOffloadingState extends State<StockOffloading>
                               "Key1": loadIDController.text,
                               "Character01": selectedElements[v].elementId,
                               "Company": '158095',
-                              "CheckBox02": true,
+                              "CheckBox01": true,
+                              "CheckBox02": false,
+                              "CheckBox03": false,
+                              "CheckBox05": false,
+
                               "Date02": loadDateFormat,
                             });
                             debugPrint(selectedElements[v].elementId);
@@ -1131,7 +1173,10 @@ class _StockOffloadingState extends State<StockOffloading>
                               "Key1": loadIDController.text,
                               "Character01": arrivedParts[v].partNum,
                               "Company": '158095',
-                              "CheckBox02": true,
+                              "CheckBox01": true,
+                              "CheckBox02": false,
+                              "CheckBox03": false,
+                              "CheckBox05": false,
                             });
                             debugPrint(arrivedParts[v].partNum);
                           }
