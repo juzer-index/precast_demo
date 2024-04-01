@@ -125,7 +125,16 @@ Drawer SideBarMenu(BuildContext context) {
         //     ),
         //   ],
         // ),
-        // const Divider(),
+        ListTile(
+            leading: Icon(
+              Icons.history,
+              color: Colors.blue.shade400,
+            ),
+            title: const Text('Load History'),
+            onTap: () {
+              // Navigator.push(context, route);
+            }),
+        const Divider(),
         ListTile(
             leading: Icon(
               Icons.exit_to_app,
@@ -137,7 +146,6 @@ Drawer SideBarMenu(BuildContext context) {
                 value.remove('userManagement');
                 value.remove('tenantConfig');
               });
-
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

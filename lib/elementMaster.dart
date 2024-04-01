@@ -71,7 +71,7 @@ class MyDataTableSource extends DataTableSource{
                   utf8.encode('manager:Adp@2023'))}';
               try {
                 final response = await http.get(
-                  Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(EPIC06,$partNum,$elementId)'),
+                  Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(Precast,$partNum,$elementId)'),
                     headers: {
                       HttpHeaders.authorizationHeader: basicAuth,
                       HttpHeaders.contentTypeHeader: 'application/json',
@@ -250,7 +250,7 @@ class _ElementMasterState extends State<ElementMaster> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: IndexAppBar(title: 'Element Master',),
+      appBar: const IndexAppBar(title: 'Element Master',),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -280,7 +280,6 @@ class _ElementMasterState extends State<ElementMaster> {
                                   setState(() {
                                     elementIdController.clear();
                                     currentPageIndex= 0;
-
                                   });
                                 },
                                 controller: partNumController,
