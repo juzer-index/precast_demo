@@ -231,7 +231,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   @override
   void initState() {
     super.initState();
-    totalElements = widget.arrivedElements!;
+    if(!widget.isOffloading){
+    totalElements = widget.arrivedElements!;}
   }
   @override
   Widget build(BuildContext context) {
