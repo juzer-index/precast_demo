@@ -1,5 +1,6 @@
 
 class LoadData {
+  late final String loadID;
   late final String projectId;
   late final String loadDate;
   late final String fromWarehouse;
@@ -23,6 +24,7 @@ class LoadData {
   late final dynamic foremanName;
   late final dynamic comments;
   LoadData({
+    required this.loadID,
     required this.projectId,
     required this.loadDate,
     required this.fromWarehouse,
@@ -49,6 +51,7 @@ class LoadData {
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
     return LoadData(
+      loadID: json['Key1'],
       projectId: json['ShortChar05'],
       loadDate: json['Date01'] ?? '',
       fromWarehouse: json['Character06'],

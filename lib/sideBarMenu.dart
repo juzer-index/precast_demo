@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-
+import 'load_model.dart';
 import 'elementMaster.dart';
 import 'loginPage.dart';
-
+import './load_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-Drawer SideBarMenu(BuildContext context) {
+
+Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData) {
+
   return Drawer(
     shadowColor: Colors.blueGrey.shade800,
     child: ListView(
@@ -132,6 +134,10 @@ Drawer SideBarMenu(BuildContext context) {
             ),
             title: const Text('Load History'),
             onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => LoadHistory(loads:loads!=null?loads:[],AddLoad:AddLoadData)));
               // Navigator.push(context, route);
             }),
         const Divider(),

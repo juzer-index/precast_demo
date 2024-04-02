@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-
-
 import 'detailsPage.dart';
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];

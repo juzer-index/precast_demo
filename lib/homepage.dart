@@ -9,6 +9,7 @@ import 'package:IIT_precast_app/stockOffloadingPage.dart';
 import 'loginPage.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
+import 'load_model.dart';
 
 class HomePage extends StatefulWidget {
   dynamic userManagement;
@@ -23,6 +24,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
   }
+  List<LoadData> loads = [];
+  void AddLoadData(LoadData load) {
+    setState(() {
+      loads.add(load);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +37,7 @@ class _HomePageState extends State<HomePage> {
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
-      drawer: SideBarMenu(context),
+      drawer: SideBarMenu(context, loads!=null?loads:[], AddLoadData),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -228,7 +235,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: false),
+                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,LoadDataList: loads,AddLoadData: AddLoadData,),
                             ),
                           );
                         },
@@ -289,7 +296,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  const StockLoading(initialTabIndex: 0, isUpdate: true),
+                                  StockLoading(initialTabIndex: 0, isUpdate: true, LoadDataList: loads, AddLoadData: AddLoadData,),
                             ),
                           );
                         },

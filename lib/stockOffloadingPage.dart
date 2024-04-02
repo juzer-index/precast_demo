@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -207,43 +208,48 @@ class _StockOffloadingState extends State<StockOffloading>
       "key5": ""
     };
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+
+    Completer<void> completer = Completer<void>();
+
     try {
       final response = await http.post(
           loadURL,
-        headers: {
-          HttpHeaders.authorizationHeader: basicAuth,
-          HttpHeaders.contentTypeHeader: 'application/json',
-        },
-        body: jsonEncode(body)
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          },
+          body: jsonEncode(body)
       );
+
       if(response.statusCode == 200){
         final jsonResponse = json.decode(response.body);
+
         setState(() {
           loadData = jsonResponse['returnObj'];
           loadValue = loadData['UD103'];
 
-          elementValue =
-              loadData['UD103A']?.where((element) =>
-              element['CheckBox13'] ==
-                  false).toList();
-          partValue = loadData['UD103A']?.where((part) => part['CheckBox13'] == true)
-              .toList();
-          setState(() {
-            arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
-            arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
-          });
+          elementValue = loadData['UD103A']?.where((element) =>
+          element['CheckBox13'] == false).toList();
+          partValue = loadData['UD103A']?.where((part) =>
+          part['CheckBox13'] == true).toList();
+          arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
+          arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
         });
+
+        // Resolve the completer when the states are set
+        completer.complete();
       }
       else {
         debugPrint('Load Data Fetch Failed');
       }
-    } on Exception catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
-
     }
 
+    // Return the future associated with the completer
+    return completer.future;
   }
-
+ void UpdateTheLoadUI(){}
 
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty){
@@ -484,7 +490,7 @@ class _StockOffloadingState extends State<StockOffloading>
           ),
         ),
         actions:[
-          PopupMenuButton(
+/*          PopupMenuButton(
               itemBuilder: (BuildContext context) => [
                 PopupMenuItem(
                   child: ListTile(
@@ -508,7 +514,7 @@ class _StockOffloadingState extends State<StockOffloading>
 
 
               ],
-          )
+          )*/
         ],
         bottom: TabBar(
           controller: _tabController,
