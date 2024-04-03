@@ -43,7 +43,7 @@ class loadTableSource extends DataTableSource{
                          isUpdate: true,
                          LoadDataList: loads,
                          AddLoadData: this.AddLoadData,
-                         HistoryLoadID: 'I-25505',)));
+                         HistoryLoadID: loads[index].loadID,)));
                  },
              child: Text(loads[index].loadID),
 
