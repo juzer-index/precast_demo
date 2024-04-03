@@ -1065,19 +1065,20 @@ class _StockOffloadingState extends State<StockOffloading>
                     const SizedBox(
                       height: 20,
                     ),
-                    Offloaded? ElevatedButton(onPressed: () async {
+                    Offloaded? ElevatedButton(
+                        onPressed: () async {
                       setState(() {
                         isPrinting = true;
                       });
                       fetchPDFCounts().then((count) {
-                        if (count != null) {
+                        if (count!=null&&count.isNotEmpty) {
                           setState(() {
                             PDFCount = count[0]['Calculated_Count'];
+
                           });
-
-
-                          SubmitReport().then((value) async {
-                            if (value != null) {
+                        }
+                          SubmitReport().then((value) async  {
+                            if (value != false) {
                               for (int i = 0; i < 3; i++) {
                                 await Future.delayed(Duration(seconds: 2));
                                 var updatedCounts = await fetchPDFCounts();
@@ -1117,7 +1118,7 @@ class _StockOffloadingState extends State<StockOffloading>
 
                             }
                           });
-                        }
+
                       });
 
                     }, child: Text('Generate Delivery Note')):
