@@ -131,6 +131,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   bool isTruckChanged = false;
 
   bool isLoaded = false;
+  List<dynamic> deletedSavedElements=[];
 
   late int lastLoad = 50;
   late final int l1;
@@ -1031,7 +1032,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           fontSize: 18,
                                           color: Colors.blue),
                                     ),
-                                    ElementTable(selectedElements: selectedElements!=null?selectedElements:[]),
+                                    ElementTable(selectedElements: selectedElements!=null?selectedElements:[],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
                                     const SizedBox(
                                       height: 20,
                                     ),
@@ -1208,6 +1209,14 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           } on Exception catch (e) {
                                             debugPrint(e.toString());
                                           }
+                                        }
+                                        for(int i=0;i<deletedSavedElements.length;i++){
+                                          try{
+                                            await DeleteUD103A(deletedSavedElements[i]);
+                                          }catch(e){
+                                            debugPrint(e.toString());
+                                          }
+
                                         }
                                         for (var p = 0; p < selectedParts.length; p++){
                                           debugPrint(selectedParts[p].toString());
@@ -1908,7 +1917,22 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
     return null;
   }
-
+  Future<void> DeleteUD103A(String ChildKey1) async {
+    try {
+      final response = await http.delete(
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As(158095,${loadIDController.text},,,,,${ChildKey1},,,,)'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if (response.statusCode == 200) {
+        widget.AddLoadData(currentLoad);
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     try {
       final response = await http.post(

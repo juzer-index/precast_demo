@@ -134,7 +134,7 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Foreman Name')),
                           DataColumn(label: Text('Comments')),
                         ],
-                       source:loadTableSource(loads:widget.loads, context: context, AddLoadData: widget.AddLoad),
+                       source:loadTableSource(loads:widget.loads.reversed.toList(), context: context, AddLoadData: widget.AddLoad),
 
                       )
                   )

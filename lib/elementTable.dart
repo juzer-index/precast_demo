@@ -3,7 +3,8 @@ import 'element_model.dart';
 
 class ElementTable extends StatefulWidget {
   List<ElementData> selectedElements = [];
-  ElementTable({super.key, required this.selectedElements});
+  dynamic DeletededSaveElements=[];
+  ElementTable({super.key, required this.selectedElements,this.DeletededSaveElements});
 
   @override
   State<ElementTable> createState() => _ElementTableState();
@@ -34,6 +35,9 @@ class _ElementTableState extends State<ElementTable> {
               onPressed: () {
                 setState(() {
                   widget.selectedElements.remove(row);
+                  if(widget.DeletededSaveElements!=null){
+                    widget.DeletededSaveElements.add(row.ChildKey1);
+                  }
                 });
               },
             )),
