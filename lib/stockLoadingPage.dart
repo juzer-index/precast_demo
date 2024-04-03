@@ -24,13 +24,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'load_model.dart';
+import 'package:device_info/device_info.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
    List <LoadData> LoadDataList;
    dynamic AddLoadData;
    String HistoryLoadID;
-   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.LoadDataList,required this.AddLoadData , this.HistoryLoadID=''});
+   dynamic userManagement;
+   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.LoadDataList,required this.AddLoadData , this.HistoryLoadID='',this.userManagement}) ;
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -60,9 +62,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController? poNumberController = TextEditingController();
   TextEditingController? poLineController = TextEditingController();
   TextEditingController? commentsController = TextEditingController();
+  TextEditingController? EntryPersonController = TextEditingController();
+  TextEditingController? DeviceIDController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   String resourceId = '';
+  LoadData? currentLoad;
   int ChildCount = 1;
   bool _showDialog = false;
 
@@ -142,7 +147,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     toWarehouseController.text='Site';
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    if(!widget.isUpdate) {dataloaded=MakeSureDataLoaded();
+    if(!widget.isUpdate) {
+      dataloaded=MakeSureDataLoaded();
+      getDeviceID();
+      EntryPersonController?.text = widget.userManagement['firstName'];
     }else if(widget.isUpdate&&widget.HistoryLoadID!=''){
       setState(() {
         loadIDController.text = widget.HistoryLoadID;
@@ -936,6 +944,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 "Character08": toBinController.text,
                                                 "Character06": fromWarehouseController.text,
                                                 "Character09": resourceId,
+
+                                                "Createdby_c": EntryPersonController?.text.toString().trim(),
+                                                "Deviceid_c":  DeviceIDController?.text.toString().trim(),
+
+
                                               });
                                               if(isLoaded){
                                                 if(mounted) {
@@ -1145,6 +1158,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     buildTruckDetailsFrom(false),
                                   if(widget.isUpdate)
                                     TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+
                                   const Padding(
                                     padding: EdgeInsets.all(8.0),
                                     child: Text('Selected Elements', style: TextStyle(
@@ -1669,6 +1683,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         LoadData load = LoadData.fromJson(json.decode(response.body));
         setState(() {
           isLoaded = true;
+          currentLoad = load;
           widget.AddLoadData(load);
         });
         debugPrint(widget.LoadDataList.toString());
@@ -1839,6 +1854,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       setState(() {
         loadData = jsonResponse['returnObj'];
         loadValue = loadData['UD103'];
+        currentLoad = LoadData.fromJson(loadValue[0]);
 
         elementValue = loadData['UD103A']
             .where((element) => element['CheckBox13'] == false)
@@ -1905,11 +1921,28 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       );
       if (response.statusCode == 201) {
         debugPrint(response.body);
+        setState(() {
+          widget.AddLoadData(currentLoad);
+        });
       }
       else {
         debugPrint(response.body);
         debugPrint(response.statusCode.toString());
       }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+  Future<void> getDeviceID () async {
+    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
+    try {
+
+        final AndroidDeviceInfo build = await deviceInfoPlugin.androidInfo;
+        debugPrint('Running on ${build.model}');
+        setState(() {
+          DeviceIDController?.text = build.model;
+        });
+
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
@@ -2287,6 +2320,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       ),
                     ),
                   ),
+
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -2315,6 +2349,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             ),
           ],
         ),
+
+
       ],
     );
   }

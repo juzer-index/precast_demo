@@ -23,6 +23,9 @@ class LoadData {
   late final dynamic foremanId;
   late final dynamic foremanName;
   late final dynamic comments;
+  late final dynamic createdBy;
+  late final dynamic DeviceID;
+
   LoadData({
     required this.loadID,
     required this.projectId,
@@ -47,6 +50,8 @@ class LoadData {
     required this.foremanId,
     required this.foremanName,
     required this.comments,
+    this.createdBy,
+    this.DeviceID,
   });
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
@@ -74,6 +79,8 @@ class LoadData {
       foremanId: json['EmployeeID_c'],
       foremanName: json['EmployeeName_c'],
       comments: json['Comments_c'],
+      createdBy: json['CreatedBy_C'],
+      DeviceID: json['Deviceid_c'],
     );
   }
 

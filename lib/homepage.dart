@@ -27,6 +27,16 @@ class _HomePageState extends State<HomePage> {
   List<LoadData> loads = [];
   void AddLoadData(LoadData load) {
     setState(() {
+      for(int i=0;i<loads.length;i++)
+        {
+          if(loads[i].loadID==load.loadID)
+            {
+              loads.removeAt(i);
+              break;
+            }
+        }
+    });
+    setState(() {
       loads.add(load);
     });
   }
@@ -235,7 +245,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,LoadDataList: loads,AddLoadData: AddLoadData,),
+                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,LoadDataList: loads,AddLoadData: AddLoadData,userManagement: widget.userManagement,),
                             ),
                           );
                         },

@@ -32,6 +32,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   TextEditingController widthController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
+
   TextEditingController? foremanNameController;
   TextEditingController? foremanIdController;
   TextEditingController? commentsController;
@@ -525,6 +526,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                     ),
                   ],
                 ),
+
                   // Padding(
                   //   padding: const EdgeInsets.all(16.0),
                   //   child: ElevatedButton(

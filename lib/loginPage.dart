@@ -28,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = true;
       });
 
-    var url = Uri.parse('https://indexinfo.colanonline.net/Account/${tenantId}/Login');
+    var url = Uri.parse('https://77.92.189.106:83/Account/${tenantId}/Login');
       var response =  http.MultipartRequest('POST', url);
       response.fields['username'] = username;
       response.fields['password'] = password;
