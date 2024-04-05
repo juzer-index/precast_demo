@@ -1240,7 +1240,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 return AlertDialog(
                                                   title: const Text('Success'),
                                                   content: Text(
-                                                      'Stock Loading details saved successfully, LoadID: $loadIDController'),
+                                                      'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
                                                   actions: [
                                                     TextButton(
                                                       onPressed: () {

@@ -296,7 +296,7 @@ class _StockOffloadingState extends State<StockOffloading>
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('manager:Adp@2023'))}';
     try {
-      final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)?\$top=1&');
+      final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)/?%24orderby=SysRptLst1_CreatedOn%20desc&%24top=1');
       final response = await http.get(
           PDFCountsURL,
           headers: {
