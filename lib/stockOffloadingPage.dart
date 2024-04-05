@@ -227,7 +227,6 @@ class _StockOffloadingState extends State<StockOffloading>
         setState(() {
           loadData = jsonResponse['returnObj'];
           loadValue = loadData['UD103'];
-
           elementValue = loadData['UD103A']?.where((element) =>
           element['CheckBox13'] == false).toList();
           partValue = loadData['UD103A']?.where((part) =>
@@ -423,7 +422,6 @@ class _StockOffloadingState extends State<StockOffloading>
 
     return output.readAsBytesSync();
   }
-
 
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';

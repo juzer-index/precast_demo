@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:IIT_precast_app/truckTracking.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'truck_model.dart';
@@ -377,6 +378,18 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                       ),
                     ),
                   ],
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const TruckTracking()));
+                      },
+                      child: const Text('Track Truck'),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 ExpansionTile(
