@@ -662,7 +662,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             padding: const EdgeInsets.all(8.0),
                                             child: DropdownSearch(
                                               selectedItem: fromWarehouseController.text,
-                                              enabled: false,
+                                              enabled: true,
                                               popupProps: const PopupProps.modalBottomSheet(
                                                 showSearchBox: true,
                                                 searchFieldProps: TextFieldProps(
@@ -1437,6 +1437,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         getTrucksFromURL(),
         getDriverList(),
         getLastLoadID(),
+        getWarehouseList()
       ]);
     }
 
