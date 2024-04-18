@@ -15,9 +15,9 @@ class ElementSearchForm extends StatefulWidget {
   final Function(ElementData) AddElement;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-
+  dynamic Project;
   dynamic Warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement});
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -83,10 +83,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
       final response = await http.get(
             Uri.parse(
-                widget.Warehouse == null?
+                widget.Warehouse == null&&widget.Project==null?
                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''
                     :
-                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\''),
+                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\'and PartLot_Project_c eq \'${widget.Project}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -123,6 +123,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   }
   Future<void> getLotForElements() async {
     try {
+      setState(() {
+        selectable= false;
+      });
        String partNum =elementNumberController.text;
       var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
@@ -636,7 +639,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     child: ElevatedButton(
 
                       onPressed:!selectable? ()=>null: () {
-                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty){
+                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty&&lotNoController.text.isNotEmpty){
                           setState(() {
                             selectedElements.add(ElementData(
                               partId: elementNumberController.text,
