@@ -412,6 +412,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                       'Unknown';
                                                   elementNumberController.text =
                                                   partNum;
+                                                  selectable = true;
                                                 });
                                               });
                                             },
