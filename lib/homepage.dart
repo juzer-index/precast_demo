@@ -245,7 +245,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,LoadDataList: loads,AddLoadData: AddLoadData,userManagement: widget.userManagement,),
+                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: AddLoadData,userManagement: widget.userManagement,),
                             ),
                           );
                         },
@@ -306,7 +306,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  StockLoading(initialTabIndex: 0, isUpdate: true, LoadDataList: loads, AddLoadData: AddLoadData,),
+                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: AddLoadData,),
                             ),
                           );
                         },

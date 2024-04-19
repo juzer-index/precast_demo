@@ -1,38 +1,33 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:IIT_precast_app/elementTable.dart';
 import 'package:IIT_precast_app/partTable.dart';
 import 'package:IIT_precast_app/elementSearchForm.dart';
 import 'package:IIT_precast_app/stockOffloadingPage.dart';
 import 'package:IIT_precast_app/truckDetails.dart';
-import 'package:IIT_precast_app/truckresource_model.dart';
+import 'package:IIT_precast_app/truck_resource_model.dart';
 import 'dart:convert';
 import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'PdfViewer.dart';
-import 'PdfViewer.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-import 'load_model.dart';
 import 'package:device_info/device_info.dart';
+
+
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
-   List <LoadData> LoadDataList;
-   dynamic AddLoadData;
-   String HistoryLoadID;
+   List <LoadData> loadDataList;
+   dynamic addLoadData;
+   String historyLoadID;
    dynamic userManagement;
-   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.LoadDataList,required this.AddLoadData , this.HistoryLoadID='',this.userManagement}) ;
+   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID='',this.userManagement}) ;
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -62,14 +57,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   TextEditingController? poNumberController = TextEditingController();
   TextEditingController? poLineController = TextEditingController();
   TextEditingController? commentsController = TextEditingController();
-  TextEditingController? EntryPersonController = TextEditingController();
-  TextEditingController? DeviceIDController = TextEditingController();
+  TextEditingController? entryPersonController = TextEditingController();
+  TextEditingController? deviceIDController = TextEditingController();
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts = [];
   String resourceId = '';
   LoadData? currentLoad;
-  int ChildCount = 1;
-  bool _showDialog = false;
+  int childCount = 1;
 
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
@@ -139,9 +133,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final String nextLoad;
 
   final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
-  late final Future dataloaded;
+  late final Future dataLoaded;
   bool isPrinting = false ;
-  int PDFCount =0;
+  int pdfCount =0;
   @override
   void initState()  {
     fromWarehouseController.text='Default';
@@ -149,19 +143,19 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     if(!widget.isUpdate) {
-      dataloaded=makeSureDataLoaded();
+      dataLoaded=makeSureDataLoaded();
       getDeviceID();
-      EntryPersonController?.text = widget.userManagement['firstName'];
-    }else if(widget.isUpdate&&widget.HistoryLoadID!=''){
+      entryPersonController?.text = widget.userManagement['firstName'];
+    }else if(widget.isUpdate&&widget.historyLoadID!=''){
       setState(() {
-        loadIDController.text = widget.HistoryLoadID;
+        loadIDController.text = widget.historyLoadID;
       });
 
-      dataloaded=fetchLoadDataFromURL(widget.HistoryLoadID).then((value) => {
+      dataLoaded=fetchLoadDataFromURL(widget.historyLoadID).then((value) => {
 
-           offloadData = getLoadObjectFromJson(widget.HistoryLoadID),
-           getElementObjectFromJson(widget.HistoryLoadID),
-           getPartObjectFromJson(widget.HistoryLoadID),
+           offloadData = getLoadObjectFromJson(widget.historyLoadID),
+           getElementObjectFromJson(widget.historyLoadID),
+           getPartObjectFromJson(widget.historyLoadID),
            setState(() {
              projectIdController.text = offloadData!.projectId;
              dateController.text = offloadData!.loadDate;
@@ -179,7 +173,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
     }
     else{
-      dataloaded = Future.value(true);
+      dataLoaded = Future.value(true);
       setState(() {
         isLoaded = true;
       });
@@ -280,7 +274,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Create New Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,LoadDataList:widget.LoadDataList,AddLoadData: widget.AddLoadData,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
                           },
                         ),
                       ),
@@ -290,7 +284,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Edit a Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,LoadDataList:widget.AddLoadData,AddLoadData: widget.AddLoadData,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
                           },
                         ),
                       ),
@@ -325,7 +319,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               const Center(
                 child: CircularProgressIndicator(),
              ) : FutureBuilder(
-                future: dataloaded,
+                future: dataLoaded,
                   builder:(context,snapshot){
                    if(snapshot.connectionState == ConnectionState.waiting){
                         return  const Stack(
@@ -842,8 +836,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Character08": toBinController.text,
                                                   "Character06": fromWarehouseController.text,
                                                   "Character09": resourceId,
-                                                  "Createdby_c": EntryPersonController?.text.toString().trim(),
-                                                  "Deviceid_c":  DeviceIDController?.text.toString().trim(),
+                                                  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                  "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                                 });
                                                 if(isLoaded){
                                                   if(mounted) {
@@ -1077,7 +1071,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             try {
                                               await updateUD103A({
                                                 "Company": "158095",
-                                                "ChildKey1": "${selectedElements[e].ChildKey1}",
+                                                "ChildKey1": selectedElements[e].ChildKey1,
                                                 "Key1": loadIDController.text,
                                                 "Character01": selectedElements[e].partId,
                                                 "Character02": selectedElements[e].elementId,
@@ -1095,16 +1089,16 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 "CheckBox02":false,
                                                 "CheckBox03":false,
                                                 "CheckBox13": false,
-
                                               });
-                                              ChildCount++;
+                                              updateInTransit(selectedElements[e].partId, selectedElements[e].elementId);
+                                              childCount++;
                                             } on Exception catch (e) {
                                               debugPrint(e.toString());
                                             }
                                           }
                                           for(int i=0;i<deletedSavedElements.length;i++){
                                             try{
-                                              await DeleteUD103A(deletedSavedElements[i]);
+                                              await deleteUD103A(deletedSavedElements[i]);
                                             }catch(e){
                                               debugPrint(e.toString());
                                             }
@@ -1427,9 +1421,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         setState(() {
           isLoaded = true;
           currentLoad = load;
-          widget.AddLoadData(load);
+          widget.addLoadData(load);
         });
-        debugPrint(widget.LoadDataList.toString());
+        debugPrint(widget.loadDataList.toString());
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1531,47 +1525,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-/*  Future<void> fetchPartDataFromURL() async {
-    try {
-      final response = await http.get(
-          detailsURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
-      final jsonResponse = json.decode(response.body);
-      setState(() {
-        partData = jsonResponse;
-        partValue = partData['value'].where((part) => part['CheckBox13'] == true).toList();
-      });
-      return jsonResponse;
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }*/
-
-  /*Future<void> fetchElementDataFromURL() async {
-    try {
-      final response = await http.get(
-          detailsURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
-      final jsonResponse = json.decode(response.body);
-      setState(() {
-        elementData = jsonResponse;
-        elementValue = elementData['value'].where((element) => element['CheckBox13'] == false).toList();
-      });
-      debugPrint(elementValue.toString());
-      return jsonResponse;
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }*/
-
   Future<dynamic> fetchLoadDataFromURL(String loadId) async {
     try {
       Map<String, dynamic> body = {
@@ -1651,17 +1604,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
     return null;
   }
-  Future<void> DeleteUD103A(String ChildKey1) async {
+  Future<void> deleteUD103A(String childKey1) async {
     try {
       final response = await http.delete(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As(158095,${loadIDController.text},,,,,${ChildKey1},,,,)'),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As(158095,${loadIDController.text},,,,,${childKey1},,,,)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           }
       );
       if (response.statusCode == 200) {
-        widget.AddLoadData(currentLoad);
+        widget.addLoadData(currentLoad);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1680,7 +1633,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       if (response.statusCode == 201) {
         debugPrint(response.body);
         setState(() {
-          widget.AddLoadData(currentLoad);
+          widget.addLoadData(currentLoad);
         });
       }
       else {
@@ -1691,6 +1644,30 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
+
+  Future<void> updateInTransit(String partNum, String elementId) async {
+   final response = await http.post(
+       Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+       headers: {
+         HttpHeaders.authorizationHeader: basicAuth,
+         HttpHeaders.contentTypeHeader: 'application/json',
+       },
+       body: jsonEncode({
+         "Company": "158095",
+         "PartNum": partNum,
+         "LotNum": elementId,
+         "ElementStatus_c": "In-Transit"
+       })
+   );
+    if(response.statusCode == 200){
+      debugPrint(response.body);
+    }
+    else {
+      debugPrint(response.body);
+      debugPrint(response.statusCode.toString());
+    }
+  }
+
   Future<void> getDeviceID () async {
     final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
     try {
@@ -1698,7 +1675,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         final AndroidDeviceInfo build = await deviceInfoPlugin.androidInfo;
         debugPrint('Running on ${build.model}');
         setState(() {
-          DeviceIDController?.text = build.model;
+          deviceIDController?.text = build.model;
         });
 
     } on Exception catch (e) {

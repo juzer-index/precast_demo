@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'truck_model.dart';
-import 'truckresource_model.dart';
+import 'truck_resource_model.dart';
 import 'load_model.dart';
 import 'package:http/http.dart' as http;
 

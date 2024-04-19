@@ -41,9 +41,9 @@ class loadTableSource extends DataTableSource{
                    Navigator.push(context, MaterialPageRoute(builder: (context) =>
                        StockLoading(initialTabIndex: 0,
                          isUpdate: true,
-                         LoadDataList: loads,
-                         AddLoadData: this.AddLoadData,
-                         HistoryLoadID: loads[index].loadID,)));
+                         loadDataList: loads,
+                         addLoadData: this.AddLoadData,
+                         historyLoadID: loads[index].loadID,)));
                  },
              child: Text(loads[index].loadID),
 
