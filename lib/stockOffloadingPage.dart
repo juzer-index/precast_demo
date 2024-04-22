@@ -246,7 +246,6 @@ class _StockOffloadingState extends State<StockOffloading>
     // Return the future associated with the completer
     return completer.future;
   }
- void UpdateTheLoadUI(){}
 
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty){
@@ -440,9 +439,34 @@ class _StockOffloadingState extends State<StockOffloading>
       }
       else {
         debugPrint('UD103A Update Failed');
+        debugPrint(response.body);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  Future<void> updateStatusOnSite (String partNum, String elementId) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final response = await http.post(
+        Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+        body: jsonEncode({
+          "Company": "158095",
+          "PartNum": partNum,
+          "LotNum": elementId,
+          "ElementStatus_c": "OnSite"
+        })
+    );
+    if(response.statusCode == 200){
+      debugPrint('Status Updated');
+    }
+    else {
+      debugPrint('Status Update Failed');
+      debugPrint(response.body);
     }
   }
 
@@ -487,31 +511,6 @@ class _StockOffloadingState extends State<StockOffloading>
           ),
         ),
         actions: const [
-/*          PopupMenuButton(
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem(
-                  child: ListTile(
-                    leading: const Icon(Icons.create_new_folder),
-                    title: const Text('Create New Load'),
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0,)));
-                    },
-                  ),
-                ),
-                PopupMenuItem(
-                  child: ListTile(
-                    leading: const Icon(Icons.edit_calendar),
-                    title: const Text('Edit a Load'),
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const StockLoading(initialTabIndex: 0, isUpdate: true)));
-                    },
-                  ),
-                ),
-
-
-
-              ],
-          )*/
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -1164,9 +1163,9 @@ class _StockOffloadingState extends State<StockOffloading>
                                   "CheckBox02": false,
                                   "CheckBox03": false,
                                   "CheckBox05": false,
-
                                   "Date02": loadDateFormat,
                                 });
+                                await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
                                 debugPrint(selectedElements[v].elementId);
                               }
                               for (var v = 0; v < arrivedParts.length; v++) {

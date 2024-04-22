@@ -206,17 +206,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
              showAlertDialog(BuildContext context) {
                // Init
                AlertDialog dialog = AlertDialog(
-                 title: Text("Are you sure you want to exit?"),
+                 title: const Text("Are you sure you want to exit?"),
                  actions: [
                    ElevatedButton(
-                       child: Text("Yes"),
+                       child: const Text("Yes"),
                        onPressed: () {
                          Navigator.pop(context);
                          Navigator.pop(context);
                        }
                    ),
                     ElevatedButton(
-                        child: Text("No"),
+                        child: const Text("No"),
                         onPressed: () {
                           Navigator.pop(context);
                         }
@@ -1175,7 +1175,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       selectedElements.add(element);
     });
   }
-  Future<bool> SubmitReport() async {
+  Future<bool> submitReport() async {
     dynamic body={
 
     "ds": {
@@ -2084,8 +2084,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             ),
           ],
         ),
-
-
       ],
     );
   }
