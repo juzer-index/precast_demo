@@ -17,7 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   String password = '';
   String tenantId = '';
   dynamic UserManagement;
-  dynamic TenantConfig;
+  dynamic tenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
   bool Checked = false;
@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement)),
+            MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement,tenantConfig: tenantConfig,)),
           );
         }
       }
@@ -91,7 +91,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
+          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,tenantConfig: tenantConfig,)),
         );
       }
     }

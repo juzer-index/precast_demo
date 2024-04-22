@@ -16,7 +16,8 @@ class ElementDataSource extends ChangeNotifier {
 }
 
 class ElementMaster extends StatefulWidget {
-  const ElementMaster({super.key}) ;
+  dynamic tenantConfig;
+  ElementMaster({super.key,required this.tenantConfig}) ;
 
   @override
   State<ElementMaster> createState() => _ElementMasterState();
@@ -26,11 +27,12 @@ class MyDataTableSource extends DataTableSource{
   final List<dynamic> _elementData;
   final BuildContext dialogContext;
   bool hasMore = false;
+  dynamic tenantConfig;
 
 
 
 
-  MyDataTableSource(this._elementData, this.dialogContext);
+  MyDataTableSource(this._elementData, this.dialogContext,  this.tenantConfig);
 
   @override
   DataRow? getRow(int index) {
@@ -66,10 +68,10 @@ class MyDataTableSource extends DataTableSource{
               final String partNum = row["PartLot_PartNum"];
               Map<String, dynamic> elementDetails = {};
               final String basicAuth = 'Basic ${base64Encode(
-                  utf8.encode('manager:Adp@2023'))}';
+                  utf8.encode('${tenantConfig['userID']}:${tenantConfig['password']}'))}';
               try {
                 final response = await http.get(
-                  Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(Precast,$partNum,$elementId)'),
+                  Uri.parse('${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(${tenantConfig['company']},$partNum,$elementId)'),
                     headers: {
                       HttpHeaders.authorizationHeader: basicAuth,
                       HttpHeaders.contentTypeHeader: 'application/json',
@@ -145,7 +147,7 @@ class _ElementMasterState extends State<ElementMaster> {
   bool isSingleElement = false;
   bool isSearching = false;
 
-  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -170,16 +172,16 @@ class _ElementMasterState extends State<ElementMaster> {
     int page = offset == 0 ? 11: 10;
     if(!isElement) {
       url = Uri.parse(
-          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
+          '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${widget.tenantConfig['company']})?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
     }
     else {
       url = Uri.parse(
-          'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_AllElement(158095)?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
+          '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${widget.tenantConfig['company']})?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
       isElement = true;
     }
     try {
       final String basicAuth = 'Basic ${base64Encode(
-          utf8.encode('manager:Adp@2023'))}';
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -201,8 +203,9 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
   Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
-    var url = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
+    var url = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
     try {
+       dynamic basicAuth=utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}');
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -440,9 +443,9 @@ class _ElementMasterState extends State<ElementMaster> {
                                     DataColumn(label: Text('Status')),
                                   ],
                                   source: partElementList.isNotEmpty ?
-                                  MyDataTableSource(partElementList, context)
+                                  MyDataTableSource(partElementList, context,widget.tenantConfig)
                                       :
-                                  MyDataTableSource(partElementList, context),
+                                  MyDataTableSource(partElementList, context,widget.tenantConfig),
                                   )
                               )
                         ),

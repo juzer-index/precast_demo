@@ -13,7 +13,8 @@ import 'load_model.dart';
 
 class HomePage extends StatefulWidget {
   dynamic userManagement;
-   HomePage({super.key, required this.userManagement}) ;
+  dynamic tenantConfig ;
+  HomePage({super.key, required this.userManagement, required this.tenantConfig});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -215,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ElementMaster(),
+                              builder: (context) =>  ElementMaster(tenantConfig: widget.tenantConfig,),
                             ),
                           );
                         },
