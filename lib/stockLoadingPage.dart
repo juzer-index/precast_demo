@@ -454,10 +454,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     labelText: "Project ID",
                                                   ),
                                                 ),
-                                                items: fetchedProjectValue.map((project) => project['ProjectID']).toList(),
+                                                items: fetchedProjectValue.map((project) => project['Project_ProjectID']).toList(),
                                                 onChanged: (value) {
                                                   setState(() {
-                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ProjectID'];
+                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Project_ProjectID'] == value)['Project_ProjectID'];
                                                   });
                                                 },
                                               );
@@ -1320,7 +1320,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     try {
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.ProjectSvc/List/'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_projectList'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1581,6 +1581,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     if (elementValue.isNotEmpty){
       var matchingElement = elementValue.where((element) => element['Key1'] == loadID).toList();
       ElementData? elementObject;
+      setState(() {
+        selectedElements.clear();
+      });
       if (matchingElement.isNotEmpty){
         for (var v = 0; v<matchingElement.length; v++) {
           elementObject = ElementData.fromJson(matchingElement[v]);
