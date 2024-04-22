@@ -461,7 +461,7 @@ class _StockOffloadingState extends State<StockOffloading>
           "ElementStatus_c": "OnSite"
         })
     );
-    if(response.statusCode == 200){
+    if(response.statusCode == 201){
       debugPrint('Status Updated');
     }
     else {
@@ -1076,39 +1076,47 @@ class _StockOffloadingState extends State<StockOffloading>
                               submitReport().then((value) async  {
                                 if (value != false) {
                                   for (int i = 0; i < 3; i++) {
-                                    await Future.delayed(Duration(seconds: 2));
+                                    await Future.delayed(const Duration(seconds: 2));
                                     var updatedCounts = await fetchPDFCounts();
                                     if (updatedCounts != null &&
                                         updatedCounts[0]['Calculated_Count'] > PDFCount) {
                                       setState(() {
                                         isPrinting = false;
                                       });
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => PdfViewerPage(filePath: 'DeliveryNote${loadIDController.text}.pdf',generatePdf: deliveryNote(updatedCounts[0]['SysRptLst1_RptData']))));
-                                      break; // Exit the loop if condition is met
+                                      if (mounted) {
+                                        Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) => PdfViewerPage(
+                                                          filePath:
+                                                              'DeliveryNote${loadIDController.text}.pdf',
+                                                          generatePdf: deliveryNote(
+                                                              updatedCounts[0][
+                                                                  'SysRptLst1_RptData']))));
+                                      }
+                                            break; // Exit the loop if condition is met
                                     }
                                     if(i==2){
                                       isPrinting = false;
-
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text('Error'),
-                                            content: const Text('Failed to Generate Delivery Note'),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('Close'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
+                                      if (mounted) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text('Error'),
+                                              content: const Text('Failed to Generate Delivery Note'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: const Text('Close'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
                                     }
                                   }
 
@@ -1117,7 +1125,7 @@ class _StockOffloadingState extends State<StockOffloading>
 
                           });
 
-                        }, child: Text('Generate Delivery Note')):
+                        }, child: const Text('Generate Delivery Note')):
                         ElevatedButton(
                           onPressed: () async {
                             if(offloadData!.loadStatus == 'Closed'){
@@ -1148,12 +1156,7 @@ class _StockOffloadingState extends State<StockOffloading>
                               }
                             }
                             else {
-                              await updateLoadStatus({
-                                "Key1": loadIDController.text,
-                                "Company": '158095',
-                                "ShortChar03": loadStatus,
-                              });
-                              final loadDateFormat = '${_selectedDate}T00:00:00';
+                              final loadDateFormat = '${DateFormat('yyyy-mm-dd').format(DateTime.now())}T00:00:00';
                               for (var v = 0; v < selectedElements.length; v++) {
                                 await updateUD103A({
                                   "Key1": loadIDController.text,
@@ -1165,7 +1168,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                   "CheckBox05": false,
                                   "Date02": loadDateFormat,
                                 });
-                                await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
+                                // await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
                                 debugPrint(selectedElements[v].elementId);
                               }
                               for (var v = 0; v < arrivedParts.length; v++) {
@@ -1180,6 +1183,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                 });
                                 debugPrint(arrivedParts[v].partNum);
                               }
+                              await updateLoadStatus({
+                                "Key1": loadIDController.text,
+                                "Company": '158095',
+                                "ShortChar03": loadStatus,
+                              });
                             }
                             if(loaded /*&& elementsAndPartsLoaded*/){
                               if(mounted) {
