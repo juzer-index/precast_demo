@@ -17,7 +17,8 @@ class ElementDataSource extends ChangeNotifier {
 class LoadHistory extends StatefulWidget {
    List<LoadData> loads;
    dynamic AddLoad;
-   LoadHistory({Key? key, required this.loads, required this.AddLoad}) ;
+   dynamic tenantConfig;
+   LoadHistory({Key? key, required this.loads, required this.AddLoad, required this.tenantConfig}) ;
 
   @override
   State<LoadHistory> createState() => _LoadHistoryState();
@@ -27,7 +28,8 @@ class loadTableSource extends DataTableSource{
   List<LoadData> loads=[];
   final BuildContext context;
   dynamic AddLoadData;
-  loadTableSource({Key? key, required this.loads, required this.context,required this.AddLoadData}) ;
+  dynamic tenantConfig;
+  loadTableSource({Key? key, required this.loads, required this.context,required this.AddLoadData,required this.tenantConfig }) ;
 
   @override
   DataRow? getRow(int index) {
@@ -43,7 +45,8 @@ class loadTableSource extends DataTableSource{
                          isUpdate: true,
                          loadDataList: loads,
                          addLoadData: this.AddLoadData,
-                         historyLoadID: loads[index].loadID,)));
+                         historyLoadID: loads[index].loadID,
+                       tenantConfig:tenantConfig ,)));
                  },
              child: Text(loads[index].loadID),
 
@@ -134,7 +137,7 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Foreman Name')),
                           DataColumn(label: Text('Comments')),
                         ],
-                       source:loadTableSource(loads:widget.loads.reversed.toList(), context: context, AddLoadData: widget.AddLoad),
+                       source:loadTableSource(loads:widget.loads.reversed.toList(), context: context, AddLoadData: widget.AddLoad ,tenantConfig:widget.tenantConfig),
 
                       )
                   )

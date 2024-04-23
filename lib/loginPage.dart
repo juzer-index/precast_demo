@@ -87,11 +87,13 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs =  await  SharedPreferences.getInstance();
     if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
       var userManagement = json.decode(prefs.getString('userManagement') as String);
+      var TenantConfig =json.decode(prefs.getString('tenantConfig') as String);
       UserManagement = userManagement;
+      tenantConfig= TenantConfig;
       if (mounted) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,tenantConfig: tenantConfig,)),
+          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,tenantConfig: TenantConfig,)),
         );
       }
     }

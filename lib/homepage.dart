@@ -48,7 +48,7 @@ class _HomePageState extends State<HomePage> {
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
-      drawer: SideBarMenu(context, loads!=null?loads:[], AddLoadData),
+      drawer: SideBarMenu(context, loads!=null?loads:[], AddLoadData,widget.tenantConfig),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -246,7 +246,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: AddLoadData,userManagement: widget.userManagement,),
+                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: AddLoadData,userManagement: widget.userManagement,tenantConfig: widget.tenantConfig,),
                             ),
                           );
                         },
@@ -276,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const StockOffloading(initialTabIndex: 0,),
+                              builder: (context) =>  StockOffloading(initialTabIndex: 0,tenantConfig:widget.tenantConfig),
                             ),
                           );
                         },
@@ -307,7 +307,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: AddLoadData,),
+                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: AddLoadData,tenantConfig: widget.tenantConfig,),
                             ),
                           );
                         },

@@ -27,7 +27,8 @@ class StockLoading extends StatefulWidget {
    dynamic addLoadData;
    String historyLoadID;
    dynamic userManagement;
-   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID='',this.userManagement}) ;
+   dynamic tenantConfig;
+   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID='',this.userManagement, required this.tenantConfig}) ;
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -107,11 +108,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
-  final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s');
-  final detailsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As');
 
-  var truckURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As');
+  //final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
+
+  //var truckURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+  //var resourceURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
@@ -132,7 +133,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final int l2;
   late final String nextLoad;
 
-  final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+// final basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
   late final Future dataLoaded;
   bool isPrinting = false ;
   int pdfCount =0;
@@ -257,7 +258,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       const Text('Stock Loading', style: TextStyle(color: Colors.white)),
                     // ClipOval(
                     //   child: Image.network(
-                    //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                    //     '${widget.tenantConfig['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
                     //     height: 35,
                     //     width: 35,
                     //   ),
@@ -274,7 +275,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Create New Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,tenantConfig: widget.tenantConfig,)));
                           },
                         ),
                       ),
@@ -284,7 +285,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Edit a Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,tenantConfig: widget.tenantConfig,)));
                           },
                         ),
                       ),
@@ -293,7 +294,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                         title: const Text('Offload'),
                         leading: const Icon(Icons.playlist_remove),
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0)));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => StockOffloading(initialTabIndex: 0,tenantConfig: widget.tenantConfig,)));
                         },
                       ),
                     ),
@@ -571,7 +572,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     labelText: "From Warehouse",
                                                   ),
                                                 ),
-                                                items: fetchedWarehouseValue.where((warehouse) => warehouse['FinishGoods_c'] == true).map((warehouse) => warehouse['Description']).toList(),
+                                                items: fetchedWarehouseValue
+                                                    //.where((warehouse) => warehouse['FinishGoods_c'] == true)
+                                                    .map((warehouse) => warehouse['Description']).toList(),
                                                 onChanged: (value) {
                                                   setState(() {
                                                     fromWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
@@ -585,7 +588,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 padding: const EdgeInsets.all(8.0),
                                                 child: DropdownSearch(
                                                   selectedItem: toWarehouseController.text,
-                                                  enabled:  false,
+                                                  enabled:  true,
                                                   popupProps: const PopupProps.modalBottomSheet(
                                                     showSearchBox: true,
                                                     searchFieldProps: TextFieldProps(
@@ -813,7 +816,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 final loadDateFormat = '${_selectedDate}T00:00:00';
                                                 await createNewLoad({
                                                   "Key1": newLoadId,
-                                                  "Company": "158095",
+                                                  "Company": "${widget.tenantConfig['company']}",
                                                   "ShortChar07": plateNumberController.text,
                                                   "ShortChar05": projectIdController.text,
                                                   "ShortChar01": loadTypeValue,
@@ -836,8 +839,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Character08": toBinController.text,
                                                   "Character06": fromWarehouseController.text,
                                                   "Character09": resourceId,
-                                                  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                  "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                                 });
                                                 if(isLoaded){
                                                   if(mounted) {
@@ -902,7 +905,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text),
+                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,tenantConfig: widget.tenantConfig,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),
@@ -1070,7 +1073,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             debugPrint(selectedElements[e].toString());
                                             try {
                                               await updateUD103A({
-                                                "Company": "158095",
+                                                "Company": "${widget.tenantConfig['company']}",
                                                 "ChildKey1": selectedElements[e].ChildKey1,
                                                 "Key1": loadIDController.text,
                                                 "Character01": selectedElements[e].partId,
@@ -1107,7 +1110,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           for (var p = 0; p < selectedParts.length; p++){
                                             debugPrint(selectedParts[p].toString());
                                              await updateUD103A({
-                                               "Company": "158095",
+                                               "Company": "${widget.tenantConfig['company']}",
                                                "Key1": loadIDController.text,
         /*                                           "ChildKey1": "${++ChildCount}",*/
                                                "Character01": selectedParts[p].partNum,
@@ -1213,7 +1216,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "ReportStyle": [
 
     {
-    "Company": "158095",
+    "Company": "${widget.tenantConfig['company']}",
     "ReportID": "IIT_DeliveryNot",
     "StyleNum": 1002,
     "StyleDescription": "Delivery Note Report - SSRS",
@@ -1221,7 +1224,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
     "PrintProgramOptions": "",
     "RptDefID": "IIT_DeliveryNot",
-    "CompanyList": "158095",
+    "CompanyList": "${widget.tenantConfig['company']}",
     "ServerNum": 0,
     "OutputLocation": "Database",
     "OutputEDI": "",
@@ -1268,9 +1271,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "agentTaskNum": 0,
     "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final SumbitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final SumbitReportURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
           SumbitReportURL,
           headers: {
@@ -1293,9 +1296,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<dynamic> fetchPDFCounts() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)');
+      final PDFCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${widget.tenantConfig['company']})');
       final response = await http.get(
           PDFCountsURL,
           headers: {
@@ -1316,11 +1319,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
   Future<void> getProjectList() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.ProjectSvc/List/'),
+              '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.Bo.ProjectSvc/List/'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1350,10 +1353,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     return output.readAsBytesSync();
   }
   Future<void> getWarehouseList() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.WarehseSvc/Warehses'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1374,10 +1377,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getBinsFromWarehouse () async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
+          Uri.parse("${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
           headers: {
       HttpHeaders.authorizationHeader: basicAuth,
       HttpHeaders.contentTypeHeader: 'application/json',
@@ -1404,10 +1407,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> createNewLoad(Map<String, dynamic> loadItems) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try{
       final response = await http.post(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103s'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1443,7 +1446,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getTrucksFromURL() async {
     try {
+      final basicAuth = 'Basic ${base64Encode(
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
+      var truckURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+
       final response = await http.get(
+
           truckURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
@@ -1462,8 +1471,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse("${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.get(
           urL,
           headers: {
@@ -1485,8 +1497,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getDriverList() async {
     try{
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_DriverName(158095)'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_DriverName(${widget.tenantConfig['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1506,8 +1521,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getLastLoadID() async {
     try{
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(158095)'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(${widget.tenantConfig['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1527,6 +1545,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<dynamic> fetchLoadDataFromURL(String loadId) async {
     try {
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       Map<String, dynamic> body = {
         "key1": loadId,
         "key2": "",
@@ -1535,7 +1556,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         "key5": ""
       };
       final url = Uri.parse(
-          "https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID");
+          "${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/GetByID");
       final response = await http.post(
         url,
         headers: {
@@ -1606,8 +1627,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
   Future<void> deleteUD103A(String childKey1) async {
     try {
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.delete(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As(158095,${loadIDController.text},,,,,${childKey1},,,,)'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As(${widget.tenantConfig['company']},${loadIDController.text},,,,,${childKey1},,,,)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1622,8 +1646,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
     try {
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.post(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1646,14 +1673,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> updateInTransit(String partNum, String elementId) async {
-   final response = await http.post(
-       Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+    final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
+    final response = await http.post(
+       Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
        headers: {
          HttpHeaders.authorizationHeader: basicAuth,
          HttpHeaders.contentTypeHeader: 'application/json',
        },
        body: jsonEncode({
-         "Company": "158095",
+         "Company": "${widget.tenantConfig['company']}",
          "PartNum": partNum,
          "LotNum": elementId,
          "ElementStatus_c": "In-Transit"
