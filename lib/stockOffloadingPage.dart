@@ -1168,7 +1168,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                   "CheckBox05": false,
                                   "Date02": loadDateFormat,
                                 });
-                                // await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
+                                await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
                                 debugPrint(selectedElements[v].elementId);
                               }
                               for (var v = 0; v < arrivedParts.length; v++) {
