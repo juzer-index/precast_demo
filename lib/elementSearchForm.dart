@@ -639,6 +639,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     child: ElevatedButton(
 
                       onPressed:!selectable? ()=>null: () {
+                        String key='';
+                        if(widget.isOffloading){
+                          key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.ChildKey1;
+                        }
                         if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty&&lotNoController.text.isNotEmpty){
                           setState(() {
                             selectedElements.add(ElementData(
@@ -653,7 +657,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               volume: volumeController.text,
                               quantity: onHandQtyController.text,
                               selectedQty: selectedQtyController.text,
-                              ChildKey1: '${specifyMaxChildKey() + 1}',
+                              ChildKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
                             ));
                           });
 

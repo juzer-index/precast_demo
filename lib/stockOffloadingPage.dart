@@ -1157,11 +1157,11 @@ class _StockOffloadingState extends State<StockOffloading>
                             }
                             else {
                               final loadDateFormat = '${DateFormat('yyyy-mm-dd').format(DateTime.now())}T00:00:00';
-                              for (var v = 0; v < selectedElements.length; v++) {
+                              debugPrint(selectedElements.toString());
+                             for (var v = 0; v < selectedElements.length; v++) {
                                 await updateUD103A({
                                   "Key1": loadIDController.text,
-                                  "Character01": selectedElements[v].elementId,
-                                  "Company": '158095',
+                                  "ChildKey1":selectedElements[v].ChildKey1,
                                   "CheckBox01": true,
                                   "CheckBox02": false,
                                   "CheckBox03": false,
