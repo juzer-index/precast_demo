@@ -140,6 +140,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   void initState()  {
     fromWarehouseController.text='Default';
     toWarehouseController.text='Site';
+    toWarehouseNameController.text='Site';
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     if(!widget.isUpdate) {
@@ -645,6 +646,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
                                               toBinNameController.text = value.toString();
                                             });
+                                            debugPrint(toBinController.text);
+                                            debugPrint(toBinNameController.text);
                                           },
                                         ),
                                       ),
@@ -831,14 +834,15 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Character02": driverNameController.text,
                                                   "Character03": driverNumberController.text,
                                                   "Character04": toWarehouseNameController.text,
-                                                  "Character05": toBinNameController.text,
+                                                  "Character05": toBinController.text,
                                                   "Character07": toWarehouseController.text,
-                                                  "Character08": toBinController.text,
+                                                  // "Character08": ,
                                                   "Character06": fromWarehouseController.text,
                                                   "Character09": resourceId,
                                                   "Createdby_c": entryPersonController?.text.toString().trim(),
                                                   "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                                 });
+                                                debugPrint(toWarehouseNameController.text);
                                                 if(isLoaded){
                                                   if(mounted) {
                                                     showDialog(context: context,
@@ -1414,7 +1418,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           },
           body: jsonEncode(loadItems)
       );
-      debugPrint(response.body);
       if (response.statusCode == 201) {
         debugPrint(response.body);
         LoadData load = LoadData.fromJson(json.decode(response.body));
