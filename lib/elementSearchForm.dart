@@ -127,7 +127,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         selectable= false;
       });
        String partNum =elementNumberController.text;
-      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+
+      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\' and PartLot_Project_c eq \'${widget.Project}\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
