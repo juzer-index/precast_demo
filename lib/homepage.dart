@@ -6,14 +6,17 @@ import 'package:IIT_precast_app/stockLoadingPage.dart';
 import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:IIT_precast_app/sideBarMenu.dart';
 import 'package:IIT_precast_app/stockOffloadingPage.dart';
+import 'package:provider/provider.dart';
 import 'loginPage.dart';
 import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 import 'load_model.dart';
+import 'Providers/UserManagement.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   dynamic userManagement;
-   HomePage({super.key, required this.userManagement}) ;
+   HomePage({super.key}) ;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -57,7 +60,7 @@ class _HomePageState extends State<HomePage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(
-                  'Welcome, ${widget.userManagement['firstName']}',
+                  'Welcome, ${context.watch<UserManagementProvider>().userManagement?.firstName}  ',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade400,),
                 ),
               ),
@@ -88,7 +91,7 @@ class _HomePageState extends State<HomePage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                    Text(
-                                  'ID: ${widget.userManagement['id']}',
+                                  'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
                                     style: const TextStyle(
                                         fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
@@ -145,7 +148,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           Text(
-                                                            'Name: ${widget.userManagement['firstName']} ${widget.userManagement['lastName']}',
+                                                            'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName} ${context.watch<UserManagementProvider>().userManagement?.lastName}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -154,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           Text(
-                                                            'ID: ${widget.userManagement['id']}',
+                                                            'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -163,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           Text(
-                                                            'tenant ID: ${widget.userManagement['tenantId']}',
+                                                            'tenant ID: ${context.watch<UserManagementProvider>().userManagement?.tenantId}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
@@ -172,7 +175,7 @@ class _HomePageState extends State<HomePage> {
                                                           ),
                                                           const SizedBox(height: 10),
                                                           Text(
-                                                            'Email: ${widget.userManagement['userFile_EMailAddress']}',
+                                                            'Email: ${context.watch<UserManagementProvider>().userManagement?.userFileEMailAddress}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:

@@ -8,6 +8,7 @@ import 'package:IIT_precast_app/elementSearchForm.dart';
 import 'package:IIT_precast_app/stockOffloadingPage.dart';
 import 'package:IIT_precast_app/truckDetails.dart';
 import 'package:IIT_precast_app/truck_resource_model.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'load_model.dart';
 import 'part_model.dart';
@@ -18,6 +19,9 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:device_info/device_info.dart';
+import 'Providers/UserManagement.dart';
+import 'Models/UserManagement.dart';
+import 'package:provider/provider.dart';
 
 
 class StockLoading extends StatefulWidget {
@@ -146,7 +150,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     if(!widget.isUpdate) {
       dataLoaded=makeSureDataLoaded();
       getDeviceID();
-      entryPersonController?.text = widget.userManagement['firstName'];
+      entryPersonController?.text=context.read<UserManagementProvider>().userManagement!.firstName!;
     }else if(widget.isUpdate&&widget.historyLoadID!=''){
       setState(() {
         loadIDController.text = widget.historyLoadID;

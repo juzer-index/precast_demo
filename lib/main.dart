@@ -1,16 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'loginPage.dart';
 import 'themeData.dart';
 import 'dart:io';
-
+import 'Providers/UserManagement.dart';
+import 'Providers/tenantConfig.dart';
 
 void main() {
   HttpOverrides.global = MyHttpOverrides();
   final context = SecurityContext.defaultContext;
   context.allowLegacyUnsafeRenegotiation = true;
   final httpClient = HttpClient(context: context);
-  runApp(const MyApp());
+  runApp(MultiProvider(providers:[
+    ChangeNotifierProvider(create: (context)=>UserManagementProvider(),
+   ),
+    ChangeNotifierProvider(create: (context)=>tenantConfigProvider(),
+    ),
+    
+  ], child:MyApp()));
 }
 
 class MyHttpOverrides extends HttpOverrides{

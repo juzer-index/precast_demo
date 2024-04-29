@@ -3,6 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'homepage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'Providers/UserManagement.dart';
+import 'Models/UserManagement.dart';
+import 'Providers/tenantConfig.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   String username = '' ;
   String password = '';
   String tenantId = '';
-  dynamic UserManagement;
+
   dynamic TenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
@@ -47,15 +51,14 @@ class _LoginPageState extends State<LoginPage> {
         if(RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
-          setState(() {
-            UserManagement = userManagement;
-          });
 
+          context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
+          context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         }
         if (mounted) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HomePage(userManagement: userManagement)),
+            MaterialPageRoute(builder: (context) => HomePage()),
           );
         }
       }
@@ -86,13 +89,15 @@ class _LoginPageState extends State<LoginPage> {
 
     SharedPreferences prefs =  await  SharedPreferences.getInstance();
     if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
-      var userManagement = json.decode(prefs.getString('userManagement') as String);
-      UserManagement = userManagement;
+      UserManagement userManagement = UserManagement.fromJson(json.decode(prefs.getString('userManagement')!));
+      context.read<UserManagementProvider>().updateUserManagement(userManagement!);
+      context.read<tenantConfigProvider>().updateTenantConfig(json.decode(prefs.getString('tenantConfig')!));
       if (mounted) {
-        Navigator.push(
+       Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(userManagement: UserManagement,)),
+          MaterialPageRoute(builder: (context) => HomePage()),
         );
+
       }
     }
   }
