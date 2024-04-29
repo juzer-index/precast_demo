@@ -27,7 +27,8 @@ import 'package:image/image.dart' as img;
 
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
-  const StockOffloading({super.key, required this.initialTabIndex});
+  dynamic tenantConfig;
+   StockOffloading({super.key, required this.initialTabIndex, required this.tenantConfig});
 
   @override
   State<StockOffloading> createState() => _StockOffloadingState();
@@ -64,8 +65,8 @@ class _StockOffloadingState extends State<StockOffloading>
 
   List<PartData> arrivedParts = [];
 
-  final String username = 'manager';
-  final String password = 'Adp@2023';
+  //final String username = 'manager';
+  //final String password = 'Adp@2023';
 
   LoadData? offloadData;
 
@@ -78,7 +79,6 @@ class _StockOffloadingState extends State<StockOffloading>
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
-  final detailsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As');
 
 
 
@@ -102,7 +102,7 @@ class _StockOffloadingState extends State<StockOffloading>
             "RptPageSettings": "Color=True,Landscape=False,AutoRotate=False,PaperSize=[Kind=\"Custom\" PaperName=\"Custom\" Height=0 Width=0],PaperSource=[SourceName=\"Automatically Select\" Kind=\"Custom\"],PrinterResolution=[]",
             "RptPrinterSettings": "PrinterName=\"Microsoft Print to PDF\",Copies=1,Collate=False,Duplex=Default,FromPage=1,ToPage=0",
             "RptVersion": "",
-            "ReportStyleNum": 1002,
+            "ReportStyleNum": 1,
             "WorkstationID": "web_Manager",
             "AttachmentType": "PDF",
             "ReportCurrencyCode": "USD",
@@ -115,9 +115,9 @@ class _StockOffloadingState extends State<StockOffloading>
             "RowMod": "A"
           }
         ],
-        "ReportStyle": [
+        /*"ReportStyle": [
           {
-            "Company": "158095",
+            "Company": "${widget.tenantConfig['company']}",
             "ReportID": "IIT_DeliveryNot",
             "StyleNum": 1002,
             "StyleDescription": "Delivery Note Report - SSRS",
@@ -125,7 +125,7 @@ class _StockOffloadingState extends State<StockOffloading>
             "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
             "PrintProgramOptions": "",
             "RptDefID": "IIT_DeliveryNot",
-            "CompanyList": "158095",
+            "CompanyList": "${widget.tenantConfig['company']}",
             "ServerNum": 0,
             "OutputLocation": "Database",
             "OutputEDI": "",
@@ -165,16 +165,17 @@ class _StockOffloadingState extends State<StockOffloading>
             "SSRSRenderFormat": "PDF"
           }
 
-        ]
+        ]*/
       },
       "agentID": "",
       "agentSchedNum": 0,
       "agentTaskNum": 0,
       "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final submitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final submitReportURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
           submitReportURL,
           headers: {
@@ -196,7 +197,7 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> fetchLoadDataFromURL() async {
-    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/GetByID');
+    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/GetByID');
     Map<String, dynamic> body = {
       "key1": loadIDController.text,
       "key2": "",
@@ -204,7 +205,7 @@ class _StockOffloadingState extends State<StockOffloading>
       "key4": "",
       "key5": ""
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
 
     Completer<void> completer = Completer<void>();
 
@@ -255,8 +256,8 @@ class _StockOffloadingState extends State<StockOffloading>
     return null;
   }
 /*Future <void> fetchElementANDPartsDataFromURL() async {
-    final stringBasicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
-    final detailsURL2 = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Key1 eq \'${loadIDController.text}\'');
+    final stringBasicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+    final detailsURL2 = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Key1 eq \'${loadIDController.text}\'');
     try {
       final response = await http.get(
           detailsURL2,
@@ -290,9 +291,9 @@ class _StockOffloadingState extends State<StockOffloading>
 }*/
   Future<dynamic> fetchPDFCounts() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final pdfCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)/?%24orderby=SysRptLst1_CreatedOn%20desc&%24top=1');
+      final pdfCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN/?%24orderby=SysRptLst1_CreatedOn%20desc&%24top=1');
       final response = await http.get(
           pdfCountsURL,
           headers: {
@@ -312,8 +313,9 @@ class _StockOffloadingState extends State<StockOffloading>
     }
   }
   Future<void> fetchElementDataFromURL() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
       final response = await http.get(
           detailsURL,
           headers: {
@@ -349,8 +351,9 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> fetchPartDataFromURL() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
       final response = await http.get(
           detailsURL,
           headers: {
@@ -383,8 +386,8 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> updateLoadStatus(Map<String, dynamic> statusData) async {
-    final loadURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
       final response = await http.post(
           loadURL,
@@ -422,8 +425,9 @@ class _StockOffloadingState extends State<StockOffloading>
 
 
   Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
       final response = await http.post(
           detailsURL,
           headers: {
@@ -447,15 +451,15 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> updateStatusOnSite (String partNum, String elementId) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     final response = await http.post(
-        Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+        Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
         headers: {
           HttpHeaders.authorizationHeader: basicAuth,
           HttpHeaders.contentTypeHeader: 'application/json',
         },
         body: jsonEncode({
-          "Company": "158095",
+          "Company": "${widget.tenantConfig['company']}",
           "PartNum": partNum,
           "LotNum": elementId,
           "ElementStatus_c": "OnSite"
@@ -879,7 +883,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, ),
+                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, tenantConfig: widget.tenantConfig,),
                                 ),
                               ),
                               const SizedBox(height: 20,),
@@ -1175,7 +1179,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 await updateUD103A({
                                   "Key1": loadIDController.text,
                                   "Character01": arrivedParts[v].partNum,
-                                  "Company": '158095',
+                                  "Company": '${widget.tenantConfig['company']}',
                                   "CheckBox01": true,
                                   "CheckBox02": false,
                                   "CheckBox03": false,

@@ -20,8 +20,8 @@ class _LoginPageState extends State<LoginPage> {
   String username = '' ;
   String password = '';
   String tenantId = '';
-
-  dynamic TenantConfig;
+  dynamic UserManagement;
+  dynamic tenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
   bool Checked = false;

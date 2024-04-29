@@ -5,7 +5,7 @@ import 'loginPage.dart';
 import './load_history.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData) {
+Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData, dynamic tenantConfig) {
 
   return Drawer(
     shadowColor: Colors.blueGrey.shade800,
@@ -137,7 +137,7 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => LoadHistory(loads:loads!=null?loads:[],AddLoad:AddLoadData)));
+                      builder: (context) => LoadHistory(loads:loads!=null?loads:[],AddLoad:AddLoadData,tenantConfig: tenantConfig,)));
               // Navigator.push(context, route);
             }),
         const Divider(),

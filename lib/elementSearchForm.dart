@@ -14,10 +14,11 @@ class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
   final Function(ElementData) AddElement;
   List<ElementData>? arrivedElements = [];
+  dynamic tenantConfig;
   bool isOffloading;
   dynamic Project;
   dynamic Warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project});
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project,required this.tenantConfig});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -59,7 +60,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
-  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
 
   bool isElement = false;
   bool isLoading = false;
@@ -68,8 +68,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
  // late Future _dataFuture;
 
-  var partURL = Uri.parse(
-      'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
+ // var partURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company)');
 
 
 
@@ -80,13 +79,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
     
     try {
+      final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
 
       final response = await http.get(
             Uri.parse(
                 widget.Warehouse == null&&widget.Project==null?
-               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''
+               '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\''
                     :
-                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\'and PartLot_Project_c eq \'${widget.Project}\''),
+                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\'and PartLot_Project_c eq \'${widget.Project}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -123,12 +123,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   }
   Future<void> getLotForElements() async {
     try {
+      final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       setState(() {
         selectable= false;
       });
        String partNum =elementNumberController.text;
-
-      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\' and PartLot_Project_c eq \'${widget.Project}\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+      var elementLotURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_PartAndLotNumber(${widget.tenantConfig['company']})?\$filter=PartLot_PartNum  eq  \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
@@ -154,8 +155,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getElementDetailsFromLot(String lotNo, String partNum) async {
     try {
+      final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(158095,$partNum,$lotNo)'),
+          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(${widget.tenantConfig['company']},$partNum,$lotNo)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -189,7 +192,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getConsumableDetails(String partNum) async {
     try {
-      var consumableURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_NonTrackPart/?\$filter=Part_PartNum eq \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+      final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
+      var consumableURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_NonTrackPart/?\$filter=Part_PartNum eq \'$partNum\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(consumableURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
@@ -216,9 +221,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   }
   Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
     try {
+      final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)'),
+              '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -289,6 +296,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             if(partValue[0]['Part_IsElementPart_c'] == true){
                               isElement = true;
                               await getLotForElements();
+
                             }
                             else{
                               isElement = false;
@@ -298,8 +306,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                        if(widget.isOffloading){
                           if(elementNumberController.text.isNotEmpty){
                             for(var i = 0; i < widget.arrivedElements!.length; i++) {
-                              if (widget.arrivedElements![i].partId ==
-                                  elementNumberController.text) {
+                              if (widget.arrivedElements![i].partId.toLowerCase() ==
+                                  elementNumberController.text.toLowerCase()) {
                                 elements.add(widget.arrivedElements![i]
                                     .elementId);
                                 setState(() {
