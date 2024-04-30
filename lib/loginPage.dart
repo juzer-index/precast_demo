@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   String username = '' ;
   String password = '';
   String tenantId = '';
-  dynamic UserManagement;
+
   dynamic tenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
@@ -51,14 +51,14 @@ class _LoginPageState extends State<LoginPage> {
         if(RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
-
+          tenantConfig = json.decode(prefs.getString('tenantConfig')!);
           context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
           context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         }
         if (mounted) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
           );
         }
       }
@@ -89,13 +89,14 @@ class _LoginPageState extends State<LoginPage> {
 
     SharedPreferences prefs =  await  SharedPreferences.getInstance();
     if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
-      UserManagement userManagement = UserManagement.fromJson(json.decode(prefs.getString('userManagement')!));
+   UserManagement userManagement = UserManagement.fromJson(json.decode(prefs.getString('userManagement')!)!);
       context.read<UserManagementProvider>().updateUserManagement(userManagement!);
       context.read<tenantConfigProvider>().updateTenantConfig(json.decode(prefs.getString('tenantConfig')!));
+      tenantConfig = json.decode(prefs.getString('tenantConfig')!);
       if (mounted) {
        Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
         );
 
       }

@@ -46,7 +46,7 @@ class loadTableSource extends DataTableSource{
                          loadDataList: loads,
                          addLoadData: this.AddLoadData,
                          historyLoadID: loads[index].loadID,
-                       tenantConfig:tenantConfig ,)));
+                    )));
                  },
              child: Text(loads[index].loadID),
 

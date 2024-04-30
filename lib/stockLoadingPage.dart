@@ -22,6 +22,7 @@ import 'package:device_info/device_info.dart';
 import 'Providers/UserManagement.dart';
 import 'Models/UserManagement.dart';
 import 'package:provider/provider.dart';
+import 'Providers/tenantConfig.dart';
 
 
 class StockLoading extends StatefulWidget {
@@ -30,9 +31,9 @@ class StockLoading extends StatefulWidget {
    List <LoadData> loadDataList;
    dynamic addLoadData;
    String historyLoadID;
-   dynamic userManagement;
-   dynamic tenantConfig;
-   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID='',this.userManagement, required this.tenantConfig}) ;
+
+
+   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID=''}) ;
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -113,10 +114,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   LoadData? offloadData;
 
-  //final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
+  //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
 
-  //var truckURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
-  //var resourceURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
+  //var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+  //var resourceURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
 
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
@@ -137,7 +138,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final int l2;
   late final String nextLoad;
 
-// final basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+// final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
   bool isPrinting = false ;
   int pdfCount =0;
@@ -149,7 +150,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     if(!widget.isUpdate) {
-      dataLoaded=makeSureDataLoaded();
+      dataLoaded=makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
       getDeviceID();
       entryPersonController?.text=context.read<UserManagementProvider>().userManagement!.firstName!;
     }else if(widget.isUpdate&&widget.historyLoadID!=''){
@@ -157,7 +158,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         loadIDController.text = widget.historyLoadID;
       });
 
-      dataLoaded=fetchLoadDataFromURL(widget.historyLoadID).then((value) => {
+      dataLoaded=fetchLoadDataFromURL(widget.historyLoadID,context.read<tenantConfigProvider>()?.tenantConfig).then((value) => {
 
            offloadData = getLoadObjectFromJson(widget.historyLoadID),
            getElementObjectFromJson(widget.historyLoadID),
@@ -198,6 +199,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
     _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
     loadTimeController.text = DateFormat('HH:mm').format(DateTime.now());
+    final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
     return PopScope(
         canPop: false,
         onPopInvoked: (didPop) {
@@ -263,7 +265,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       const Text('Stock Loading', style: TextStyle(color: Colors.white)),
                     // ClipOval(
                     //   child: Image.network(
-                    //     '${widget.tenantConfig['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                    //     '${tenantConfigP['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
                     //     height: 35,
                     //     width: 35,
                     //   ),
@@ -280,7 +282,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Create New Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,tenantConfig: widget.tenantConfig,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
                           },
                         ),
                       ),
@@ -290,7 +292,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                           title: const Text('Edit a Load'),
                           leading: const Icon(Icons.edit_calendar),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,tenantConfig: widget.tenantConfig,)));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
                           },
                         ),
                       ),
@@ -299,7 +301,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                         title: const Text('Offload'),
                         leading: const Icon(Icons.playlist_remove),
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => StockOffloading(initialTabIndex: 0,tenantConfig: widget.tenantConfig,)));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => StockOffloading(initialTabIndex: 0,tenantConfig: tenantConfigP,)));
                         },
                       ),
                     ),
@@ -387,7 +389,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               ),
                                               IconButton(
                                                 onPressed: () async {
-                                                  await fetchLoadDataFromURL(loadIDController.text);
+                                                  await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
                                                  // await fetchElementDataFromURL();
                                                   //await fetchPartDataFromURL();
                                                   String projectLoadID = loadIDController.text;
@@ -437,7 +439,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           padding: const EdgeInsets.all(8.0),
                                           child: FutureBuilder(
 
-                                            future: getProjectList(),
+                                            future: getProjectList(tenantConfigP),
                                             builder:(context,snapshot){
 
                                               return DropdownSearch(
@@ -460,10 +462,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     labelText: "Project ID",
                                                   ),
                                                 ),
-                                                items: fetchedProjectValue.map((project) => project['Project_ProjectID']).toList(),
+                                                items: fetchedProjectValue.map((project) => project['ProjectID']).toList(),
                                                 onChanged: (value) {
                                                   setState(() {
-                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Project_ProjectID'] == value)['Project_ProjectID'];
+                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ProjectID'];
                                                   });
                                                 },
                                               );
@@ -823,7 +825,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 final loadDateFormat = '${_selectedDate}T00:00:00';
                                                 await createNewLoad({
                                                   "Key1": newLoadId,
-                                                  "Company": "${widget.tenantConfig['company']}",
+                                                  "Company": "${tenantConfigP['company']}",
                                                   "ShortChar07": plateNumberController.text,
                                                   "ShortChar05": projectIdController.text,
                                                   "ShortChar01": loadTypeValue,
@@ -848,7 +850,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Character09": resourceId,
                                                 //  "Createdby_c": entryPersonController?.text.toString().trim(),
                                                 //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                                });
+                                                },tenantConfigP);
                                                 debugPrint(toWarehouseNameController.text);
                                                 if(isLoaded){
                                                   if(mounted) {
@@ -913,7 +915,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,tenantConfig: widget.tenantConfig,),
+                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,tenantConfig: tenantConfigP,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),
@@ -1081,7 +1083,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             debugPrint(selectedElements[e].toString());
                                             try {
                                               await updateUD103A({
-                                                "Company": "${widget.tenantConfig['company']}",
+                                                "Company": "${tenantConfigP['company']}",
                                                 "ChildKey1": selectedElements[e].ChildKey1,
                                                 "Key1": loadIDController.text,
                                                 "Character01": selectedElements[e].partId,
@@ -1100,8 +1102,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 "CheckBox02":false,
                                                 "CheckBox03":false,
                                                 "CheckBox13": false,
-                                              });
-                                              updateInTransit(selectedElements[e].partId, selectedElements[e].elementId);
+                                              },tenantConfigP);
+                                              updateInTransit(selectedElements[e].partId, selectedElements[e].elementId,tenantConfigP);
                                               childCount++;
                                             } on Exception catch (e) {
                                               debugPrint(e.toString());
@@ -1109,7 +1111,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           }
                                           for(int i=0;i<deletedSavedElements.length;i++){
                                             try{
-                                              await deleteUD103A(deletedSavedElements[i]);
+                                              await deleteUD103A(deletedSavedElements[i],tenantConfigP);
                                             }catch(e){
                                               debugPrint(e.toString());
                                             }
@@ -1118,7 +1120,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           for (var p = 0; p < selectedParts.length; p++){
                                             debugPrint(selectedParts[p].toString());
                                              await updateUD103A({
-                                               "Company": "${widget.tenantConfig['company']}",
+                                               "Company": "${tenantConfigP['company']}",
                                                "Key1": loadIDController.text,
         /*                                           "ChildKey1": "${++ChildCount}",*/
                                                "Character01": selectedParts[p].partNum,
@@ -1128,7 +1130,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                "Number01": selectedParts[p].qty,
                                                "ShortChar07": selectedParts[p].uom,
                                                "CheckBox13": true,
-                                            });
+                                            },tenantConfigP);
                                           }
                                           if (mounted) {
                                             showDialog(
@@ -1167,15 +1169,15 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     );
   }
 
-  Future<void> makeSureDataLoaded() async {
+  Future<void> makeSureDataLoaded(dynamic tenantConfigP) async {
     if(!widget.isUpdate) {
       await Future.wait([
-        getProjectList(),
-        getBinsFromWarehouse(),
-        getTrucksFromURL(),
-        getDriverList(),
-        getLastLoadID(),
-        getWarehouseList()
+        getProjectList(tenantConfigP),
+        getBinsFromWarehouse(tenantConfigP),
+        getTrucksFromURL(tenantConfigP),
+        getDriverList(tenantConfigP),
+        getLastLoadID(tenantConfigP),
+        getWarehouseList(tenantConfigP)
       ]);
     }
 
@@ -1186,7 +1188,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       selectedElements.add(element);
     });
   }
-  Future<bool> submitReport() async {
+  Future<bool> submitReport(tenantConfigP) async {
     dynamic body={
 
     "ds": {
@@ -1224,7 +1226,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "ReportStyle": [
 
     {
-    "Company": "${widget.tenantConfig['company']}",
+    "Company": "${tenantConfigP['company']}",
     "ReportID": "IIT_DeliveryNot",
     "StyleNum": 1002,
     "StyleDescription": "Delivery Note Report - SSRS",
@@ -1232,7 +1234,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
     "PrintProgramOptions": "",
     "RptDefID": "IIT_DeliveryNot",
-    "CompanyList": "${widget.tenantConfig['company']}",
+    "CompanyList": "${tenantConfigP['company']}",
     "ServerNum": 0,
     "OutputLocation": "Database",
     "OutputEDI": "",
@@ -1279,9 +1281,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "agentTaskNum": 0,
     "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final SumbitReportURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final SumbitReportURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
           SumbitReportURL,
           headers: {
@@ -1302,11 +1304,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<dynamic> fetchPDFCounts() async {
+  Future<dynamic> fetchPDFCounts(dynamic tenantConfigP) async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final PDFCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${widget.tenantConfig['company']})');
+      final PDFCountsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${tenantConfigP['company']})');
       final response = await http.get(
           PDFCountsURL,
           headers: {
@@ -1325,13 +1327,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-  Future<void> getProjectList() async {
+  Future<void> getProjectList(dynamic tenantConfigP) async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
           Uri.parse(
-              '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.Bo.ProjectSvc/List/'),
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.ProjectSvc/List/'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1360,11 +1362,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
     return output.readAsBytesSync();
   }
-  Future<void> getWarehouseList() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+  Future<void> getWarehouseList(dynamic tenantConfigP) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1383,12 +1385,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getBinsFromWarehouse () async {
+  Future<void> getBinsFromWarehouse (dynamic tenantConfigP) async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse("${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
+          Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
           headers: {
       HttpHeaders.authorizationHeader: basicAuth,
       HttpHeaders.contentTypeHeader: 'application/json',
@@ -1414,11 +1416,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     });
   }
 
-  Future<void> createNewLoad(Map<String, dynamic> loadItems) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+  Future<void> createNewLoad(Map<String, dynamic> loadItems, tenantConfigP) async {
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try{
       final response = await http.post(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103s'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103s'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1451,12 +1453,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     return null;
   }
 
-  Future<void> getTrucksFromURL() async {
+  Future<void> getTrucksFromURL(dynamic tenantConfigP) async {
     try {
       final basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
-      var truckURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+      var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
 
       final response = await http.get(
 
@@ -1477,11 +1479,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getResourceForTrucks(String resourceID) async {
-    var urL = Uri.parse("${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+  Future<void> getResourceForTrucks(String resourceID,tenantConfigP) async {
+    var urL = Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
           urL,
@@ -1502,13 +1504,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getDriverList() async {
+  Future<void> getDriverList(dynamic tenantConfigP) async {
     try{
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_DriverName(${widget.tenantConfig['company']})'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_DriverName(${tenantConfigP['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1526,13 +1528,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getLastLoadID() async {
+  Future<void> getLastLoadID(dynamic tenantConfigP) async {
     try{
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(${widget.tenantConfig['company']})'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_UD103AutoGenerateNum_Test(${tenantConfigP['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1550,10 +1552,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<dynamic> fetchLoadDataFromURL(String loadId) async {
+  Future<dynamic> fetchLoadDataFromURL(String loadId,dynamic tenantConfigP) async {
     try {
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       Map<String, dynamic> body = {
         "key1": loadId,
@@ -1563,7 +1565,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         "key5": ""
       };
       final url = Uri.parse(
-          "${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/GetByID");
+          "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/GetByID");
       final response = await http.post(
         url,
         headers: {
@@ -1635,13 +1637,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
     return null;
   }
-  Future<void> deleteUD103A(String childKey1) async {
+  Future<void> deleteUD103A(String childKey1,dynamic tenantConfigP) async {
     try {
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.delete(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As(${widget.tenantConfig['company']},${loadIDController.text},,,,,${childKey1},,,,)'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As(${tenantConfigP['company']},${loadIDController.text},,,,,${childKey1},,,,)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1654,13 +1656,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-  Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
+  Future<void> updateUD103A(Map<String, dynamic> ud103AData,dynamic tenantConfigP) async {
     try {
       final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.post(
-          Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1682,18 +1684,18 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> updateInTransit(String partNum, String elementId) async {
+  Future<void> updateInTransit(String partNum, String elementId,dynamic tenantConfigP) async {
     final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
     final response = await http.post(
-       Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+       Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
        headers: {
          HttpHeaders.authorizationHeader: basicAuth,
          HttpHeaders.contentTypeHeader: 'application/json',
        },
        body: jsonEncode({
-         "Company": "${widget.tenantConfig['company']}",
+         "Company": "${tenantConfigP['company']}",
          "PartNum": partNum,
          "LotNum": elementId,
          "ElementStatus_c": "In-Transit"
@@ -1785,7 +1787,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   element['Character01'] ==
                       truckIdController.text)
                       .first['Character02'];
-                  await getResourceForTrucks(resourceIdController.text);
+                  await getResourceForTrucks(resourceIdController.text,context.read<tenantConfigProvider>().tenantConfig);
                 },
               ),
             ),

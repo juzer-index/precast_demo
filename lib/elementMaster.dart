@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'detailsPage.dart';
+import 'Providers/tenantConfig.dart';
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];
 
@@ -17,7 +20,7 @@ class ElementDataSource extends ChangeNotifier {
 
 class ElementMaster extends StatefulWidget {
   dynamic tenantConfig;
-  ElementMaster({super.key,required this.tenantConfig}) ;
+  ElementMaster({super.key,required this.tenantConfig});
 
   @override
   State<ElementMaster> createState() => _ElementMasterState();
@@ -27,12 +30,12 @@ class MyDataTableSource extends DataTableSource{
   final List<dynamic> _elementData;
   final BuildContext dialogContext;
   bool hasMore = false;
+
+
+
   dynamic tenantConfig;
 
-
-
-
-  MyDataTableSource(this._elementData, this.dialogContext,  this.tenantConfig);
+  MyDataTableSource(this._elementData, this.dialogContext,this.tenantConfig );
 
   @override
   DataRow? getRow(int index) {
@@ -141,6 +144,7 @@ class _ElementMasterState extends State<ElementMaster> {
   List<dynamic> elementListValue = [];
   List<dynamic> partElementList = [];
 
+
   TextEditingController partNumController = TextEditingController();
   TextEditingController elementIdController = TextEditingController();
 
@@ -167,21 +171,21 @@ class _ElementMasterState extends State<ElementMaster> {
 
   }
 
-  Future<void> getElementList(String param, bool isElement,int offset) async {
+  Future<void> getElementList(String param, bool isElement,int offset,final tenantConfig2) async {
     Uri url;
     int page = offset == 0 ? 11: 10;
     if(!isElement) {
       url = Uri.parse(
-          '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${widget.tenantConfig['company']})?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
+          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
     }
     else {
       url = Uri.parse(
-          '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${widget.tenantConfig['company']})?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
+          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
       isElement = true;
     }
     try {
       final String basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+          utf8.encode('${tenantConfig2['userID']}:${tenantConfig2['password']}'))}';
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -203,9 +207,9 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
   Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
-    var url = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
+    var url = Uri.parse('${context.read<tenantConfigProvider>().tenantConfig['httpVerbKey']}://${context.read<tenantConfigProvider>().tenantConfig['appPoolHost']}/${context.read<tenantConfigProvider>().tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
     try {
-       dynamic basicAuth=utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}');
+       dynamic basicAuth=utf8.encode('${context.read<tenantConfigProvider>().tenantConfig['userID']}:${context.read<tenantConfigProvider>().tenantConfig['password']}');
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -213,11 +217,11 @@ class _ElementMasterState extends State<ElementMaster> {
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         elementListData = json.decode(response.body);
-        if (mounted) {
+        if (mounted) {/*
           Navigator.push(
-            context,
+            dialogContext,
             MaterialPageRoute(builder: (context) => DetailsPage(elementId: elementId, elementDetails: elementListData, statusColor: Colors.transparent)),
-          );
+          );*/
         }
       }
     } on Exception catch (e) {
@@ -250,6 +254,8 @@ class _ElementMasterState extends State<ElementMaster> {
 
   @override
   Widget build(BuildContext context) {
+    final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
+
     return Scaffold(
       appBar: const IndexAppBar(title: 'Element Master',),
       body: Padding(
@@ -336,13 +342,13 @@ class _ElementMasterState extends State<ElementMaster> {
                                           isSingleElement = false;
                                         });
 
-                                        await getElementList(partNumController.text, false, 0);
+                                        await getElementList(partNumController.text, false, 0,tenantConfigP!);
                                       }
                                       if(elementIdController.text.isNotEmpty){
                                         setState(() {
                                           isSingleElement = true;
                                         });
-                                        await getElementList(elementIdController.text, true,0);
+                                        await getElementList(elementIdController.text, true,0,tenantConfigP!);
                                       }
                                       setState(() {
                                         isSearching = false;
@@ -429,7 +435,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                     debugPrint(offset.toString());
                                     if(page>offset){
                                       offset=max(offset, page);
-                                      isElement ? await getElementList(elementIdController.text, true, page) : await getElementList(partNumController.text, false, page);
+                                      isElement ? await getElementList(elementIdController.text, true, page,tenantConfigP!) : await getElementList(partNumController.text, false, page,tenantConfigP!);
                                     }
                                    },
                                   initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
@@ -443,9 +449,9 @@ class _ElementMasterState extends State<ElementMaster> {
                                     DataColumn(label: Text('Status')),
                                   ],
                                   source: partElementList.isNotEmpty ?
-                                  MyDataTableSource(partElementList, context,widget.tenantConfig)
+                                  MyDataTableSource(partElementList, context,tenantConfigP!)
                                       :
-                                  MyDataTableSource(partElementList, context,widget.tenantConfig),
+                                  MyDataTableSource(partElementList, context,tenantConfigP!),
                                   )
                               )
                         ),
