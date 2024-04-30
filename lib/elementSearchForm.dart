@@ -98,11 +98,19 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
          setState(() {
             partValue = partData['value'];
          });
+         if(partValue.isEmpty){
+           setState(() {
+              isLoading = false;
+           });
+         }
 
 
 
         debugPrint(partValue.length.toString());
       } else {
+        setState(() {
+          isLoading = false;
+        });
         debugPrint(response.statusCode.toString());
       }
     }
@@ -282,17 +290,25 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               isElement = false;
                             });
                             await getAllParts(elementNumberController.text);
-                            setState(() {
-                              isLoading = false;
-                            });
+
 
                             if(partValue[0]['Part_IsElementPart_c'] == true){
-                              isElement = true;
+
                               await getLotForElements();
+                              if(elements.isNotEmpty){
+                                setState(() {
+                                  isElement = true;
+                                  isLoading = false;
+                                });
+                              }
                             }
                             else{
+
                               isElement = false;
                               await getConsumableDetails(elementNumberController.text);
+                              setState(() {
+                                isLoading = false;
+                              });
                             }}
                           }
                        if(widget.isOffloading){
