@@ -70,17 +70,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   var partURL = Uri.parse(
       'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
-
-
-
-
-
-
   Future<void> getAllParts(String PartNum ) async {
-
-    
     try {
-
       final response = await http.get(
             Uri.parse(
                 widget.Warehouse == null&&widget.Project==null?
@@ -179,7 +170,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           weightController.text = lotData['Ton_c'];
           areaController.text = lotData['M2_c'];
           volumeController.text = lotData['M3_c'];
-          estErectionDateController.text = lotData['ErectionPlannedDate_c']!=null?lotData['ErectionPlannedDate_c']:'';
+          estErectionDateController.text = lotData['ErectionPlannedDate_c'] ?? '';
           onHandQtyController.text = '1';
           selectedQtyController.text = '1';
         });
