@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
         backgroundColor: Colors.white,
         title: const Center(
           child: Text(
-            'IIT Precast App',
+            'GoCast - Track',
             style: TextStyle(
                 color: Colors.lightBlue,
                 fontSize: 20 , fontWeight: FontWeight.bold),

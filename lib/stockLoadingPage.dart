@@ -214,21 +214,22 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
              showAlertDialog(BuildContext context) {
                // Init
                AlertDialog dialog = AlertDialog(
-                 title: const Text("Are you sure you want to exit?"),
+                 title: const Text("Are you sure you want to exit?", style: TextStyle(color: Colors.red)),
+                 content: const Text("All unsaved data will be lost"),
                  actions: [
-                   ElevatedButton(
+                   TextButton(
                        child: const Text("Yes"),
                        onPressed: () {
                          Navigator.pop(context);
                          Navigator.pop(context);
                        }
                    ),
-                    ElevatedButton(
-                        child: const Text("No"),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        }
-                    ),
+                   TextButton(
+                       child: const Text("No"),
+                       onPressed: () {
+                         Navigator.pop(context);
+                       }
+                   ),
                  ],
                );
 
