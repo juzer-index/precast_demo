@@ -1,23 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:IIT_precast_app/part_model.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'element_model.dart';
-
 import 'package:http/http.dart' as http;
-
 
 class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
-  final Function(ElementData) AddElement;
+  final Function(ElementData) addElement;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  dynamic Project;
-  dynamic Warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project});
+  dynamic project;
+  dynamic warehouse;
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.warehouse, required this.addElement ,  this.project});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -64,20 +61,17 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   bool isElement = false;
   bool isLoading = false;
   bool selectable = false;
-  // bool isConsumable = false;
-
- // late Future _dataFuture;
 
   var partURL = Uri.parse(
       'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
-  Future<void> getAllParts(String PartNum ) async {
+  Future<void> getAllParts(String partNum ) async {
     try {
       final response = await http.get(
             Uri.parse(
-                widget.Warehouse == null&&widget.Project==null?
-               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\''
+                widget.warehouse == null&&widget.project==null?
+               'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\''
                     :
-                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\'and PartLot_Project_c eq \'${widget.Project}\''),
+                'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\' and PartWhse_WarehouseCode eq \'${widget.warehouse}\'and PartLot_Project_c eq \'${widget.project}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -111,7 +105,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   }
   
   int specifyMaxChildKey(){
-    List<ElementData>elements=this.totalElements;
+    List<ElementData>elements=totalElements;
     int max = 0;
     for(var i = 0; i < elements.length; i++){
       if(int.parse(elements[i].ChildKey1) > max){
@@ -127,7 +121,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       });
        String partNum =elementNumberController.text;
 
-      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\' and PartLot_Project_c eq \'${widget.Project}\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\' and PartLot_Project_c eq \'${widget.project}\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
@@ -645,8 +639,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ElevatedButton(
-
-                      onPressed:!selectable? ()=>null: () {
+                      onPressed:!selectable? () { }: () {
                         String key='';
                         if(widget.isOffloading){
                           key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.ChildKey1;
@@ -741,17 +734,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         totalElements += selectedElements;
                         setState(() {
                           selectedElements.clear();
-
                         });
-
-
                           widget.onElementsSelected(totalElements,selectedParts);
-
                       },
-                      child: const Text('Select'),
                       style: !selectable?ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Colors.grey),
                       ):null,
+                      child: const Text('Select'),
                     ),
                   ),
                 ],

@@ -1,13 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'package:IIT_precast_app/stockLoadingPage.dart';
 import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:IIT_precast_app/sideBarMenu.dart';
 import 'package:IIT_precast_app/stockOffloadingPage.dart';
-import 'loginPage.dart';
-import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 import 'load_model.dart';
 
@@ -47,7 +42,7 @@ class _HomePageState extends State<HomePage> {
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
-      drawer: SideBarMenu(context, loads!=null?loads:[], AddLoadData),
+      drawer: SideBarMenu(context, loads, AddLoadData),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

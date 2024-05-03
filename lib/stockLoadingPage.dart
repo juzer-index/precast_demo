@@ -207,16 +207,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
              showAlertDialog(BuildContext context) {
                // Init
                AlertDialog dialog = AlertDialog(
-                 title: const Text("Are you sure you want to exit?"),
+                 title: const Text("Are you sure you want to exit?", style: TextStyle(color: Colors.red)),
+                  content: const Text("All unsaved data will be lost"),
                  actions: [
-                   ElevatedButton(
+                   TextButton(
                        child: const Text("Yes"),
                        onPressed: () {
                          Navigator.pop(context);
                          Navigator.pop(context);
                        }
                    ),
-                    ElevatedButton(
+                    TextButton(
                         child: const Text("No"),
                         onPressed: () {
                           Navigator.pop(context);
@@ -554,7 +555,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               padding: const EdgeInsets.all(8.0),
                                               child: DropdownSearch(
                                                 selectedItem: fromWarehouseController.text,
-                                                enabled: true,
+                                                enabled: !widget.isUpdate,
                                                 popupProps: const PopupProps.modalBottomSheet(
                                                   showSearchBox: true,
                                                   searchFieldProps: TextFieldProps(
@@ -682,88 +683,94 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Expanded(
-                                              child: Column(
-                                                  children: [
-                                                    const Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Text('Load Type',
-                                                        style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
-                                                            color: Colors.blue),
+                                              child: AbsorbPointer(
+                                                absorbing: widget.isUpdate,
+                                                child: Column(
+                                                    children: [
+                                                      const Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text('Load Type',
+                                                          style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                              color: Colors.blue),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Return',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Issue Load',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                  ]
+                                                      RadioListTile(
+                                                        title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Return',
+                                                        groupValue: loadTypeValue,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            loadTypeValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Issue Load',
+                                                        groupValue: loadTypeValue,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            loadTypeValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                    ]
+                                                ),
                                               ),
                                             ),
                                             Expanded(
-                                              child: Column(
-                                                  children: [
-                                                    const Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Text('Load Condition',
-                                                        style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
-                                                            color: Colors.blue),
+                                              child: AbsorbPointer(
+                                                absorbing: widget.isUpdate,
+                                                child: Column(
+                                                    children: [
+                                                      const Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text('Load Condition',
+                                                          style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                              color: Colors.blue),
+                                                        ),
                                                       ),
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'External',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Internal Truck',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Ex-Factory',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    )
-                                                  ]
+                                                      RadioListTile(
+                                                        title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'External',
+                                                        groupValue: loadConditionValue,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Internal Truck',
+                                                        groupValue: loadConditionValue,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Ex-Factory',
+                                                        groupValue: loadConditionValue,
+                                                        onChanged: (value) {
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      )
+                                                    ]
+                                                ),
                                               ),
                                             ),
                                           ]
@@ -906,7 +913,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text),
+                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , addElement:_AddElement,project:projectIdController.text),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),
@@ -1145,7 +1152,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         },
                                         child: const Text(
                                           'Save Load',
-
                                         )
                                     ),
                                   ],
