@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:IIT_precast_app/indexAppBar.dart';
+import 'indexAppBar.dart';
 
 
 class DetailsPage extends StatefulWidget {

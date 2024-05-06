@@ -1,4 +1,4 @@
-name: GoCast - Track
+name: GoCastTrack
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -70,7 +70,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/Index-Logo.jpg"
+  image_path: "assets/gocast-logo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -85,6 +85,8 @@ flutter:
     - assets/Index-Logo.jpg
     - assets/elementmaster.json
     - assets/data_parts.json
+    - assets/gocast-logo.png
+    - assets/app-logo.png
 
   fonts:
     - family: Open-Sans

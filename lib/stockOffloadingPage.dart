@@ -2,33 +2,30 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+import 'package:GoCastTrack/truckDetails.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:IIT_precast_app/elementTable.dart';
-import 'package:IIT_precast_app/partTable.dart';
-import 'package:IIT_precast_app/stockLoadingPage.dart';
-import 'package:IIT_precast_app/truckDetails.dart';
+import 'elementTable.dart';
+import 'partTable.dart';
+
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'elementSearchForm.dart';
 import 'load_model.dart';
 import 'part_model.dart';
 import 'element_model.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'PdfViewer.dart';
-import 'package:image/image.dart' as img;
 
 
 
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
-  dynamic tenantConfig;
-   StockOffloading({super.key, required this.initialTabIndex, required this.tenantConfig});
+  final dynamic tenantConfig;
+  const StockOffloading({super.key, required this.initialTabIndex, required this.tenantConfig});
 
   @override
   State<StockOffloading> createState() => _StockOffloadingState();
@@ -48,7 +45,7 @@ class _StockOffloadingState extends State<StockOffloading>
   String loadConditionValue = '';
   String loadStatus = '';
   String inputTypeValue = 'Manual';
-  bool Offloaded = false;
+  bool offloaded = false;
   final _formKey = GlobalKey<FormState>();
 
   Map<String, dynamic> loadData = {};
@@ -73,7 +70,7 @@ class _StockOffloadingState extends State<StockOffloading>
   bool loaded = false;
   bool elementsAndPartsLoaded = false;
   bool isPrinting = false ;
-  int PDFCount =0;
+  int pdfCount =0;
 
   Barcode? result;
   QRViewController? controller;
@@ -115,57 +112,6 @@ class _StockOffloadingState extends State<StockOffloading>
             "RowMod": "A"
           }
         ],
-        /*"ReportStyle": [
-          {
-            "Company": "${widget.tenantConfig['company']}",
-            "ReportID": "IIT_DeliveryNot",
-            "StyleNum": 1002,
-            "StyleDescription": "Delivery Note Report - SSRS",
-            "RptTypeID": "SSRS",
-            "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
-            "PrintProgramOptions": "",
-            "RptDefID": "IIT_DeliveryNot",
-            "CompanyList": "${widget.tenantConfig['company']}",
-            "ServerNum": 0,
-            "OutputLocation": "Database",
-            "OutputEDI": "",
-            "SystemFlag": false,
-            "CGCCode": "",
-            "SysRevID": 93280823,
-            "SysRowID": "724b1ca9-4a67-4db8-840a-24b73be01b80",
-            "RptCriteriaSetID": null,
-            "RptStructuredOutputDefID": null,
-            "StructuredOutputEnabled": false,
-            "RequireSubmissionID": false,
-            "AllowResetAfterSubmit": false,
-            "CertificateID": null,
-            "LangNameID": "",
-            "FormatCulture": "",
-            "StructuredOutputCertificateID": null,
-            "StructuredOutputAlgorithm": null,
-            "HasBAQOrEI": false,
-            "RoutingRuleEnabled": false,
-            "CertificateIsAllComp": false,
-            "CertificateIsSystem": false,
-            "CertExpiration": null,
-            "Status": 0,
-            "StatusMessage": "",
-            "RptDefSystemFlag": false,
-            "LangNameIDDescription": "",
-            "IsBAQReport": false,
-            "StructuredOutputCertificateIsAllComp": false,
-            "StructuredOutputCertificateIsSystem": false,
-            "StructuredOutputCertificateExpirationDate": null,
-            "AllowGenerateEDI": false,
-            "BitFlag": 0,
-            "ReportRptDescription": "",
-            "RptDefRptDescription": "",
-            "RptTypeRptTypeDescription": "",
-            "RowMod": "",
-            "SSRSRenderFormat": "PDF"
-          }
-
-        ]*/
       },
       "agentID": "",
       "agentSchedNum": 0,
@@ -255,40 +201,7 @@ class _StockOffloadingState extends State<StockOffloading>
     }
     return null;
   }
-/*Future <void> fetchElementANDPartsDataFromURL() async {
-    final stringBasicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
-    final detailsURL2 = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As?\$filter=Key1 eq \'${loadIDController.text}\'');
-    try {
-      final response = await http.get(
-          detailsURL2,
-          headers: {
-            HttpHeaders.authorizationHeader: stringBasicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
-      if(response.statusCode ==200) {
-        final jsonResponse = json.decode(response.body);
 
-        elementData = jsonResponse;
-        elementValue =
-            elementData['value'].where((element) =>
-            element['CheckBox13'] ==
-                false).toList();
-        partData = jsonResponse;
-        partValue = partData['value']
-            .where((part) => part['CheckBox13'] == true)
-            .toList();
-        setState(() {
-          arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
-          arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
-        });
-      }
-
-
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-}*/
   Future<dynamic> fetchPDFCounts() async {
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
@@ -413,7 +326,6 @@ class _StockOffloadingState extends State<StockOffloading>
   Future<Uint8List> deliveryNote(String base64String) async {
     Uint8List decodedBytes = base64.decode(base64String);
     final pdf = pw.Document();
-    final font = pw.Font.ttf(await rootBundle.load('assets/fonts/OpenSans-Regular.ttf'));
     final directory = await getApplicationDocumentsDirectory();
     final output = File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
 
@@ -582,7 +494,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     getPartObjectFromJson(projectLoadID);*/
                                     if (offloadData != null) {
                                       if(offloadData!.loadStatus == 'Closed'){
-                                        Offloaded = true;
+                                        offloaded = true;
                                         if(mounted) {
                                           showDialog(
                                             context: context,
@@ -839,7 +751,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                               ]),
                           const Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: EdgeInsets.all(8.0),
                             child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
                           ),
                           TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
@@ -1065,7 +977,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         const SizedBox(
                           height: 20,
                         ),
-                        Offloaded? ElevatedButton(
+                        offloaded? ElevatedButton(
                             onPressed: () async {
                           setState(() {
                             isPrinting = true;
@@ -1073,7 +985,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           fetchPDFCounts().then((count) {
                             if (count!=null&&count.isNotEmpty) {
                               setState(() {
-                                PDFCount = count[0]['Calculated_Count'];
+                                pdfCount = count[0]['Calculated_Count'];
 
                               });
                             }
@@ -1083,7 +995,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     await Future.delayed(const Duration(seconds: 2));
                                     var updatedCounts = await fetchPDFCounts();
                                     if (updatedCounts != null &&
-                                        updatedCounts[0]['Calculated_Count'] > PDFCount) {
+                                        updatedCounts[0]['Calculated_Count'] > pdfCount) {
                                       setState(() {
                                         isPrinting = false;
                                       });
@@ -1216,7 +1128,7 @@ class _StockOffloadingState extends State<StockOffloading>
                             }
                             if(loaded && !elementsAndPartsLoaded){
                               setState(() {
-                                Offloaded = true;
+                                offloaded = true;
                               });
                               if (mounted) {
                                 showDialog(

@@ -1,12 +1,6 @@
-import 'dart:convert';
-
-import 'dart:io';
-import 'dart:math';
-import 'package:IIT_precast_app/load_model.dart';
+import 'load_model.dart';
 import 'package:flutter/material.dart';
-import 'package:IIT_precast_app/indexAppBar.dart';
-import 'package:http/http.dart' as http;
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'indexAppBar.dart';
 import 'stockLoadingPage.dart';
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
@@ -15,21 +9,21 @@ class ElementDataSource extends ChangeNotifier {
 
 }
 class LoadHistory extends StatefulWidget {
-   List<LoadData> loads;
-   dynamic AddLoad;
-   dynamic tenantConfig;
-   LoadHistory({Key? key, required this.loads, required this.AddLoad, required this.tenantConfig}) ;
+   final List<LoadData> loads;
+   final dynamic addLoad;
+   final dynamic tenantConfig;
+   const LoadHistory({super.key, required this.loads, required this.addLoad, required this.tenantConfig}) ;
 
   @override
   State<LoadHistory> createState() => _LoadHistoryState();
 
 }
-class loadTableSource extends DataTableSource{
+class LoadTableSource extends DataTableSource{
   List<LoadData> loads=[];
   final BuildContext context;
-  dynamic AddLoadData;
+  dynamic addLoadData;
   dynamic tenantConfig;
-  loadTableSource({Key? key, required this.loads, required this.context,required this.AddLoadData,required this.tenantConfig }) ;
+  LoadTableSource({Key? key, required this.loads, required this.context,required this.addLoadData,required this.tenantConfig }) ;
 
   @override
   DataRow? getRow(int index) {
@@ -44,7 +38,7 @@ class loadTableSource extends DataTableSource{
                        StockLoading(initialTabIndex: 0,
                          isUpdate: true,
                          loadDataList: loads,
-                         addLoadData: this.AddLoadData,
+                         addLoadData: addLoadData,
                          historyLoadID: loads[index].loadID,
                     )));
                  },
@@ -89,13 +83,13 @@ class loadTableSource extends DataTableSource{
 }
 class _LoadHistoryState extends State<LoadHistory> {
 
-  _LoadHistoryState({Key? key }) ;
-  final GlobalKey<PaginatedDataTableState> dataTablekey = GlobalKey();
+  _LoadHistoryState() ;
+  final GlobalKey<PaginatedDataTableState> dataTableKey = GlobalKey();
   @override
   // TODO: implement widget
   Widget build(BuildContext context){
     return Scaffold(
-      appBar: IndexAppBar(title: 'Load History'),
+      appBar: const IndexAppBar(title: 'Load History'),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -108,7 +102,7 @@ class _LoadHistoryState extends State<LoadHistory> {
                       padding: const EdgeInsets.all(8.0),
 
                       child: PaginatedDataTable(
-                        key : dataTablekey,
+                        key : dataTableKey,
 
 
                         columnSpacing: 30,
@@ -137,7 +131,7 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Foreman Name')),
                           DataColumn(label: Text('Comments')),
                         ],
-                       source:loadTableSource(loads:widget.loads.reversed.toList(), context: context, AddLoadData: widget.AddLoad ,tenantConfig:widget.tenantConfig),
+                       source:LoadTableSource(loads:widget.loads.reversed.toList(), context: context, addLoadData: widget.addLoad ,tenantConfig:widget.tenantConfig),
 
                       )
                   )

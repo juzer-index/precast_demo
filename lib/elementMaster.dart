@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:IIT_precast_app/indexAppBar.dart';
+import 'indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';

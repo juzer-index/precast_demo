@@ -1,23 +1,17 @@
-import 'dart:async';
-import 'dart:convert';
+import 'package:GoCastTrack/stockOffloadingPage.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:IIT_precast_app/stockLoadingPage.dart';
-import 'package:IIT_precast_app/indexAppBar.dart';
-import 'package:IIT_precast_app/sideBarMenu.dart';
-import 'package:IIT_precast_app/stockOffloadingPage.dart';
+import 'stockLoadingPage.dart';
+import 'indexAppBar.dart';
+import 'sideBarMenu.dart';
 import 'package:provider/provider.dart';
-import 'loginPage.dart';
-import 'package:http/http.dart' as http;
 import 'elementMaster.dart';
 import 'load_model.dart';
 import 'Providers/UserManagement.dart';
-import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
-  dynamic userManagement;
-  dynamic tenantConfig ;
-  HomePage({super.key,  required this.tenantConfig});
+  final dynamic userManagement;
+  final dynamic tenantConfig ;
+  const HomePage({super.key,  required this.tenantConfig, this.userManagement});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -29,7 +23,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
   List<LoadData> loads = [];
-  void AddLoadData(LoadData load) {
+  void addLoadData(LoadData load) {
     setState(() {
       for(int i=0;i<loads.length;i++)
         {
@@ -51,7 +45,7 @@ class _HomePageState extends State<HomePage> {
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
-      drawer: SideBarMenu(context, loads!=null?loads:[], AddLoadData,widget.tenantConfig),
+      drawer: SideBarMenu(context, loads, addLoadData,widget.tenantConfig),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -249,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: AddLoadData),
+                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: addLoadData),
                             ),
                           );
                         },
@@ -310,7 +304,7 @@ class _HomePageState extends State<HomePage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: AddLoadData),
+                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: addLoadData),
                             ),
                           );
                         },

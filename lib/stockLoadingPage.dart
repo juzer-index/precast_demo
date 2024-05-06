@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:IIT_precast_app/elementTable.dart';
-import 'package:IIT_precast_app/partTable.dart';
-import 'package:IIT_precast_app/elementSearchForm.dart';
-import 'package:IIT_precast_app/stockOffloadingPage.dart';
-import 'package:IIT_precast_app/truckDetails.dart';
-import 'package:IIT_precast_app/truck_resource_model.dart';
+import 'elementTable.dart';
+import 'partTable.dart';
+import 'elementSearchForm.dart';
+import 'stockOffloadingPage.dart';
+import 'truckDetails.dart';
+import 'truck_resource_model.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert';
 import 'load_model.dart';
@@ -20,20 +20,18 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:device_info/device_info.dart';
 import 'Providers/UserManagement.dart';
-import 'Models/UserManagement.dart';
-import 'package:provider/provider.dart';
 import 'Providers/tenantConfig.dart';
 
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
-   List <LoadData> loadDataList;
-   dynamic addLoadData;
-   String historyLoadID;
+  final List <LoadData> loadDataList;
+  final dynamic addLoadData;
+  final String historyLoadID;
 
 
-   StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID=''}) ;
+  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID=''}) ;
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -143,48 +141,47 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   bool isPrinting = false ;
   int pdfCount =0;
   @override
-  void initState()  {
-    fromWarehouseController.text='Default';
-    toWarehouseController.text='Site';
-    toWarehouseNameController.text='Site';
-    _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
+  void initState() {
+    fromWarehouseController.text = 'Default';
+    toWarehouseController.text = 'Site';
+    toWarehouseNameController.text = 'Site';
+    _tabController =
+        TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    if(!widget.isUpdate) {
-      dataLoaded=makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
+    if (!widget.isUpdate) {
+      dataLoaded =
+          makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
       getDeviceID();
-      entryPersonController?.text=context.read<UserManagementProvider>().userManagement!.firstName!;
-    }else if(widget.isUpdate&&widget.historyLoadID!=''){
+      entryPersonController?.text =
+          context.read<UserManagementProvider>().userManagement!.firstName!;
+    } else if (widget.isUpdate && widget.historyLoadID != '') {
       setState(() {
         loadIDController.text = widget.historyLoadID;
       });
 
-      dataLoaded=fetchLoadDataFromURL(widget.historyLoadID,context.read<tenantConfigProvider>()?.tenantConfig).then((value) => {
-
-           offloadData = getLoadObjectFromJson(widget.historyLoadID),
-           getElementObjectFromJson(widget.historyLoadID),
-           getPartObjectFromJson(widget.historyLoadID),
-           setState(() {
-             projectIdController.text = offloadData!.projectId;
-             dateController.text = offloadData!.loadDate;
-             toWarehouseController.text = offloadData!.toWarehouse;
-             toBinController.text = offloadData!.toBin;
-             loadTypeValue = offloadData!.loadType;
-             loadConditionValue = offloadData!.loadCondition;
-             fromWarehouseController.text = offloadData!.fromWarehouse;
-             isLoaded = true;
-           }),
-
-
-    });
-
-
-    }
-    else{
+      dataLoaded = fetchLoadDataFromURL(widget.historyLoadID,
+              context.read<tenantConfigProvider>().tenantConfig)
+          .then((value) => {
+                offloadData = getLoadObjectFromJson(widget.historyLoadID),
+                getElementObjectFromJson(widget.historyLoadID),
+                getPartObjectFromJson(widget.historyLoadID),
+                setState(() {
+                  projectIdController.text = offloadData!.projectId;
+                  dateController.text = offloadData!.loadDate;
+                  toWarehouseController.text = offloadData!.toWarehouse;
+                  toBinController.text = offloadData!.toBin;
+                  loadTypeValue = offloadData!.loadType;
+                  loadConditionValue = offloadData!.loadCondition;
+                  fromWarehouseController.text = offloadData!.fromWarehouse;
+                  isLoaded = true;
+                }),
+              });
+    } else {
       dataLoaded = Future.value(true);
       setState(() {
         isLoaded = true;
       });
-    };
+    }
     super.initState();
   }
 
@@ -199,7 +196,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
     _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
     loadTimeController.text = DateFormat('HH:mm').format(DateTime.now());
-    final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
+    final  tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
     return PopScope(
         canPop: false,
         onPopInvoked: (didPop) {
@@ -916,7 +913,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,tenantConfig: tenantConfigP,),
+                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_addElement,Project:projectIdController.text,tenantConfig: tenantConfigP,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),
@@ -932,7 +929,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             fontSize: 18,
                                             color: Colors.blue),
                                       ),
-                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
+                                      ElementTable(selectedElements: selectedElements,DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
                                       const SizedBox(
                                         height: 20,
                                       ),
@@ -1123,7 +1120,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                              await updateUD103A({
                                                "Company": "${tenantConfigP['company']}",
                                                "Key1": loadIDController.text,
-        /*                                           "ChildKey1": "${++ChildCount}",*/
                                                "Character01": selectedParts[p].partNum,
                                                "Character02": selectedParts[p].partDesc,
                                                "Character03": toWarehouseController.text,
@@ -1184,7 +1180,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
 
   }
-  void _AddElement(ElementData element){
+  void _addElement(ElementData element){
     setState(() {
       selectedElements.add(element);
     });
@@ -1284,9 +1280,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     };
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final SumbitReportURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final submitReportURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
-          SumbitReportURL,
+          submitReportURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1309,9 +1305,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final PDFCountsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${tenantConfigP['company']})');
+      final pdfCountsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${tenantConfigP['company']})');
       final response = await http.get(
-          PDFCountsURL,
+          pdfCountsURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1352,7 +1348,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-  Future<Uint8List> DeliveryNote(String base64String) async {
+  Future<Uint8List> deliveryNote(String base64String) async {
     Uint8List decodedBytes = base64.decode(base64String);
     final pdf = pw.Document();
     final directory = await getApplicationDocumentsDirectory();
@@ -1644,7 +1640,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.delete(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As(${tenantConfigP['company']},${loadIDController.text},,,,,${childKey1},,,,)'),
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As(${tenantConfigP['company']},${loadIDController.text},,,,,$childKey1,,,,)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

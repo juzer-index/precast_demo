@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:IIT_precast_app/part_model.dart';
+import 'part_model.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'element_model.dart';
 

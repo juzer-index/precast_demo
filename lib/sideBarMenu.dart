@@ -137,7 +137,7 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => LoadHistory(loads:loads!=null?loads:[],AddLoad:AddLoadData,tenantConfig: tenantConfig,)));
+                      builder: (context) => LoadHistory(loads:loads!=null?loads:[],addLoad:AddLoadData,tenantConfig: tenantConfig,)));
               // Navigator.push(context, route);
             }),
         const Divider(),
