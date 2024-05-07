@@ -12,10 +12,10 @@ class ElementSearchForm extends StatefulWidget {
   final Function(ElementData) addElement;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  dynamic Project;
-  dynamic Warehouse;
+  dynamic project;
+  dynamic warehouse;
   bool disabled;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project,this.disabled=false});
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.warehouse, required this.addElement ,  this.project,this.disabled=false});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -490,7 +490,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         labelText: "Lot No.",
                       ),
                     ),
-                    items: elements.isNotEmpty?elements:[],
+                    items:elements.isNotEmpty? elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList():[],
                     onChanged: (value) async {
                       setState(() {
                         selectable = false;
@@ -671,7 +671,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               selectedQty: selectedQtyController.text,
                               ChildKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
                             ));
+                            elements.removeWhere((element) => element==lotNoController.text);
                           });
+
 
                         }
                         if (!isElement){

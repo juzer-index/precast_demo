@@ -701,7 +701,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                               color: Colors.blue),
                                                         ),
                                                       ),
-                                                    ),
+
                                                     RadioListTile(
                                                       title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                       value: 'Return',
@@ -729,6 +729,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   ]
                                               ),
                                             ),
+                    ),
                                             Expanded(
                                               child: AbsorbPointer(
                                                 absorbing: widget.isUpdate,
@@ -743,7 +744,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                               color: Colors.blue),
                                                         ),
                                                       ),
-                                                    ),
+
                                                     RadioListTile(
                                                       title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                       value: 'External',
@@ -783,6 +784,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     )
                                                   ]
                                               ),
+                                            ),
                                             ),
                                           ]
                                       ),
@@ -927,7 +929,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected:  updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,disabled: disabled?true:false,),
+                                              child: ElementSearchForm(onElementsSelected:  updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , addElement:_AddElement,project:projectIdController.text,disabled: disabled?true:false,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),

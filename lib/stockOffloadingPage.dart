@@ -879,7 +879,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, disabled: Offloaded?true:false, ),
+                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,addElement:(ElementData)=>{}, disabled: Offloaded?true:false, ),
                                 ),
                               ),
                               const SizedBox(height: 20,),
