@@ -879,7 +879,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,addElement:(ElementData)=>{}, ),
+                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, disabled: Offloaded?true:false, ),
                                 ),
                               ),
                               const SizedBox(height: 20,),
@@ -895,7 +895,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                   color: Colors.blue),
                             ),
                           ),
-                          ElementTable(selectedElements: selectedElements),
+                          ElementTable(selectedElements: selectedElements,disabled: Offloaded?true:false,),
                           const SizedBox(
                             height: 20,
                           ),

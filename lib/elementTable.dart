@@ -4,7 +4,8 @@ import 'element_model.dart';
 class ElementTable extends StatefulWidget {
   List<ElementData> selectedElements = [];
   dynamic DeletededSaveElements=[];
-  ElementTable({super.key, required this.selectedElements,this.DeletededSaveElements});
+  dynamic disabled ;
+  ElementTable({super.key, required this.selectedElements,this.DeletededSaveElements, this.disabled });
 
   @override
   State<ElementTable> createState() => _ElementTableState();
@@ -32,11 +33,14 @@ class _ElementTableState extends State<ElementTable> {
             DataCell(Text(row.erectionSeq)),
             DataCell(IconButton(
               icon: const Icon(Icons.delete),
+
               onPressed: () {
+                if(!widget.disabled)
                 setState(() {
                   widget.selectedElements.remove(row);
                   if(widget.DeletededSaveElements!=null){
                     widget.DeletededSaveElements.add(row.ChildKey1);
+
                   }
                 });
               },

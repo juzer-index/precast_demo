@@ -12,9 +12,10 @@ class ElementSearchForm extends StatefulWidget {
   final Function(ElementData) addElement;
   List<ElementData>? arrivedElements = [];
   bool isOffloading;
-  dynamic project;
-  dynamic warehouse;
-  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.warehouse, required this.addElement ,  this.project});
+  dynamic Project;
+  dynamic Warehouse;
+  bool disabled;
+  ElementSearchForm({super.key, required this.onElementsSelected, this.arrivedElements, required this.isOffloading , this.Warehouse, required this.AddElement ,  this.Project,this.disabled=false});
 
   @override
   State<ElementSearchForm> createState() => _ElementSearchFormState();
@@ -61,6 +62,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   bool isElement = false;
   bool isLoading = false;
   bool selectable = false;
+
+  // bool isConsumable = false;
+
+ // late Future _dataFuture;
 
   var partURL = Uri.parse(
       'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
@@ -255,78 +260,84 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                       child: CircularProgressIndicator(),
                     ) : IconButton(
                       onPressed: () async {
-                        elements.clear();
-                        lotNoController.text = '';
-                        if (!widget.isOffloading) {
-                          if (elementNumberController.text.isNotEmpty) {
-                            setState(() {
-                              isLoading = true;
-                              lotNoController.text = '';
-                              elementDescriptionController.text = '';
-                              lotNoController.text = '';
-                              uomController.text = '';
-                              erectionSeqController.text = '';
-                              weightController.text = '';
-                              areaController.text = '';
-                              volumeController.text = '';
-                              estErectionDateController.text = '';
-                            });
-                            setState(() {
-                              isElement = false;
-                            });
-                            await getAllParts(elementNumberController.text);
+                        if(!widget.disabled) {
+                          elements.clear();
+                          lotNoController.text = '';
+                          if (!widget.isOffloading) {
+                            if (elementNumberController.text.isNotEmpty) {
+                              setState(() {
+                                isLoading = true;
+                                lotNoController.text = '';
+                                elementDescriptionController.text = '';
+                                lotNoController.text = '';
+                                uomController.text = '';
+                                erectionSeqController.text = '';
+                                weightController.text = '';
+                                areaController.text = '';
+                                volumeController.text = '';
+                                estErectionDateController.text = '';
+                              });
+                              setState(() {
+                                isElement = false;
+                              });
+                              await getAllParts(elementNumberController.text);
 
 
-                            if(partValue[0]['Part_IsElementPart_c'] == true){
-
-                              await getLotForElements();
-                              if(elements.isNotEmpty){
+                              if (partValue[0]['Part_IsElementPart_c'] ==
+                                  true) {
+                                await getLotForElements();
+                                if (elements.isNotEmpty) {
+                                  setState(() {
+                                    isElement = true;
+                                    isLoading = false;
+                                  });
+                                }
+                              }
+                              else {
+                                isElement = false;
+                                await getConsumableDetails(
+                                    elementNumberController.text);
                                 setState(() {
-                                  isElement = true;
                                   isLoading = false;
                                 });
                               }
                             }
-                            else{
-
-                              isElement = false;
-                              await getConsumableDetails(elementNumberController.text);
-                              setState(() {
-                                isLoading = false;
-                              });
-                            }}
                           }
-                       if(widget.isOffloading){
-                          if(elementNumberController.text.isNotEmpty){
-                            for(var i = 0; i < widget.arrivedElements!.length; i++) {
-                              if (widget.arrivedElements![i].partId ==
-                                  elementNumberController.text) {
-                                elements.add(widget.arrivedElements![i]
-                                    .elementId);
-                                setState(() {
-                                  isElement = true;
-                                });
-                              }
-                            }
-                          } else{
-                                if (mounted) {
-                                  showDialog(context: context, builder: (BuildContext context){
-                                    return AlertDialog(
-                                      title: const Text('Error'),
-                                      content: const Text('Part not found in arrived elements'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text('OK'),
-                                        ),
-                                      ],
-                                    );
+                          if (widget.isOffloading) {
+                            if (elementNumberController.text.isNotEmpty) {
+                              for (var i = 0; i <
+                                  widget.arrivedElements!.length; i++) {
+                                if (widget.arrivedElements![i].partId ==
+                                    elementNumberController.text) {
+                                  elements.add(widget.arrivedElements![i]
+                                      .elementId);
+                                  setState(() {
+                                    isElement = true;
                                   });
                                 }
                               }
+                            } else {
+                              if (mounted) {
+                                showDialog(context: context, builder: (
+                                    BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Error'),
+                                    content: const Text(
+                                        'Part not found in arrived elements'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                });
+                              }
                             }
+                          }
+                        }
                         }
                       ,
                       icon: const Icon(Icons.search),
