@@ -136,6 +136,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final Future dataLoaded;
   bool isPrinting = false ;
   int pdfCount =0;
+  bool creationDisabled=false;
+  bool disabled=false;
   @override
   void initState()  {
     fromWarehouseController.text='Default';
@@ -385,6 +387,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   await fetchLoadDataFromURL(loadIDController.text);
                                                  // await fetchElementDataFromURL();
                                                   //await fetchPartDataFromURL();
+                                                  setState(() {
+                                                    disabled=false;
+                                                  });
                                                   String projectLoadID = loadIDController.text;
                                                   offloadData = getLoadObjectFromJson(projectLoadID);
                                                   getElementObjectFromJson(projectLoadID);
@@ -437,7 +442,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
                                               return DropdownSearch(
                                                 selectedItem: projectIdController.text,
-                                                enabled: !widget.isUpdate,
+                                                enabled: !widget.isUpdate&&!creationDisabled,
                                                 popupProps: const PopupProps.modalBottomSheet(
                                                   showSearchBox: true,
                                                   searchFieldProps: TextFieldProps(
@@ -471,7 +476,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
                                               child: TextFormField(
-                                                enabled: !widget.isUpdate,
+                                                enabled: !widget.isUpdate&&!disabled,
                                                 controller: dateController,
                                                 onTap: () async {
                                                   final DateTime? date = await showDatePicker(
@@ -512,7 +517,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               child: Padding(
                                                 padding: const EdgeInsets.all(8.0),
                                                 child: TextFormField(
-                                                  enabled: !widget.isUpdate,
+                                                  enabled: !widget.isUpdate&&!creationDisabled,
                                                   onTap: () async {
                                                     final TimeOfDay? time = await showTimePicker(
                                                       context: context,
@@ -554,7 +559,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               padding: const EdgeInsets.all(8.0),
                                               child: DropdownSearch(
                                                 selectedItem: fromWarehouseController.text,
-                                                enabled: true,
+                                                enabled: !widget.isUpdate&&!creationDisabled,
                                                 popupProps: const PopupProps.modalBottomSheet(
                                                   showSearchBox: true,
                                                   searchFieldProps: TextFieldProps(
@@ -622,7 +627,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         padding: const EdgeInsets.all(8.0),
                                         child: DropdownSearch(
                                           selectedItem: toBinController.text,
-                                          enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty,
+                                          enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty&&!disabled,
                                           popupProps: const PopupProps.modalBottomSheet(
                                             showSearchBox: true,
                                             searchFieldProps: TextFieldProps(
@@ -698,6 +703,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       value: 'Return',
                                                       groupValue: loadTypeValue,
                                                       onChanged: (value) {
+                                                        if(!creationDisabled)
                                                         setState(() {
                                                           loadTypeValue =
                                                               value.toString();
@@ -709,6 +715,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       value: 'Issue Load',
                                                       groupValue: loadTypeValue,
                                                       onChanged: (value) {
+                                                         if(!creationDisabled)
                                                         setState(() {
                                                           loadTypeValue =
                                                               value.toString();
@@ -735,6 +742,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       value: 'External',
                                                       groupValue: loadConditionValue,
                                                       onChanged: (value) {
+                                                        if(!creationDisabled)
                                                         setState(() {
                                                           loadConditionValue =
                                                               value.toString();
@@ -746,6 +754,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       value: 'Internal Truck',
                                                       groupValue: loadConditionValue,
                                                       onChanged: (value) {
+                                                        if(!creationDisabled)
                                                         setState(() {
                                                           loadConditionValue =
                                                               value.toString();
@@ -756,7 +765,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
                                                       value: 'Ex-Factory',
                                                       groupValue: loadConditionValue,
+
                                                       onChanged: (value) {
+                                                        if(!creationDisabled)
                                                         setState(() {
                                                           loadConditionValue =
                                                               value.toString();
@@ -778,7 +789,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         ),
                                       ),
                                       if(!widget.isUpdate)
-                                        buildTruckDetailsFrom(true),
+                                        buildTruckDetailsFrom(disabled?false:true),
                                       if(widget.isUpdate)
                                         TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
                                       const SizedBox(height: 20),
@@ -791,7 +802,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           },
                                           child: const Text('Next'),
                                         ),
-                                      if(!widget.isUpdate)
+                                      if(!widget.isUpdate&&!creationDisabled)
                                         ElevatedButton(
                                             onPressed: () async {
                                               if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
@@ -844,6 +855,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 });
                                                 debugPrint(toWarehouseNameController.text);
                                                 if(isLoaded){
+                                                  setState(() {
+                                                    creationDisabled=true;
+                                                  });
                                                   if(mounted) {
                                                     showDialog(context: context,
                                                         builder: (BuildContext context) {
@@ -906,7 +920,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text),
+                                              child: ElementSearchForm(onElementsSelected:  updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_AddElement,Project:projectIdController.text,disabled: disabled?true:false,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),
@@ -922,7 +936,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             fontSize: 18,
                                             color: Colors.blue),
                                       ),
-                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
+                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,disabled: disabled==true?true:false,),
                                       const SizedBox(
                                         height: 20,
                                       ),
@@ -1057,7 +1071,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           fontSize: 18,
                                           color: Colors.blue),),
                                     ),
-                                    ElementTable(selectedElements: selectedElements),
+                                    ElementTable(selectedElements: selectedElements,disabled: disabled?true:false,),
                                     const Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Selected Parts', style: TextStyle(
@@ -1067,80 +1081,158 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     ),
                                     PartTable(selectedParts: selectedParts),
                                     const SizedBox(height: 20,),
+                                    if(!disabled)
                                     ElevatedButton(
+
                                         onPressed: () async {
-                                          debugPrint(selectedElements.length.toString());
-                                          for(var e = 0; e < selectedElements.length; e++){
-                                            debugPrint(selectedElements[e].toString());
-                                            try {
+                                          if(selectedElements.length>0) {
+                                            debugPrint(selectedElements.length
+                                                .toString());
+                                            for (var e = 0; e <
+                                                selectedElements.length; e++) {
+                                              debugPrint(selectedElements[e]
+                                                  .toString());
+                                              try {
+                                                await updateUD103A({
+                                                  "Company": "158095",
+                                                  "ChildKey1": selectedElements[e]
+                                                      .ChildKey1,
+                                                  "Key1": loadIDController.text,
+                                                  "Character01": selectedElements[e]
+                                                      .partId,
+                                                  "Character02": selectedElements[e]
+                                                      .elementId,
+                                                  "Character03": fromWarehouseController
+                                                      .text,
+                                                  "Character07": toWarehouseController
+                                                      .text,
+                                                  "Character08": toBinController
+                                                      .text,
+                                                  "Number01": selectedElements[e]
+                                                      .selectedQty
+                                                      .toString()
+                                                      .isNotEmpty
+                                                      ? selectedElements[e]
+                                                      .selectedQty.toString()
+                                                      : '0',
+                                                  "Number03": selectedElements[e]
+                                                      .weight
+                                                      .toString()
+                                                      .isNotEmpty
+                                                      ? selectedElements[e]
+                                                      .weight
+                                                      : '0',
+                                                  "Number04": selectedElements[e]
+                                                      .area
+                                                      .toString()
+                                                      .isNotEmpty
+                                                      ? selectedElements[e].area
+                                                      : '0',
+                                                  "Number05": selectedElements[e]
+                                                      .volume
+                                                      .toString()
+                                                      .isNotEmpty
+                                                      ? selectedElements[e]
+                                                      .volume
+                                                      : '0',
+                                                  "Number06": selectedElements[e]
+                                                      .erectionSeq
+                                                      .toString()
+                                                      .isNotEmpty
+                                                      ? selectedElements[e]
+                                                      .erectionSeq
+                                                      : '0',
+                                                  "ShortChar07": selectedElements[e]
+                                                      .UOM,
+                                                  "CheckBox05": false,
+                                                  "CheckBox01": true,
+                                                  "CheckBox02": false,
+                                                  "CheckBox03": false,
+                                                  "CheckBox13": false,
+                                                });
+                                                updateInTransit(
+                                                    selectedElements[e].partId,
+                                                    selectedElements[e]
+                                                        .elementId);
+                                                childCount++;
+                                              } on Exception catch (e) {
+                                                debugPrint(e.toString());
+                                              }
+                                            }
+                                            for (int i = 0; i <
+                                                deletedSavedElements
+                                                    .length; i++) {
+                                              try {
+                                                await deleteUD103A(
+                                                    deletedSavedElements[i]);
+                                              } catch (e) {
+                                                debugPrint(e.toString());
+                                              }
+                                            }
+                                            for (var p = 0; p <
+                                                selectedParts.length; p++) {
+                                              debugPrint(
+                                                  selectedParts[p].toString());
                                               await updateUD103A({
                                                 "Company": "158095",
-                                                "ChildKey1": selectedElements[e].ChildKey1,
                                                 "Key1": loadIDController.text,
-                                                "Character01": selectedElements[e].partId,
-                                                "Character02": selectedElements[e].elementId,
-                                                "Character03": fromWarehouseController.text,
-                                                "Character07": toWarehouseController.text,
-                                                "Character08": toBinController.text,
-                                                "Number01": selectedElements[e].selectedQty.toString().isNotEmpty? selectedElements[e].selectedQty.toString() : '0',
-                                                "Number03": selectedElements[e].weight.toString().isNotEmpty ? selectedElements[e].weight : '0',
-                                                "Number04": selectedElements[e].area.toString().isNotEmpty ? selectedElements[e].area : '0',
-                                                "Number05": selectedElements[e].volume.toString().isNotEmpty ? selectedElements[e].volume : '0',
-                                                "Number06": selectedElements[e].erectionSeq.toString().isNotEmpty  ? selectedElements[e].erectionSeq : '0',
-                                                "ShortChar07": selectedElements[e].UOM,
-                                                "CheckBox05":false,
-                                                "CheckBox01":true,
-                                                "CheckBox02":false,
-                                                "CheckBox03":false,
-                                                "CheckBox13": false,
+                                                /*                                           "ChildKey1": "${++ChildCount}",*/
+                                                "Character01": selectedParts[p]
+                                                    .partNum,
+                                                "Character02": selectedParts[p]
+                                                    .partDesc,
+                                                "Character03": toWarehouseController
+                                                    .text,
+                                                "Character04": toBinController
+                                                    .text,
+                                                "Number01": selectedParts[p]
+                                                    .qty,
+                                                "ShortChar07": selectedParts[p]
+                                                    .uom,
+                                                "CheckBox13": true,
                                               });
-                                              updateInTransit(selectedElements[e].partId, selectedElements[e].elementId);
-                                              childCount++;
-                                            } on Exception catch (e) {
-                                              debugPrint(e.toString());
+                                            }
+                                            if (mounted) {
+                                              setState(() {
+                                                disabled = true;
+                                              });
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (
+                                                      BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text(
+                                                          'Success'),
+                                                      content: Text(
+                                                          'Stock Loading details saved successfully, LoadID: ${loadIDController
+                                                              .text}'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                                context).pop();
+                                                          },
+                                                          child: const Text(
+                                                              'OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
                                             }
                                           }
-                                          for(int i=0;i<deletedSavedElements.length;i++){
-                                            try{
-                                              await deleteUD103A(deletedSavedElements[i]);
-                                            }catch(e){
-                                              debugPrint(e.toString());
-                                            }
-
-                                          }
-                                          for (var p = 0; p < selectedParts.length; p++){
-                                            debugPrint(selectedParts[p].toString());
-                                             await updateUD103A({
-                                               "Company": "158095",
-                                               "Key1": loadIDController.text,
-        /*                                           "ChildKey1": "${++ChildCount}",*/
-                                               "Character01": selectedParts[p].partNum,
-                                               "Character02": selectedParts[p].partDesc,
-                                               "Character03": toWarehouseController.text,
-                                               "Character04": toBinController.text,
-                                               "Number01": selectedParts[p].qty,
-                                               "ShortChar07": selectedParts[p].uom,
-                                               "CheckBox13": true,
-                                            });
-                                          }
-                                          if (mounted) {
-                                            showDialog(
-                                                context: context,
-                                                builder: (BuildContext context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Success'),
-                                                    content: Text(
-                                                        'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                        },
-                                                        child: const Text('OK'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                });
+                                          else{
+                                            showDialog(context: context, builder:(context)=>AlertDialog(title: Text("Warning"),
+                                              content: Text("No Lines Added To Be Saved"),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(
+                                                        context).pop();
+                                                  },
+                                                  child: const Text(
+                                                      'OK'),
+                                                ),
+                                              ],) );
                                           }
                                         },
                                         child: const Text(
