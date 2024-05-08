@@ -47,6 +47,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Map<String, dynamic> lotData = {};
 
   List<dynamic> consumables = [];
+  List<dynamic> AllElements = [];
   List<dynamic> elements = [];
   List<dynamic> lots = [];
   Map<String, dynamic> elementListData = {};
@@ -138,7 +139,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         elementData = jsonDecode(response.body);
         elementValue = elementData['value'];
 
-        elements= elementValue.map((e) => e['PartLot_LotNum']).toList();
+        AllElements= elementValue.map((e) => e['PartLot_LotNum']).toList();
+        elements=AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
 
         debugPrint(elements.toString());
       } else {
@@ -237,7 +239,23 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     totalElements = widget.arrivedElements!;}
   }
   @override
+  void widgetDidUpdate(covariant oldWidget) {
+
+    if(!widget.isOffloading){
+      totalElements = widget.arrivedElements!;
+    if(AllElements.length>0&&totalElements.length>0){
+      setState(() {
+        elements=AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+      });
+
+    }
+    }
+  }
+  @override
   Widget build(BuildContext context) {
+    setState(() {
+      elements= AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+    });
           return Column(
             children: [
               Row(
@@ -490,10 +508,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         labelText: "Lot No.",
                       ),
                     ),
-                    items:elements.isNotEmpty? elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList():[],
+                    items:totalElements.isEmpty?elements: elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList(),
                     onChanged: (value) async {
                       setState(() {
                         selectable = false;
+                        elements.removeWhere((element) => element==value);
                       });
                       await getElementDetailsFromLot(value, elementNumberController.text);
 

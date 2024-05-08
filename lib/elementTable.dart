@@ -5,7 +5,8 @@ class ElementTable extends StatefulWidget {
   List<ElementData> selectedElements = [];
   dynamic DeletededSaveElements=[];
   dynamic disabled ;
-  ElementTable({super.key, required this.selectedElements,this.DeletededSaveElements, this.disabled });
+  dynamic OnElementSelected;
+  ElementTable({super.key, required this.selectedElements,this.DeletededSaveElements, this.disabled , this.OnElementSelected});
 
   @override
   State<ElementTable> createState() => _ElementTableState();
@@ -37,7 +38,9 @@ class _ElementTableState extends State<ElementTable> {
               onPressed: () {
                 if(!widget.disabled)
                 setState(() {
+
                   widget.selectedElements.remove(row);
+                  widget.OnElementSelected(widget.selectedElements,[]);
                   if(widget.DeletededSaveElements!=null){
                     widget.DeletededSaveElements.add(row.ChildKey1);
 

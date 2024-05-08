@@ -945,7 +945,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             fontSize: 18,
                                             color: Colors.blue),
                                       ),
-                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,disabled: disabled==true?true:false,),
+                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,disabled: disabled==true?true:false,OnElementSelected:updateElementInformation,),
                                       const SizedBox(
                                         height: 20,
                                       ),
@@ -1080,7 +1080,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           fontSize: 18,
                                           color: Colors.blue),),
                                     ),
-                                    ElementTable(selectedElements: selectedElements,disabled: disabled?true:false,),
+                                    ElementTable(selectedElements: selectedElements,disabled: disabled?true:false,OnElementSelected: updateElementInformation),
                                     const Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Selected Parts', style: TextStyle(
@@ -1090,6 +1090,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     ),
                                     PartTable(selectedParts: selectedParts),
                                     const SizedBox(height: 20,),
+
                                     if(!disabled)
                                     ElevatedButton(
 
