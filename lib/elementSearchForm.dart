@@ -34,6 +34,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   TextEditingController onHandQtyController = TextEditingController();
   TextEditingController selectedQtyController = TextEditingController();
   TextEditingController uomController = TextEditingController();
+  String fromBin='';
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts  = [];
   TextEditingController lotNoController = TextEditingController();
@@ -86,14 +87,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(response.toString());
       if (response.statusCode == 200) {
         partData = jsonDecode(response.body);
+
          setState(() {
             partValue = partData['value'];
+            if(partValue.length>0){
+              fromBin=partValue[0]['PartBin_BinNum'];
+            }
          });
-         if(partValue.isEmpty){
-           setState(() {
-              isLoading = false;
-           });
-         }
+
 
 
 
@@ -301,7 +302,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               await getAllParts(elementNumberController.text);
 
 
-                              if (partValue[0]['Part_IsElementPart_c'] ==
+                              if (partValue.length>0&&partValue[0]['Part_IsElementPart_c'] ==
                                   true) {
                                 await getLotForElements();
                                 if (elements.isNotEmpty) {
@@ -689,6 +690,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               quantity: onHandQtyController.text,
                               selectedQty: selectedQtyController.text,
                               ChildKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
+                              BinNum: fromBin,
                             ));
                             elements.removeWhere((element) => element==lotNoController.text);
                           });
@@ -759,7 +761,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   partNum: elementNumberController.text,
                                   partDesc: elementDescriptionController.text,
                                   uom: uomController.text,
-                                  qty: selectedQtyController.text));
+                                  qty: selectedQtyController.text,
+                                 BinNum: fromBin));
                             }
                           }
                         }

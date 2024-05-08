@@ -6,7 +6,8 @@ class PartData {
   late final String uom;
   late final String qty;
   late final String? selectedQty;
-  PartData({required this.partNum, required this.partDesc, required this.uom, required this.qty, this.selectedQty});
+  late final String? BinNum;
+  PartData({required this.partNum, required this.partDesc, required this.uom, required this.qty, this.selectedQty,this.BinNum});
 
   factory PartData.fromJson(Map<String, dynamic> json) {
     return PartData(
