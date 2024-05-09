@@ -66,7 +66,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   bool selectable = false;
 
   List<dynamic> partBinData = [];
-
+  bool scanning=false;
   // bool isConsumable = false;
 
  // late Future _dataFuture;
@@ -108,10 +108,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     }
   }
 
-  Future<void> getBinNumforScannedElement(String partNum) async {
+  Future<void> getBinNumforScannedElement(String partNum, String warehouse,String project) async {
     try {
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\''),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\' and PartWhse_WarehouseCode eq \'${warehouse}\'and PartLot_Project_c eq \'${project}\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -121,15 +121,22 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         partData = jsonDecode(response.body);
         setState(() {
           partBinData = partData['value'];
-          fromBin = partValue[0]['PartBin_BinNum'];
+          fromBin = partBinData[0]['PartBin_BinNum'];
+          scanning=false;
         });
         debugPrint(fromBin);
       } else {
         debugPrint(response.statusCode.toString());
+        setState(() {
+          scanning = false;
+        });
       }
     }
     on Exception catch (e) {
       debugPrint(e.toString());
+      setState(() {
+        scanning = false;
+      });
     }
   }
   
@@ -248,11 +255,18 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           });
       if (response.statusCode == 200) {
         elementListData = jsonDecode(response.body);
+
       } else {
         debugPrint(response.statusCode.toString());
+        setState(() {
+          scanning = false;
+        });
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
+      setState(() {
+        scanning = false;
+      });
     }
   }
   @override
@@ -385,7 +399,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: IconButton(
+                    child: scanning? const Center(
+                      child: CircularProgressIndicator(), //QR Code Scanner
+                    )
+                        :IconButton(
                       onPressed: () {
                         showDialog(
                             context: context,
@@ -432,8 +449,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   elementId = scanResult.sublist(3).join("-");
                                                   partNum = scanResult[2];
                                                   companyId = scanResult[1];
+                                                  setState(() {
+                                                    scanning = true;
+                                                  });
                                                   await getScannedElement(partNum, elementId, companyId);
-                                                  await getBinNumforScannedElement(partNum);
+                                                  await getBinNumforScannedElement(partNum,widget.warehouse,widget.project);
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
                                                     return AlertDialog(
