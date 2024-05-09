@@ -833,7 +833,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 );
                                               } else {
                                                 final newLoadId = 'I-${lastLoad!=50?lastLoad + 1:50}';
-                                                final loadDateFormat = '${_selectedDate}T00:00:00';
+                                                final loadDateFormat = '${_selectedDate}T${loadTimeController.text}:00';
                                                 await createNewLoad({
                                                   "Key1": newLoadId,
                                                   "Company": "158095",
@@ -1138,7 +1138,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       .toString()
                                                       .isNotEmpty
                                                       ? selectedElements[e].area
-                                                      : '0',
+                                                      : '1',
                                                   "Number05": selectedElements[e]
                                                       .volume
                                                       .toString()

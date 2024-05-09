@@ -123,12 +123,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           partBinData = partData['value'];
           fromBin = partBinData[0]['PartBin_BinNum'];
           scanning=false;
+          selectable=false;
         });
         debugPrint(fromBin);
       } else {
         debugPrint(response.statusCode.toString());
         setState(() {
           scanning = false;
+          selectable = false;
         });
       }
     }
@@ -260,12 +262,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         debugPrint(response.statusCode.toString());
         setState(() {
           scanning = false;
+          selectable = false;
         });
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
       setState(() {
         scanning = false;
+        selectable = false;
       });
     }
   }
@@ -451,9 +455,33 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   companyId = scanResult[1];
                                                   setState(() {
                                                     scanning = true;
+                                                    selectable = false;
                                                   });
                                                   await getScannedElement(partNum, elementId, companyId);
                                                   await getBinNumforScannedElement(partNum,widget.warehouse,widget.project);
+                                                  setState(() {
+                                                    isElement = true;
+                                                    elementNumberController.text = partNum;
+                                                    elementDescriptionController.text = elementListData['PartLotDescription'];
+                                                    lotNoController.text = elementListData['LotNum'];
+                                                    uomController.text = elementListData['PartNumSalesUM'];
+                                                    erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
+                                                    weightController.text = elementListData['Ton_c'];
+                                                    areaController.text = elementListData['M2_c'];
+                                                    volumeController.text = elementListData['M3_c'];
+                                                    estErectionDateController.text = elementListData['ErectionPlannedDate_c'] ?? '';
+                                                    onHandQtyController.text = '1';
+                                                    selectedQtyController.text = '1';
+                                                    elementResult = scanData;
+                                                    elementResultCode =
+                                                        elementResult?.code ??
+                                                            'Unknown';
+                                                    elementNumberController.text =
+                                                        partNum;
+                                                    selectable = true;
+
+                                                  });
+
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
                                                     return AlertDialog(
@@ -470,7 +498,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                     );
                                                   });
                                                 }
-                                                await getScannedElement(partNum, elementId, companyId);
+                                          /*      await getScannedElement(partNum, elementId, companyId);
                                                 setState(() {
                                                   isElement = true;
                                                   elementNumberController.text = partNum;
@@ -490,7 +518,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   elementNumberController.text =
                                                   partNum;
                                                   selectable = true;
-                                                });
+                                                });*/
                                               });
                                             },
                                           ),
