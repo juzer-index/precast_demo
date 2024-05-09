@@ -42,7 +42,7 @@ class _ElementTableState extends State<ElementTable> {
                   widget.selectedElements.remove(row);
                   widget.OnElementSelected(widget.selectedElements,[]);
                   if(widget.DeletededSaveElements!=null){
-                    widget.DeletededSaveElements.add(row.ChildKey1);
+                    widget.DeletededSaveElements.add(row.childKey1);
 
                   }
                 });

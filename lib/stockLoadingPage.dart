@@ -1106,7 +1106,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 await updateUD103A({
                                                   "Company": "158095",
                                                   "ChildKey1": selectedElements[e]
-                                                      .ChildKey1,
+                                                      .childKey1,
                                                   "Key1": loadIDController.text,
                                                   "Character01": selectedElements[e]
                                                       .partId,
@@ -1114,7 +1114,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       .elementId,
                                                   "Character03": fromWarehouseController
                                                       .text,
-                                                  "Character04": selectedElements[e].BinNum,
+                                                  "Character04": selectedElements[e].binNum,
                                                   "Character07": toWarehouseController
                                                       .text,
                                                   "Character08": toBinController
@@ -1154,7 +1154,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       .erectionSeq
                                                       : '0',
                                                   "ShortChar07": selectedElements[e]
-                                                      .UOM,
+                                                      .uom,
                                                   "CheckBox05": false,
                                                   "CheckBox01": true,
                                                   "CheckBox02": false,

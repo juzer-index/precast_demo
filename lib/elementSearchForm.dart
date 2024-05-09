@@ -48,7 +48,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Map<String, dynamic> lotData = {};
 
   List<dynamic> consumables = [];
-  List<dynamic> AllElements = [];
+  List<dynamic> allElements = [];
   List<dynamic> elements = [];
   List<dynamic> lots = [];
   Map<String, dynamic> elementListData = {};
@@ -65,13 +65,15 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   bool isLoading = false;
   bool selectable = false;
 
+  List<dynamic> partBinData = [];
+
   // bool isConsumable = false;
 
  // late Future _dataFuture;
 
   var partURL = Uri.parse(
       'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)');
-  Future<void> getAllParts(String partNum ) async {
+  Future<void> getAllParts(String partNum) async {
     try {
       final response = await http.get(
             Uri.parse(
@@ -87,17 +89,12 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(response.toString());
       if (response.statusCode == 200) {
         partData = jsonDecode(response.body);
-
          setState(() {
             partValue = partData['value'];
-            if(partValue.length>0){
+            if(partValue.isNotEmpty){
               fromBin=partValue[0]['PartBin_BinNum'];
             }
          });
-
-
-
-
         debugPrint(partValue.length.toString());
       } else {
         setState(() {
@@ -110,13 +107,38 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
+
+  Future<void> getBinNumforScannedElement(String partNum) async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\''),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if (response.statusCode == 200) {
+        partData = jsonDecode(response.body);
+        setState(() {
+          partBinData = partData['value'];
+          fromBin = partValue[0]['PartBin_BinNum'];
+        });
+        debugPrint(fromBin);
+      } else {
+        debugPrint(response.statusCode.toString());
+      }
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   
   int specifyMaxChildKey(){
     List<ElementData>elements=totalElements;
     int max = 0;
     for(var i = 0; i < elements.length; i++){
-      if(int.parse(elements[i].ChildKey1) > max){
-        max = int.parse(elements[i].ChildKey1);
+      if(int.parse(elements[i].childKey1) > max){
+        max = int.parse(elements[i].childKey1);
       }
     }
     return max;
@@ -140,8 +162,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         elementData = jsonDecode(response.body);
         elementValue = elementData['value'];
 
-        AllElements= elementValue.map((e) => e['PartLot_LotNum']).toList();
-        elements=AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+        allElements= elementValue.map((e) => e['PartLot_LotNum']).toList();
+        elements=allElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
 
         debugPrint(elements.toString());
       } else {
@@ -239,14 +261,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     if(!widget.isOffloading){
     totalElements = widget.arrivedElements!;}
   }
-  @override
   void widgetDidUpdate(covariant oldWidget) {
 
     if(!widget.isOffloading){
       totalElements = widget.arrivedElements!;
-    if(AllElements.length>0&&totalElements.length>0){
+    if(allElements.isNotEmpty && totalElements.isNotEmpty){
       setState(() {
-        elements=AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+        elements=allElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
       });
 
     }
@@ -255,7 +276,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   @override
   Widget build(BuildContext context) {
     setState(() {
-      elements= AllElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+      elements= allElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
     });
           return Column(
             children: [
@@ -302,7 +323,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               await getAllParts(elementNumberController.text);
 
 
-                              if (partValue.length>0&&partValue[0]['Part_IsElementPart_c'] ==
+                              if (partValue.isNotEmpty&&partValue[0]['Part_IsElementPart_c'] ==
                                   true) {
                                 await getLotForElements();
                                 if (elements.isNotEmpty) {
@@ -412,6 +433,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   partNum = scanResult[2];
                                                   companyId = scanResult[1];
                                                   await getScannedElement(partNum, elementId, companyId);
+                                                  await getBinNumforScannedElement(partNum);
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
                                                     return AlertDialog(
@@ -673,7 +695,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                       onPressed:!selectable? () { }: () {
                         String key='';
                         if(widget.isOffloading){
-                          key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.ChildKey1;
+                          key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.childKey1;
                         }
                         if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty&&lotNoController.text.isNotEmpty){
                           setState(() {
@@ -683,14 +705,14 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               elementDesc: elementDescriptionController.text,
                               erectionSeq: erectionSeqController.text,
                               erectionDate: estErectionDateController.text,
-                              UOM: uomController.text,
+                              uom: uomController.text,
                               weight: weightController.text,
                               area: areaController.text,
                               volume: volumeController.text,
                               quantity: onHandQtyController.text,
                               selectedQty: selectedQtyController.text,
-                              ChildKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
-                              BinNum: fromBin,
+                              childKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
+                              binNum: fromBin,
                             ));
                             elements.removeWhere((element) => element==lotNoController.text);
                           });

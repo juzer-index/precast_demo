@@ -4,16 +4,16 @@ class ElementData {
   late final String elementDesc;
   late final String erectionSeq;
   late final String erectionDate;
-  late final String UOM;
+  late final String uom;
   late final String weight;
   late final String area;
   late final String volume;
   late final String quantity;
   late final String? selectedQty;
-  late final String BinNum;
+  late final String binNum;
   // late final bool is
- late final String ChildKey1;
-  ElementData({required this.partId, required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.UOM, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty, required this.ChildKey1,required this.BinNum});
+ late final String childKey1;
+  ElementData({required this.partId, required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.uom, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty, required this.childKey1,required this.binNum});
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(
@@ -22,13 +22,13 @@ class ElementData {
       elementDesc: json['Character02'],
       erectionSeq: json['Number06'].toString(),
       erectionDate: json['Date01'] ?? '',
-      UOM: json['ShortChar07'],
+      uom: json['ShortChar07'],
       weight: json['Number01'].toString(),
       area: json['Number02'].toString(),
       volume: json['Number03'].toString(),
       quantity: json['Number04'].toString(),
-      ChildKey1: json['ChildKey1'],
-      BinNum: json['Character04'],
+      childKey1: json['ChildKey1'],
+      binNum: json['Character04'],
     );
   }
 

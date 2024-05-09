@@ -1161,7 +1161,7 @@ class _StockOffloadingState extends State<StockOffloading>
                              for (var v = 0; v < selectedElements.length; v++) {
                                 await updateUD103A({
                                   "Key1": loadIDController.text,
-                                  "ChildKey1":selectedElements[v].ChildKey1,
+                                  "ChildKey1":selectedElements[v].childKey1,
                                   "CheckBox01": true,
                                   "CheckBox02": false,
                                   "CheckBox03": false,
