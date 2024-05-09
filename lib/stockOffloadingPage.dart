@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+import 'package:IIT_precast_app/cornerText.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,6 +62,8 @@ class _StockOffloadingState extends State<StockOffloading>
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
+
+  bool isLoaded = false;
 
   List<PartData> arrivedParts = [];
 
@@ -231,6 +234,7 @@ class _StockOffloadingState extends State<StockOffloading>
           part['CheckBox13'] == true).toList();
           arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
           arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
+          isLoaded = true;
         });
 
         // Resolve the completer when the states are set
@@ -490,102 +494,142 @@ class _StockOffloadingState extends State<StockOffloading>
 
   @override
   Widget build (BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(),
-              Text('Stock Offloading',
-                  style: TextStyle(color: Colors.white)),
-              // ClipOval(
-              //   child: Image.network(
-              //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-              //     height: 35,
-              //     width: 35,
-              //   ),
-              // )
+    return Stack(
+      children: [
+        Scaffold(
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).primaryColor,
+          title: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(),
+                if (isLoaded)
+                  Column(
+                    children: [
+                      const Text('Stock Loading', style: TextStyle(color: Colors.white)),
+                      Text('Load ID: ${loadIDController.text}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                    ],
+                  ),
+                if(!isLoaded)
+                  const Text('Stock Loading', style: TextStyle(color: Colors.white)),
+                // ClipOval(
+                //   child: Image.network(
+                //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                //     height: 35,
+                //     width: 35,
+                //   ),
+                // )
+              ],
+            ),
+          ),
+          actions: const [
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: const [
+              Tab(
+                text: 'Header',
+              ),
+              Tab(
+                text: 'Details',
+              ),
+              Tab(
+                text: 'Review',
+              ),
             ],
           ),
         ),
-        actions: const [
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              text: 'Header',
-            ),
-            Tab(
-              text: 'Details',
-            ),
-            Tab(
-              text: 'Review',
-            ),
-          ],
-        ),
-      ),
-      body:isPrinting? const Center(child: CircularProgressIndicator(),)
-          :Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TabBarView(
-              controller: _tabController,
-                children: [
-                  //Tab 1 Content
-                  SingleChildScrollView(
-                    child: Form(
-                      key: _formKey,
-                      child: Center(
-                        child: Column(children: [
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Load Details',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.blue),
+        body:isPrinting? const Center(child: CircularProgressIndicator(),)
+            :Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TabBarView(
+                controller: _tabController,
+                  children: [
+                    //Tab 1 Content
+                    SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Center(
+                          child: Column(children: [
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Load Details',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.blue),
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: loadIDController,
-                                    decoration: const InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: loadIDController,
+                                      decoration: const InputDecoration(
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.blue),
+                                        ),
+                                        label: Text('Load ID'),
                                       ),
-                                      label: Text('Load ID'),
                                     ),
                                   ),
-                                ),
-                                IconButton(
-                                  onPressed: () async {
-                                    await fetchLoadDataFromURL();
-    /*                                await fetchElementDataFromURL();
-                                    await fetchPartDataFromURL();*/
-                                    /*await fetchElementANDPartsDataFromURL();*/
-                                    String projectLoadID = loadIDController.text;
-                                    offloadData = getLoadObjectFromJson(projectLoadID);
-    /*                                getElementObjectFromJson(projectLoadID);
-                                    getPartObjectFromJson(projectLoadID);*/
-                                    if (offloadData != null) {
-                                      if(offloadData!.loadStatus == 'Closed'){
-                                        Offloaded = true;
+                                  IconButton(
+                                    onPressed: () async {
+                                      await fetchLoadDataFromURL();
+      /*                                await fetchElementDataFromURL();
+                                      await fetchPartDataFromURL();*/
+                                      /*await fetchElementANDPartsDataFromURL();*/
+                                      String projectLoadID = loadIDController.text;
+                                      offloadData = getLoadObjectFromJson(projectLoadID);
+      /*                                getElementObjectFromJson(projectLoadID);
+                                      getPartObjectFromJson(projectLoadID);*/
+                                      if (offloadData != null) {
+                                        if(offloadData!.loadStatus == 'Closed'){
+                                          Offloaded = true;
+                                          if(mounted) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  title: const Text('Warning'),
+                                                  content: const Text('This Load has already been delivered'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: const Text('Close'),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        }
+                                        setState(() {
+                                          projectIDController.text = offloadData!.projectId;
+                                          loadDateController.text = offloadData!.loadDate;
+                                          toWarehouseController.text = offloadData!.toWarehouse;
+                                          toBinController.text = offloadData!.toBin;
+                                          loadTypeValue = offloadData!.loadType;
+                                          loadConditionValue = offloadData!.loadCondition;
+                                        });
+                                      }
+                                      else {
                                         if(mounted) {
                                           showDialog(
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Warning'),
-                                                content: const Text('This Load has already been delivered'),
+                                                title: const Text('Error'),
+                                                content: const Text(
+                                                    'Load ID not found'),
                                                 actions: [
                                                   TextButton(
                                                     onPressed: () {
@@ -599,44 +643,321 @@ class _StockOffloadingState extends State<StockOffloading>
                                           );
                                         }
                                       }
-                                      setState(() {
-                                        projectIDController.text = offloadData!.projectId;
-                                        loadDateController.text = offloadData!.loadDate;
-                                        toWarehouseController.text = offloadData!.toWarehouse;
-                                        toBinController.text = offloadData!.toBin;
-                                        loadTypeValue = offloadData!.loadType;
-                                        loadConditionValue = offloadData!.loadCondition;
-                                      });
-                                    }
-                                    else {
-                                      if(mounted) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: const Text('Error'),
-                                              content: const Text(
-                                                  'Load ID not found'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text('Close'),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    }
-                                  },
-                                  icon: const Icon(
-                                    Icons.search,
-                                    color: Colors.blue,
+                                    },
+                                    icon: const Icon(
+                                      Icons.search,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                controller: projectIDController,
+                                enabled: false,
+                                decoration: const InputDecoration(
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blue),
+                                  ),
+                                  label: Text('Project ID'),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                controller: loadDateController,
+                                enabled: false,
+                                decoration: const InputDecoration(
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.blue),
+                                  ),
+                                  label: Text('Load Date'),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: TextFormField(
+                                controller: offloadDateController,
+                                onTap: () async {
+                                  final DateTime? date = await showDatePicker(
+                                    builder: (BuildContext context, Widget? child) {
+                                      return Theme(
+                                        data: ThemeData.light().copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary :Theme.of(context).primaryColor,
+                                            background: Colors.white,
+                                            secondary: Theme.of(context).primaryColor,
+                                            outline: Colors.cyanAccent,
+                                          ),
+                                        ),
+                                        child: child!,
+                                      );
+                                    },
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2018),
+                                    lastDate: DateTime(2030),
+                                  );
+                                  if (date != null) {
+                                    setState(() {
+                                      offloadDateController.text =
+                                      "${date.day}/${date.month}/${date
+                                          .year}";
+                                      _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                    });
+                                  }
+                                },
+                                decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: "OffLoad Date"),
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      controller: toWarehouseController,
+                                      enabled: false,
+                                      decoration: const InputDecoration(
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.blue),
+                                        ),
+                                        label: Text('To Warehouse'),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: TextFormField(
+                                      controller: toBinController,
+                                      enabled: false,
+                                      decoration: const InputDecoration(
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.blue),
+                                        ),
+                                        label: Text('To Bin'),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
+                            ),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text(
+                                          'Load Type',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.blue),
+                                        ),
+                                      ),
+                                      AbsorbPointer(
+                                        child: RadioListTile(
+                                          title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                          value: 'Return',
+                                          groupValue: loadTypeValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              loadTypeValue = value.toString();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      AbsorbPointer(
+                                        child: RadioListTile(
+                                          title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                          value: 'Issue Load',
+                                          groupValue: loadTypeValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              loadTypeValue = value.toString();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ]),
+                                  ),
+                                  Expanded(
+                                    child: Column(children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          'Load Condition',
+                                            style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)
+                                        ),
+                                      ),
+                                      AbsorbPointer(
+                                        child: RadioListTile(
+                                          title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                          value: 'External',
+                                          groupValue: loadConditionValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              loadConditionValue = value.toString();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      AbsorbPointer(
+                                        child: RadioListTile(
+                                          title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                          value: 'Internal Truck',
+                                          groupValue: loadConditionValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              loadConditionValue = value.toString();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      AbsorbPointer(
+                                        child: RadioListTile(
+                                          title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                          value: 'Ex-Factory',
+                                          groupValue: loadConditionValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              loadConditionValue = value.toString();
+                                            });
+                                          },
+                                        ),
+                                      )
+                                    ]),
+                                  ),
+                                ]),
+                            const Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                            ),
+                            TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _tabController.animateTo(1);
+                                });
+                              },
+                              child: const Text('Next'),
+                            ),
+                          ]),
+                        ),
+                      ),
+                    ),
+                    //Tab 2 Content
+                    SingleChildScrollView(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Verify Elements',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.blue),
+                                  ),
+                                ),
+                                const SizedBox(height: 10,),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,addElement:(ElementData)=>{}, disabled: Offloaded?true:false, ),
+                                  ),
+                                ),
+                                const SizedBox(height: 20,),
+                              ],
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Arrived Elements',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.blue),
+                              ),
+                            ),
+                            ElementTable(selectedElements: selectedElements,disabled: Offloaded?true:false,),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            const Text(
+                              'Arrived Parts',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.blue),
+                            ),
+                            PartTable(selectedParts: arrivedParts),
+                            const SizedBox(height: 20,),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _tabController.animateTo(2);
+                                });
+                              },
+                              child: const Text('Next'),
+                            )
+                          ]),
+                    ),
+                    //Tab 3 Content
+                    SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              'Review',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.blue),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextFormField(
+                              controller: loadIDController,
+                              enabled: false,
+                              decoration: const InputDecoration(
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.blue),
+                                ),
+                                label: Text('Load ID'),
+                              ),
                             ),
                           ),
                           Padding(
@@ -673,38 +994,15 @@ class _StockOffloadingState extends State<StockOffloading>
                             padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
                               controller: offloadDateController,
-                              onTap: () async {
-                                final DateTime? date = await showDatePicker(
-                                  builder: (BuildContext context, Widget? child) {
-                                    return Theme(
-                                      data: ThemeData.light().copyWith(
-                                        colorScheme: ColorScheme.light(
-                                          primary :Theme.of(context).primaryColor,
-                                          background: Colors.white,
-                                          secondary: Theme.of(context).primaryColor,
-                                          outline: Colors.cyanAccent,
-                                        ),
-                                      ),
-                                      child: child!,
-                                    );
-                                  },
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime(2018),
-                                  lastDate: DateTime(2030),
-                                );
-                                if (date != null) {
-                                  setState(() {
-                                    offloadDateController.text =
-                                    "${date.day}/${date.month}/${date
-                                        .year}";
-                                    _selectedDate = DateFormat('yyyy-MM-dd').format(date);
-                                  });
-                                }
-                              },
+                              enabled: false,
                               decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "OffLoad Date"),
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.blue),
+                                ),
+                                label: Text('Offload Date'),
+                              ),
                             ),
                           ),
                           Row(
@@ -745,157 +1043,22 @@ class _StockOffloadingState extends State<StockOffloading>
                               ),
                             ],
                           ),
-                          Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(children: [
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Load Type',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Colors.blue),
-                                      ),
-                                    ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                        value: 'Return',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                        value: 'Issue Load',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ]),
-                                ),
-                                Expanded(
-                                  child: Column(children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Load Condition',
-                                          style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)
-                                      ),
-                                    ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                        value: 'External',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                        value: 'Internal Truck',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                        value: 'Ex-Factory',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue = value.toString();
-                                          });
-                                        },
-                                      ),
-                                    )
-                                  ]),
-                                ),
-                              ]),
+                          const SizedBox(height: 20,),
                           const Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: EdgeInsets.all(8.0),
                             child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
                           ),
                           TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
-                          const SizedBox(
-                            height: 20,
+                          const SizedBox(height: 20,),
+                          const Text(
+                            'Arrived Elements',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.blue),
                           ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _tabController.animateTo(1);
-                              });
-                            },
-                            child: const Text('Next'),
-                          ),
-                        ]),
-                      ),
-                    ),
-                  ),
-                  //Tab 2 Content
-                  SingleChildScrollView(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Column(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Verify Elements',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Colors.blue),
-                                ),
-                              ),
-                              const SizedBox(height: 10,),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,addElement:(ElementData)=>{}, disabled: Offloaded?true:false, ),
-                                ),
-                              ),
-                              const SizedBox(height: 20,),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              'Arrived Elements',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: Colors.blue),
-                            ),
-                          ),
-                          ElementTable(selectedElements: selectedElements,disabled: Offloaded?true:false,),
+
+                          ElementTable(selectedElements: selectedElements),
                           const SizedBox(
                             height: 20,
                           ),
@@ -906,363 +1069,216 @@ class _StockOffloadingState extends State<StockOffloading>
                                 fontSize: 18,
                                 color: Colors.blue),
                           ),
+
                           PartTable(selectedParts: arrivedParts),
-                          const SizedBox(height: 20,),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                _tabController.animateTo(2);
-                              });
-                            },
-                            child: const Text('Next'),
-                          )
-                        ]),
-                  ),
-                  //Tab 3 Content
-                  SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            'Review',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.blue),
+                          const SizedBox(
+                            height: 20,
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: loadIDController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
-                              ),
-                              label: Text('Load ID'),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: projectIDController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
-                              ),
-                              label: Text('Project ID'),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: loadDateController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
-                              ),
-                              label: Text('Load Date'),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: offloadDateController,
-                            enabled: false,
-                            decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
-                              ),
-                              label: Text('Offload Date'),
-                            ),
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: toWarehouseController,
-                                  enabled: false,
-                                  decoration: const InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
-                                    ),
-                                    label: Text('To Warehouse'),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: toBinController,
-                                  enabled: false,
-                                  decoration: const InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
-                                    ),
-                                    label: Text('To Bin'),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20,),
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
-                        ),
-                        TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
-                        const SizedBox(height: 20,),
-                        const Text(
-                          'Arrived Elements',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blue),
-                        ),
-
-                        ElementTable(selectedElements: selectedElements),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        const Text(
-                          'Arrived Parts',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.blue),
-                        ),
-
-                        PartTable(selectedParts: arrivedParts),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Offloaded? ElevatedButton(
-                            onPressed: () async {
-                          setState(() {
-                            isPrinting = true;
-                          });
-                          fetchPDFCounts().then((count) {
-                            if (count!=null&&count.isNotEmpty) {
-                              setState(() {
-                                PDFCount = count[0]['Calculated_Count'];
-
-                              });
-                            }
-                              submitReport().then((value) async  {
-                                if (value != false) {
-                                  for (int i = 0; i < 3; i++) {
-                                    await Future.delayed(const Duration(seconds: 2));
-                                    var updatedCounts = await fetchPDFCounts();
-                                    if (updatedCounts != null &&
-                                        updatedCounts[0]['Calculated_Count'] > PDFCount) {
-                                      setState(() {
-                                        isPrinting = false;
-                                      });
-                                      if (mounted) {
-                                        Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) => PdfViewerPage(
-                                                          filePath:
-                                                              'DeliveryNote${loadIDController.text}.pdf',
-                                                          generatePdf: deliveryNote(
-                                                              updatedCounts[0][
-                                                                  'SysRptLst1_RptData']))));
-                                      }
-                                            break; // Exit the loop if condition is met
-                                    }
-                                    if(i==2){
-                                      isPrinting = false;
-                                      if (mounted) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: const Text('Error'),
-                                              content: const Text('Failed to Generate Delivery Note'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                  child: const Text('Close'),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    }
-                                  }
-
-                                }
-                              });
-
-                          });
-
-                        }, child: const Text('Generate Delivery Note')):
-                        ElevatedButton(
-                          onPressed: () async {
-                            if(offloadData!.loadStatus == 'Closed'){
-                              null;
-                            }
+                          Offloaded? ElevatedButton(
+                              onPressed: () async {
                             setState(() {
-                              loadStatus = 'Closed';
+                              isPrinting = true;
                             });
-                            if(offloadData!.loadStatus == 'Closed'){
-                              if(mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Error'),
-                                      content: const Text('Load Already Offloaded'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            }
-                            else {
-                              final loadDateFormat = '${DateFormat('yyyy-mm-dd').format(DateTime.now())}T00:00:00';
-                              debugPrint(selectedElements.toString());
-                             for (var v = 0; v < selectedElements.length; v++) {
-                                await updateUD103A({
-                                  "Key1": loadIDController.text,
-                                  "ChildKey1":selectedElements[v].childKey1,
-                                  "CheckBox01": true,
-                                  "CheckBox02": false,
-                                  "CheckBox03": false,
-                                  "CheckBox05": false,
-                                  "Date02": loadDateFormat,
+                            fetchPDFCounts().then((count) {
+                              if (count!=null&&count.isNotEmpty) {
+                                setState(() {
+                                  PDFCount = count[0]['Calculated_Count'];
+
                                 });
-                                await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
-                                debugPrint(selectedElements[v].elementId);
                               }
-                              for (var v = 0; v < arrivedParts.length; v++) {
-                                await updateUD103A({
-                                  "Key1": loadIDController.text,
-                                  "Character01": arrivedParts[v].partNum,
-                                  "Company": '158095',
-                                  "CheckBox01": true,
-                                  "CheckBox02": false,
-                                  "CheckBox03": false,
-                                  "CheckBox05": false,
+                                submitReport().then((value) async  {
+                                  if (value != false) {
+                                    for (int i = 0; i < 3; i++) {
+                                      await Future.delayed(const Duration(seconds: 2));
+                                      var updatedCounts = await fetchPDFCounts();
+                                      if (updatedCounts != null &&
+                                          updatedCounts[0]['Calculated_Count'] > PDFCount) {
+                                        setState(() {
+                                          isPrinting = false;
+                                        });
+                                        if (mounted) {
+                                          Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) => PdfViewerPage(
+                                                            filePath:
+                                                                'DeliveryNote${loadIDController.text}.pdf',
+                                                            generatePdf: deliveryNote(
+                                                                updatedCounts[0][
+                                                                    'SysRptLst1_RptData']))));
+                                        }
+                                              break; // Exit the loop if condition is met
+                                      }
+                                      if(i==2){
+                                        isPrinting = false;
+                                        if (mounted) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text('Error'),
+                                                content: const Text('Failed to Generate Delivery Note'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(context);
+                                                    },
+                                                    child: const Text('Close'),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        }
+                                      }
+                                    }
+
+                                  }
                                 });
-                                debugPrint(arrivedParts[v].partNum);
+
+                            });
+
+                          }, child: const Text('Generate Delivery Note')):
+                          ElevatedButton(
+                            onPressed: () async {
+                              if(offloadData!.loadStatus == 'Closed'){
+                                null;
                               }
-                              await updateLoadStatus({
-                                "Key1": loadIDController.text,
-                                "Company": '158095',
-                                "ShortChar03": loadStatus,
-                              });
-                            }
-                            if(loaded /*&& elementsAndPartsLoaded*/){
-                              if(mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Success'),
-                                      content: const Text('Load Offloaded'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              }
-                            }
-                            if(loaded && !elementsAndPartsLoaded){
                               setState(() {
-                                Offloaded = true;
+                                loadStatus = 'Closed';
                               });
-                              if (mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Success'),
-                                      content: const Text('Load Offloaded'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                              if(offloadData!.loadStatus == 'Closed'){
+                                if(mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Error'),
+                                        content: const Text('Load Already Offloaded'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
                               }
-                            }
-                            if (!loaded /*&& !elementsAndPartsLoaded*/){
-                              if(mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Error', style: TextStyle(color: Colors.red),),
-                                      content: const Text('Offload Failed'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                          child: const Text('Close'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                              else {
+                                final loadDateFormat = '${DateFormat('yyyy-mm-dd').format(DateTime.now())}T00:00:00';
+                                debugPrint(selectedElements.toString());
+                               for (var v = 0; v < selectedElements.length; v++) {
+                                  await updateUD103A({
+                                    "Key1": loadIDController.text,
+                                    "ChildKey1":selectedElements[v].childKey1,
+                                    "CheckBox01": true,
+                                    "CheckBox02": false,
+                                    "CheckBox03": false,
+                                    "CheckBox05": false,
+                                    "Date02": loadDateFormat,
+                                  });
+                                  await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
+                                  debugPrint(selectedElements[v].elementId);
+                                }
+                                for (var v = 0; v < arrivedParts.length; v++) {
+                                  await updateUD103A({
+                                    "Key1": loadIDController.text,
+                                    "Character01": arrivedParts[v].partNum,
+                                    "Company": '158095',
+                                    "CheckBox01": true,
+                                    "CheckBox02": false,
+                                    "CheckBox03": false,
+                                    "CheckBox05": false,
+                                  });
+                                  debugPrint(arrivedParts[v].partNum);
+                                }
+                                await updateLoadStatus({
+                                  "Key1": loadIDController.text,
+                                  "Company": '158095',
+                                  "ShortChar03": loadStatus,
+                                });
                               }
-                            }
-                          },
-                          child: const Text('Offload Items'),
-                        ),
-                      ],
+                              if(loaded /*&& elementsAndPartsLoaded*/){
+                                if(mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Success'),
+                                        content: const Text('Load Offloaded'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              }
+                              if(loaded && !elementsAndPartsLoaded){
+                                setState(() {
+                                  Offloaded = true;
+                                });
+                                if (mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Success'),
+                                        content: const Text('Load Offloaded'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              }
+                              if (!loaded /*&& !elementsAndPartsLoaded*/){
+                                if(mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Error', style: TextStyle(color: Colors.red),),
+                                        content: const Text('Offload Failed'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: const Text('Close'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              }
+                            },
+                            child: const Text('Offload Items'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ])
-      )
+                  ])
+        )
+      ),
+        const BottomRightText(text: 'V: Beta 1.7')
+    ]
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:IIT_precast_app/cornerText.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:IIT_precast_app/elementTable.dart';
@@ -241,358 +242,219 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
         },
 
-      child: DefaultTabController(
-          length: 3,
-          initialIndex: widget.initialTabIndex,
-          child: Scaffold(
-            appBar: AppBar(
-              backgroundColor: Theme
-                  .of(context)
-                  .primaryColor,
+      child: Stack(
+        children: [
+          DefaultTabController(
+            length: 3,
+            initialIndex: widget.initialTabIndex,
+            child: Scaffold(
+              appBar: AppBar(
+                backgroundColor: Theme
+                    .of(context)
+                    .primaryColor,
 
-              title: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(),
-                    if(widget.isUpdate)
-                      const Text('Edit Load', style: TextStyle(color: Colors.white)),
-                    if(!widget.isUpdate)
-                      const Text('Stock Loading', style: TextStyle(color: Colors.white)),
-                    // ClipOval(
-                    //   child: Image.network(
-                    //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-                    //     height: 35,
-                    //     width: 35,
-                    //   ),
-                    // )
+                title: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(),
+                      if(widget.isUpdate)
+                        const Text('Edit Load', style: TextStyle(color: Colors.white)),
+                      if(!widget.isUpdate)
+                        if (isLoaded)
+                          Column(
+                            children: [
+                              const Text('Stock Loading', style: TextStyle(color: Colors.white)),
+                              Text('Load ID: ${loadIDController.text}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                            ],
+                          ),
+                        if(!isLoaded)
+                          const Text('Stock Loading', style: TextStyle(color: Colors.white)),
+                      // ClipOval(
+                      //   child: Image.network(
+                      //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                      //     height: 35,
+                      //     width: 35,
+                      //   ),
+                      // )
+                    ],
+                  ),
+                ),
+                actions: [
+                  PopupMenuButton(itemBuilder: (BuildContext context) {
+                    return [
+                      if(widget.isUpdate)
+                        PopupMenuItem(
+                          child: ListTile(
+                            title: const Text('Create New Load'),
+                            leading: const Icon(Icons.edit_calendar),
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
+                            },
+                          ),
+                        ),
+                      if(!widget.isUpdate)
+                        PopupMenuItem(
+                          child: ListTile(
+                            title: const Text('Edit a Load'),
+                            leading: const Icon(Icons.edit_calendar),
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
+                            },
+                          ),
+                        ),
+                      PopupMenuItem(
+                        child: ListTile(
+                          title: const Text('Offload'),
+                          leading: const Icon(Icons.playlist_remove),
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0)));
+                          },
+                        ),
+                      ),
+                    ];
+                  }
+                  ) ],
+                bottom: TabBar(
+                  controller: _tabController,
+                  tabs: const [
+                    Tab(
+                      text: 'Detail',
+                    ),
+                    Tab(
+                      text: 'Line',
+                    ),
+                    Tab(
+                      text: 'Summary',
+                    ),
                   ],
                 ),
               ),
-              actions: [
-                PopupMenuButton(itemBuilder: (BuildContext context) {
-                  return [
-                    if(widget.isUpdate)
-                      PopupMenuItem(
-                        child: ListTile(
-                          title: const Text('Create New Load'),
-                          leading: const Icon(Icons.edit_calendar),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
-                          },
-                        ),
-                      ),
-                    if(!widget.isUpdate)
-                      PopupMenuItem(
-                        child: ListTile(
-                          title: const Text('Edit a Load'),
-                          leading: const Icon(Icons.edit_calendar),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
-                          },
-                        ),
-                      ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        title: const Text('Offload'),
-                        leading: const Icon(Icons.playlist_remove),
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const StockOffloading(initialTabIndex: 0)));
-                        },
-                      ),
-                    ),
-                  ];
-                }
-                ) ],
-              bottom: TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(
-                    text: 'Detail',
-                  ),
-                  Tab(
-                    text: 'Line',
-                  ),
-                  Tab(
-                    text: 'Summary',
-                  ),
-                ],
-              ),
-            ),
-            body:      isPrinting?
-              const Center(
-                child: CircularProgressIndicator(),
-             ) : FutureBuilder(
-                future: dataLoaded,
-                  builder:(context,snapshot){
-                   if(snapshot.connectionState == ConnectionState.waiting){
-                        return  const Stack(
-                          children: [
-                            Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                              ), // Show spinner when disabled
-                            ),
-                          ],
-                        );
-                      }
-                   return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            //Tab 1 Content
-                            SingleChildScrollView(
-                              child: Form(
-                                key: _formKey,
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      const Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Load Details',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Colors.blue),
-                                        ),
-                                      ),
-                                      if(!widget.isUpdate)
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            controller: loadIDController,
-                                            enabled: false,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load ID"),
+              body:      isPrinting?
+                const Center(
+                  child: CircularProgressIndicator(),
+               ) : FutureBuilder(
+                  future: dataLoaded,
+                    builder:(context,snapshot){
+                     if(snapshot.connectionState == ConnectionState.waiting){
+                          return  const Stack(
+                            children: [
+                              Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                ), // Show spinner when disabled
+                              ),
+                            ],
+                          );
+                        }
+                     return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              //Tab 1 Content
+                              SingleChildScrollView(
+                                child: Form(
+                                  key: _formKey,
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Load Details',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.blue),
                                           ),
                                         ),
-                                      if(widget.isUpdate)
-                                        Row(
-                                            children: [
-                                              Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextFormField(
-                                                    controller: loadIDController,
-                                                    decoration: const InputDecoration(
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "Load ID"),
-                                                  ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () async {
-                                                  await fetchLoadDataFromURL(loadIDController.text);
-                                                 // await fetchElementDataFromURL();
-                                                  //await fetchPartDataFromURL();
-                                                  setState(() {
-                                                    disabled=false;
-                                                  });
-                                                  String projectLoadID = loadIDController.text;
-                                                  offloadData = getLoadObjectFromJson(projectLoadID);
-                                                  getElementObjectFromJson(projectLoadID);
-                                                  getPartObjectFromJson(projectLoadID);
-                                                  if (offloadData != null) {
-                                                    setState(() {
-                                                      projectIdController.text = offloadData!.projectId;
-                                                      dateController.text = offloadData!.loadDate;
-                                                      toWarehouseController.text = offloadData!.toWarehouse;
-                                                      toBinController.text = offloadData!.toBin;
-                                                      loadTypeValue = offloadData!.loadType;
-                                                      loadConditionValue = offloadData!.loadCondition;
-                                                      fromWarehouseController.text = offloadData!.fromWarehouse;
-                                                      isLoaded = true;
-                                                    });
-                                                  }
-                                                  else {
-                                                    if(mounted) {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) {
-                                                          return AlertDialog(
-                                                            title: const Text('Error'),
-                                                            content: const Text(
-                                                                'Load ID not found'),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.pop(context);
-                                                                },
-                                                                child: const Text('Close'),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
-                                                    }
-                                                  }
-                                                },
-                                                icon: const Icon(Icons.search),
-                                              ),
-                                            ]
-                                        ),
-                                      Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: FutureBuilder(
-
-                                            future: getProjectList(),
-                                            builder:(context,snapshot){
-
-                                              return DropdownSearch(
-                                                selectedItem: projectIdController.text,
-                                                enabled: !widget.isUpdate&&!creationDisabled,
-                                                popupProps: const PopupProps.modalBottomSheet(
-                                                  showSearchBox: true,
-                                                  searchFieldProps: TextFieldProps(
-                                                    decoration: InputDecoration(
-                                                      suffixIcon: Icon(Icons.search),
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Search",
+                                        if(!widget.isUpdate)
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: loadIDController,
+                                              enabled: false,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load ID"),
+                                            ),
+                                          ),
+                                        if(widget.isUpdate)
+                                          Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: TextFormField(
+                                                      controller: loadIDController,
+                                                      decoration: const InputDecoration(
+                                                          border: OutlineInputBorder(),
+                                                          labelText: "Load ID"),
                                                     ),
                                                   ),
                                                 ),
-                                                autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                dropdownDecoratorProps: const DropDownDecoratorProps(
-                                                  dropdownSearchDecoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Project ID",
-                                                  ),
-                                                ),
-                                                items: fetchedProjectValue.map((project) => project['Project_ProjectID']).toList(),
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Project_ProjectID'] == value)['Project_ProjectID'];
-                                                  });
-                                                },
-                                              );
-                                            },
-                                          )
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: !widget.isUpdate&&!disabled,
-                                                controller: dateController,
-                                                onTap: () async {
-                                                  final DateTime? date = await showDatePicker(
-                                                    builder: (BuildContext context, Widget? child) {
-                                                     return Theme(
-                                                       data: ThemeData.light().copyWith(
-                                                         colorScheme: ColorScheme.light(
-                                                           primary :Theme.of(context).primaryColor,
-                                                           background: Colors.white,
-                                                           secondary: Theme.of(context).primaryColor,
-                                                           outline: Colors.cyanAccent,
-                                                         ),
-                                                       ),
-                                                       child: child!,
-                                                     );
-                                                    },
-                                                    context: context,
-                                                    initialDate: DateTime.now(),
-                                                    firstDate: DateTime(2018),
-                                                    lastDate: DateTime(2030),
-                                                  );
-                                                  if (date != null) {
+                                                IconButton(
+                                                  onPressed: () async {
+                                                    await fetchLoadDataFromURL(loadIDController.text);
+                                                   // await fetchElementDataFromURL();
+                                                    //await fetchPartDataFromURL();
                                                     setState(() {
-                                                      dateController.text =
-                                                      "${date.day}/${date.month}/${date
-                                                          .year}";
-                                                      _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                      disabled=false;
                                                     });
-                                                  }
-                                                },
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Load Date"),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: TextFormField(
-                                                  enabled: !widget.isUpdate&&!creationDisabled,
-                                                  onTap: () async {
-                                                    final TimeOfDay? time = await showTimePicker(
-                                                      context: context,
-                                                      initialTime: TimeOfDay.now(),
-                                                      builder:(context,child  ){
-                                                        return Theme(
-                                                          data:Theme.of(context).copyWith(
-                                                            colorScheme: ColorScheme.light(
-                                                              primary: Theme.of(context).primaryColor,
-                                                              onPrimary: Colors.white,
-                                                              secondary: Theme.of(context).primaryColor,
-                                                            ),
-                                                          ),
-                                                          child: child!,
-                                                        );
-
-                                                      }
-                                                    );
-                                                    if (time != null) {
+                                                    String projectLoadID = loadIDController.text;
+                                                    offloadData = getLoadObjectFromJson(projectLoadID);
+                                                    getElementObjectFromJson(projectLoadID);
+                                                    getPartObjectFromJson(projectLoadID);
+                                                    if (offloadData != null) {
                                                       setState(() {
-                                                        loadTimeController.text =
-                                                        "${time.hour}:${time.minute}";
+                                                        projectIdController.text = offloadData!.projectId;
+                                                        dateController.text = offloadData!.loadDate;
+                                                        toWarehouseController.text = offloadData!.toWarehouse;
+                                                        toBinController.text = offloadData!.toBin;
+                                                        loadTypeValue = offloadData!.loadType;
+                                                        loadConditionValue = offloadData!.loadCondition;
+                                                        fromWarehouseController.text = offloadData!.fromWarehouse;
+                                                        isLoaded = true;
                                                       });
                                                     }
+                                                    else {
+                                                      if(mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Error'),
+                                                              content: const Text(
+                                                                  'Load ID not found'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  child: const Text('Close'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
                                                   },
-                                                  controller: loadTimeController,
-                                                  decoration: const InputDecoration(
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Load Time"),
+                                                  icon: const Icon(Icons.search),
                                                 ),
-                                              )
+                                              ]
                                           ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: DropdownSearch(
-                                                selectedItem: fromWarehouseController.text,
-                                                enabled: !creationDisabled,
-                                                popupProps: const PopupProps.modalBottomSheet(
-                                                  showSearchBox: true,
-                                                  searchFieldProps: TextFieldProps(
-                                                    decoration: InputDecoration(
-                                                      suffixIcon: Icon(Icons.search),
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Search",
-                                                    ),
-                                                  ),
-                                                ),
-                                                autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                dropdownDecoratorProps: const DropDownDecoratorProps(
-                                                  dropdownSearchDecoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "From Warehouse",
-                                                  ),
-                                                ),
-                                                items: fetchedWarehouseValue.where((warehouse) => warehouse['FinishGoods_c'] == true).map((warehouse) => warehouse['Description']).toList(),
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    fromWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: DropdownSearch(
-                                                  selectedItem: toWarehouseController.text,
-                                                  enabled:  false,
+                                        Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: FutureBuilder(
+
+                                              future: getProjectList(),
+                                              builder:(context,snapshot){
+
+                                                return DropdownSearch(
+                                                  selectedItem: projectIdController.text,
+                                                  enabled: !widget.isUpdate&&!creationDisabled,
                                                   popupProps: const PopupProps.modalBottomSheet(
                                                     showSearchBox: true,
                                                     searchFieldProps: TextFieldProps(
@@ -607,687 +469,841 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   dropdownDecoratorProps: const DropDownDecoratorProps(
                                                     dropdownSearchDecoration: InputDecoration(
                                                       border: OutlineInputBorder(),
-                                                      labelText: "To Warehouse",
+                                                      labelText: "Project ID",
                                                     ),
                                                   ),
-                                                  items: fetchedWarehouseValue.map((warehouse) => warehouse['Description']).toList(),
+                                                  items: fetchedProjectValue.map((project) => project['Project_ProjectID']).toList(),
                                                   onChanged: (value) {
                                                     setState(() {
-                                                      toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
-                                                      toWarehouseNameController.text = value.toString();
-                                                      subfetchedBinValue = fetchedBinValue.where((bin) => bin['WarehouseCode'] == toWarehouseController.text).toList();
+                                                      projectIdController.text = fetchedProjectValue.firstWhere((project) => project['Project_ProjectID'] == value)['Project_ProjectID'];
                                                     });
-
                                                   },
-                                                ),
-                                              )
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem: toBinController.text,
-                                          enabled: (fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty&&!disabled)&&!widget.isUpdate,
-                                          popupProps: const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
-                                              ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode.onUserInteraction,
-                                          dropdownDecoratorProps: const DropDownDecoratorProps(
-                                            dropdownSearchDecoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Bin",
-                                            ),
-                                          ),
-                                          items: subfetchedBinValue.map((bin) => bin['Description']).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
-                                              toBinNameController.text = value.toString();
-                                            });
-                                            debugPrint(toBinController.text);
-                                            debugPrint(toBinNameController.text);
-                                          },
+                                                );
+                                              },
+                                            )
                                         ),
-                                      ),
-                                      if(loadConditionValue == 'External')
                                         Row(
                                           children: [
                                             Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextFormField(
-                                                    controller: poNumberController,
-                                                    decoration: const InputDecoration(
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "PO Num"),
-                                                  ),
-                                                )
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  enabled: !widget.isUpdate&&!disabled,
+                                                  controller: dateController,
+                                                  onTap: () async {
+                                                    final DateTime? date = await showDatePicker(
+                                                      builder: (BuildContext context, Widget? child) {
+                                                       return Theme(
+                                                         data: ThemeData.light().copyWith(
+                                                           colorScheme: ColorScheme.light(
+                                                             primary :Theme.of(context).primaryColor,
+                                                             background: Colors.white,
+                                                             secondary: Theme.of(context).primaryColor,
+                                                             outline: Colors.cyanAccent,
+                                                           ),
+                                                         ),
+                                                         child: child!,
+                                                       );
+                                                      },
+                                                      context: context,
+                                                      initialDate: DateTime.now(),
+                                                      firstDate: DateTime(2018),
+                                                      lastDate: DateTime(2030),
+                                                    );
+                                                    if (date != null) {
+                                                      setState(() {
+                                                        dateController.text =
+                                                        "${date.day}/${date.month}/${date
+                                                            .year}";
+                                                        _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                      });
+                                                    }
+                                                  },
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "Load Date"),
+                                                ),
+                                              ),
                                             ),
                                             Expanded(
                                                 child: Padding(
                                                   padding: const EdgeInsets.all(8.0),
                                                   child: TextFormField(
-                                                    controller: poLineController,
+                                                    enabled: !widget.isUpdate&&!creationDisabled,
+                                                    onTap: () async {
+                                                      final TimeOfDay? time = await showTimePicker(
+                                                        context: context,
+                                                        initialTime: TimeOfDay.now(),
+                                                        builder:(context,child  ){
+                                                          return Theme(
+                                                            data:Theme.of(context).copyWith(
+                                                              colorScheme: ColorScheme.light(
+                                                                primary: Theme.of(context).primaryColor,
+                                                                onPrimary: Colors.white,
+                                                                secondary: Theme.of(context).primaryColor,
+                                                              ),
+                                                            ),
+                                                            child: child!,
+                                                          );
+
+                                                        }
+                                                      );
+                                                      if (time != null) {
+                                                        setState(() {
+                                                          loadTimeController.text =
+                                                          "${time.hour}:${time.minute}";
+                                                        });
+                                                      }
+                                                    },
+                                                    controller: loadTimeController,
                                                     decoration: const InputDecoration(
                                                         border: OutlineInputBorder(),
-                                                        labelText: "PO Line"),
+                                                        labelText: "Load Time"),
                                                   ),
                                                 )
                                             ),
                                           ],
                                         ),
-                                      Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                        Row(
                                           children: [
                                             Expanded(
-                                              child: AbsorbPointer(
-                                                absorbing: widget.isUpdate,
-                                                child: Column(
-                                                    children: [
-                                                      const Padding(
-                                                        padding: EdgeInsets.all(8.0),
-                                                        child: Text('Load Type',
-                                                          style: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
-                                                              color: Colors.blue),
-                                                        ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: DropdownSearch(
+                                                  selectedItem: fromWarehouseController.text,
+                                                  enabled: !creationDisabled,
+                                                  popupProps: const PopupProps.modalBottomSheet(
+                                                    showSearchBox: true,
+                                                    searchFieldProps: TextFieldProps(
+                                                      decoration: InputDecoration(
+                                                        suffixIcon: Icon(Icons.search),
+                                                        border: OutlineInputBorder(),
+                                                        labelText: "Search",
                                                       ),
-
-                                                    RadioListTile(
-                                                      title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Return',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                        if(!creationDisabled)
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
                                                     ),
-                                                    RadioListTile(
-                                                      title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Issue Load',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                         if(!creationDisabled)
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
+                                                  ),
+                                                  autoValidateMode: AutovalidateMode.onUserInteraction,
+                                                  dropdownDecoratorProps: const DropDownDecoratorProps(
+                                                    dropdownSearchDecoration: InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "From Warehouse",
                                                     ),
-                                                  ]
+                                                  ),
+                                                  items: fetchedWarehouseValue.where((warehouse) => warehouse['FinishGoods_c'] == true).map((warehouse) => warehouse['Description']).toList(),
+                                                  onChanged: (value) {
+                                                    setState(() {
+                                                      fromWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
+                                                    });
+                                                  },
+                                                ),
                                               ),
                                             ),
-                    ),
                                             Expanded(
-                                              child: AbsorbPointer(
-                                                absorbing: widget.isUpdate,
-                                                child: Column(
-                                                    children: [
-                                                      const Padding(
-                                                        padding: EdgeInsets.all(8.0),
-                                                        child: Text('Load Condition',
-                                                          style: TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 18,
-                                                              color: Colors.blue),
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: DropdownSearch(
+                                                    selectedItem: toWarehouseController.text,
+                                                    enabled:  false,
+                                                    popupProps: const PopupProps.modalBottomSheet(
+                                                      showSearchBox: true,
+                                                      searchFieldProps: TextFieldProps(
+                                                        decoration: InputDecoration(
+                                                          suffixIcon: Icon(Icons.search),
+                                                          border: OutlineInputBorder(),
+                                                          labelText: "Search",
                                                         ),
                                                       ),
-
-                                                    RadioListTile(
-                                                      title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'External',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        if(!creationDisabled)
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
                                                     ),
-                                                    RadioListTile(
-                                                      title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Internal Truck',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        if(!creationDisabled)
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
+                                                    autoValidateMode: AutovalidateMode.onUserInteraction,
+                                                    dropdownDecoratorProps: const DropDownDecoratorProps(
+                                                      dropdownSearchDecoration: InputDecoration(
+                                                        border: OutlineInputBorder(),
+                                                        labelText: "To Warehouse",
+                                                      ),
                                                     ),
-                                                    RadioListTile(
-                                                      title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Ex-Factory',
-                                                      groupValue: loadConditionValue,
+                                                    items: fetchedWarehouseValue.map((warehouse) => warehouse['Description']).toList(),
+                                                    onChanged: (value) {
+                                                      setState(() {
+                                                        toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
+                                                        toWarehouseNameController.text = value.toString();
+                                                        subfetchedBinValue = fetchedBinValue.where((bin) => bin['WarehouseCode'] == toWarehouseController.text).toList();
+                                                      });
 
-                                                      onChanged: (value) {
-                                                        if(!creationDisabled)
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    )
-                                                  ]
+                                                    },
+                                                  ),
+                                                )
+                                            ),
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: DropdownSearch(
+                                            selectedItem: toBinController.text,
+                                            enabled: (fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty&&!disabled)&&!widget.isUpdate,
+                                            popupProps: const PopupProps.modalBottomSheet(
+                                              showSearchBox: true,
+                                              searchFieldProps: TextFieldProps(
+                                                decoration: InputDecoration(
+                                                  suffixIcon: Icon(Icons.search),
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Search",
+                                                ),
                                               ),
                                             ),
+                                            autoValidateMode: AutovalidateMode.onUserInteraction,
+                                            dropdownDecoratorProps: const DropDownDecoratorProps(
+                                              dropdownSearchDecoration: InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "To Bin",
+                                              ),
                                             ),
-                                          ]
-                                      ),
-                                      const Padding(padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Truck Details',
+                                            items: subfetchedBinValue.map((bin) => bin['Description']).toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
+                                                toBinNameController.text = value.toString();
+                                              });
+                                              debugPrint(toBinController.text);
+                                              debugPrint(toBinNameController.text);
+                                            },
+                                          ),
+                                        ),
+                                        if(loadConditionValue == 'External')
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: TextFormField(
+                                                      controller: poNumberController,
+                                                      decoration: const InputDecoration(
+                                                          border: OutlineInputBorder(),
+                                                          labelText: "PO Num"),
+                                                    ),
+                                                  )
+                                              ),
+                                              Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: TextFormField(
+                                                      controller: poLineController,
+                                                      decoration: const InputDecoration(
+                                                          border: OutlineInputBorder(),
+                                                          labelText: "PO Line"),
+                                                    ),
+                                                  )
+                                              ),
+                                            ],
+                                          ),
+                                        Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: AbsorbPointer(
+                                                  absorbing: widget.isUpdate,
+                                                  child: Column(
+                                                      children: [
+                                                        const Padding(
+                                                          padding: EdgeInsets.all(8.0),
+                                                          child: Text('Load Type',
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                                color: Colors.blue),
+                                                          ),
+                                                        ),
+
+                                                      RadioListTile(
+                                                        title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Return',
+                                                        groupValue: loadTypeValue,
+                                                        onChanged: (value) {
+                                                          if(!creationDisabled)
+                                                          setState(() {
+                                                            loadTypeValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Issue Load',
+                                                        groupValue: loadTypeValue,
+                                                        onChanged: (value) {
+                                                           if(!creationDisabled)
+                                                          setState(() {
+                                                            loadTypeValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                    ]
+                                                ),
+                                              ),
+                      ),
+                                              Expanded(
+                                                child: AbsorbPointer(
+                                                  absorbing: widget.isUpdate,
+                                                  child: Column(
+                                                      children: [
+                                                        const Padding(
+                                                          padding: EdgeInsets.all(8.0),
+                                                          child: Text('Load Condition',
+                                                            style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                fontSize: 18,
+                                                                color: Colors.blue),
+                                                          ),
+                                                        ),
+
+                                                      RadioListTile(
+                                                        title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'External',
+                                                        groupValue: loadConditionValue,
+                                                        onChanged: (value) {
+                                                          if(!creationDisabled)
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Internal Truck',
+                                                        groupValue: loadConditionValue,
+                                                        onChanged: (value) {
+                                                          if(!creationDisabled)
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      ),
+                                                      RadioListTile(
+                                                        title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
+                                                        value: 'Ex-Factory',
+                                                        groupValue: loadConditionValue,
+
+                                                        onChanged: (value) {
+                                                          if(!creationDisabled)
+                                                          setState(() {
+                                                            loadConditionValue =
+                                                                value.toString();
+                                                          });
+                                                        },
+                                                      )
+                                                    ]
+                                                ),
+                                              ),
+                                              ),
+                                            ]
+                                        ),
+                                        const Padding(padding: EdgeInsets.all(8.0),
+                                          child: Text(
+                                            'Truck Details',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Colors.blue),
+                                          ),
+                                        ),
+                                        if(!widget.isUpdate)
+                                          buildTruckDetailsFrom(disabled?false:true),
+                                        if(widget.isUpdate)
+                                          TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+                                        const SizedBox(height: 20),
+                                        if(widget.isUpdate)
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                _tabController.animateTo(1);
+                                              });
+                                            },
+                                            child: const Text('Next'),
+                                          ),
+                                        if(!widget.isUpdate&&!creationDisabled)
+                                          ElevatedButton(
+                                              onPressed: () async {
+                                                if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
+                                                  showDialog(context: context, builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Error'),
+                                                      content: const Text(
+                                                          'Please fill all the required fields'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+                                                  );
+                                                } else {
+                                                  final newLoadId = 'I-${lastLoad!=50?lastLoad + 1:50}';
+                                                  final loadDateFormat = '${_selectedDate}T${loadTimeController.text}:00';
+                                                  await createNewLoad({
+                                                    "Key1": newLoadId,
+                                                    "Company": "158095",
+                                                    "ShortChar07": plateNumberController.text,
+                                                    "ShortChar05": projectIdController.text,
+                                                    "ShortChar01": loadTypeValue,
+                                                    "ShortChar04": loadConditionValue,
+                                                    "ShortChar08": truckIdController.text,
+                                                    "ShortChar03": "Open",
+                                                    "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
+                                                    "Number02": "0",
+                                                    "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
+                                                    "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
+                                                    "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
+                                                    "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
+                                                    "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
+                                                    "Date01": loadDateFormat,
+                                                    "Character02": driverNameController.text,
+                                                    "Character03": driverNumberController.text,
+                                                    "Character04": toWarehouseNameController.text,
+                                                    "Character05": toBinController.text/*"Default"*/,
+                                                    "Character07": toWarehouseController.text,
+                                                    // "Character08": ,
+                                                    "Character06": fromWarehouseController.text,
+                                                    "Character09": resourceId,
+                                                    "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                    "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                                  });
+                                                  debugPrint(toWarehouseNameController.text);
+                                                  if(isLoaded){
+                                                    setState(() {
+                                                      creationDisabled=true;
+                                                    });
+                                                    if(mounted) {
+                                                      showDialog(context: context,
+                                                          builder: (BuildContext context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Success'),
+                                                              content: Text(
+                                                                  'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.of(context).pop();
+                                                                    _tabController.animateTo(1);
+                                                                  },
+                                                                  child: const Text('OK'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          }
+                                                      );
+                                                    }
+                                                    setState(() {
+                                                      loadIDController.text = newLoadId;
+                                                    });
+                                                  }
+                                                }
+                                              },
+                                              child: const Text(
+                                                'Create Load',
+
+                                              )),
+                                        const SizedBox(height: 20),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              //Tab 2 Content
+                              if(isLoaded)
+                                SingleChildScrollView(
+                                  child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            const Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Part Search Form',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Colors.blue),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10,),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade100,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: ElementSearchForm(onElementsSelected:  updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , addElement:_AddElement,project:projectIdController.text,disabled: disabled?true:false,),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 20,),
+                                          ],
+                                        ),
+                                        const SizedBox(
+                                          height: 20,
+                                        ),
+                                        const Text(
+                                          'Selected Elements',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
                                               color: Colors.blue),
                                         ),
-                                      ),
-                                      if(!widget.isUpdate)
-                                        buildTruckDetailsFrom(disabled?false:true),
-                                      if(widget.isUpdate)
-                                        TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
-                                      const SizedBox(height: 20),
-                                      if(widget.isUpdate)
+                                        ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,disabled: disabled==true?true:false,OnElementSelected:updateElementInformation,),
+                                        const SizedBox(
+                                          height: 20,
+                                        ),
+                                        const Text(
+                                          'Selected Parts',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: Colors.blue),
+                                        ),
+                                        PartTable(selectedParts: selectedParts),
                                         ElevatedButton(
                                           onPressed: () {
                                             setState(() {
-                                              _tabController.animateTo(1);
+                                              _tabController.animateTo(2);
                                             });
                                           },
                                           child: const Text('Next'),
+                                        )
+                                      ]),
+                                ),
+                              if(!isLoaded)
+                                const Center(
+                                  child: Text('Please create a load first or Select a load to update'),
+                                ),
+                              //Tab 3 Content
+                              SingleChildScrollView(
+                                controller: ScrollController(),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Project Details', style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.blue),),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: loadIDController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load ID"),
                                         ),
-                                      if(!widget.isUpdate&&!creationDisabled)
-                                        ElevatedButton(
-                                            onPressed: () async {
-                                              if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
-                                                showDialog(context: context, builder: (BuildContext context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Error'),
-                                                    content: const Text(
-                                                        'Please fill all the required fields'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                        },
-                                                        child: const Text('OK'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-                                                );
-                                              } else {
-                                                final newLoadId = 'I-${lastLoad!=50?lastLoad + 1:50}';
-                                                final loadDateFormat = '${_selectedDate}T${loadTimeController.text}:00';
-                                                await createNewLoad({
-                                                  "Key1": newLoadId,
-                                                  "Company": "158095",
-                                                  "ShortChar07": plateNumberController.text,
-                                                  "ShortChar05": projectIdController.text,
-                                                  "ShortChar01": loadTypeValue,
-                                                  "ShortChar04": loadConditionValue,
-                                                  "ShortChar08": truckIdController.text,
-                                                  "ShortChar03": "Open",
-                                                  "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
-                                                  "Number02": "0",
-                                                  "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
-                                                  "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
-                                                  "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
-                                                  "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
-                                                  "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
-                                                  "Date01": loadDateFormat,
-                                                  "Character02": driverNameController.text,
-                                                  "Character03": driverNumberController.text,
-                                                  "Character04": toWarehouseNameController.text,
-                                                  "Character05": toBinController.text/*"Default"*/,
-                                                  "Character07": toWarehouseController.text,
-                                                  // "Character08": ,
-                                                  "Character06": fromWarehouseController.text,
-                                                  "Character09": resourceId,
-                                                  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                                });
-                                                debugPrint(toWarehouseNameController.text);
-                                                if(isLoaded){
-                                                  setState(() {
-                                                    creationDisabled=true;
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: projectIdController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Project ID"),
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                enabled: false,
+                                                initialValue: dateController.text,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "Load Date"),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  enabled: false,
+                                                  initialValue: loadTimeController.text,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "Load Time"),
+                                                ),
+                                              )
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  enabled: false,
+                                                  initialValue: fromWarehouseController.text,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "From"),
+                                                ),
+                                              )
+                                          ),
+                                          Expanded(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: TextFormField(
+                                                  enabled: false,
+                                                  initialValue: toWarehouseController.text,
+                                                  decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: "To"),
+                                                ),
+                                              )
+                                          ),
+                                        ],
+                                      ),
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Truck Details', style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.blue),),
+                                      ),
+                                      if(!widget.isUpdate)
+                                        buildTruckDetailsFrom(false),
+                                      if(widget.isUpdate)
+                                        TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Selected Elements', style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.blue),),
+                                      ),
+                                      ElementTable(selectedElements: selectedElements,disabled: disabled?true:false,OnElementSelected: updateElementInformation),
+                                      const Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Selected Parts', style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Colors.blue),),
+                                      ),
+                                      PartTable(selectedParts: selectedParts),
+                                      const SizedBox(height: 20,),
+
+                                      if(!disabled)
+                                      ElevatedButton(
+
+                                          onPressed: () async {
+                                            if(widget.isUpdate){
+                                              await createNewLoad({
+                                                "Key1":loadIDController.text,
+                                                "Company": "158095",
+                                                "ShortChar07": plateNumberController.text,
+                                                "ShortChar05": projectIdController.text,
+                                                "ShortChar01": loadTypeValue,
+                                                "ShortChar04": loadConditionValue,
+                                                "ShortChar08": truckIdController.text,
+                                                "ShortChar03": "Open",
+                                                "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
+                                                "Number02": "0",
+                                                "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
+                                                "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
+                                                "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
+                                                "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
+                                                "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
+                                                "Date01": "${_selectedDate}T${loadTimeController.text}:00",
+                                                "Character02": driverNameController.text,
+                                                "Character03": driverNumberController.text,
+                                                "Character04": toWarehouseNameController.text,
+                                                "Character05": toBinController.text/*"Default"*/,
+                                                "Character07": toWarehouseController.text,
+                                                // "Character08": ,
+                                                "Character06": fromWarehouseController.text,
+                                                "Character09": resourceId,
+                                                "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                              });
+                                            }
+                                            if(selectedElements.isNotEmpty) {
+                                              debugPrint(selectedElements.length
+                                                  .toString());
+                                              for (var e = 0; e <
+                                                  selectedElements.length; e++) {
+                                                debugPrint(selectedElements[e]
+                                                    .toString());
+                                                try {
+                                                  await updateUD103A({
+                                                    "Company": "158095",
+                                                    "ChildKey1": selectedElements[e]
+                                                        .childKey1,
+                                                    "Key1": loadIDController.text,
+                                                    "Character01": selectedElements[e]
+                                                        .partId,
+                                                    "Character02": selectedElements[e]
+                                                        .elementId,
+                                                    "Character03": fromWarehouseController
+                                                        .text,
+                                                    "Character04": selectedElements[e].binNum,
+                                                    "Character07": toWarehouseController
+                                                        .text,
+                                                    "Character08": toBinController
+                                                        .text,
+                                                    "Number01": selectedElements[e]
+                                                        .selectedQty
+                                                        .toString()
+                                                        .isNotEmpty
+                                                        ? selectedElements[e]
+                                                        .selectedQty.toString()
+                                                        : '0',
+                                                    "Number03": selectedElements[e]
+                                                        .weight
+                                                        .toString()
+                                                        .isNotEmpty
+                                                        ? selectedElements[e]
+                                                        .weight
+                                                        : '0',
+                                                    "Number04": selectedElements[e]
+                                                        .area
+                                                        .toString()
+                                                        .isNotEmpty
+                                                        ? selectedElements[e].area
+                                                        : '1',
+                                                    "Number05": selectedElements[e]
+                                                        .volume
+                                                        .toString()
+                                                        .isNotEmpty
+                                                        ? selectedElements[e]
+                                                        .volume
+                                                        : '0',
+                                                    "Number06": selectedElements[e]
+                                                        .erectionSeq
+                                                        .toString()
+                                                        .isNotEmpty
+                                                        ? selectedElements[e]
+                                                        .erectionSeq
+                                                        : '0',
+                                                    "ShortChar07": selectedElements[e]
+                                                        .uom,
+                                                    "CheckBox05": false,
+                                                    "CheckBox01": true,
+                                                    "CheckBox02": false,
+                                                    "CheckBox03": false,
+                                                    "CheckBox13": false,
                                                   });
-                                                  if(mounted) {
-                                                    showDialog(context: context,
-                                                        builder: (BuildContext context) {
-                                                          return AlertDialog(
-                                                            title: const Text('Success'),
-                                                            content: Text(
-                                                                'Stock Loading details saved successfully, LoadID: $newLoadId'),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(context).pop();
-                                                                  _tabController.animateTo(1);
-                                                                },
-                                                                child: const Text('OK'),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        }
-                                                    );
-                                                  }
-                                                  setState(() {
-                                                    loadIDController.text = newLoadId;
-                                                  });
+                                                  updateInTransit(
+                                                      selectedElements[e].partId,
+                                                      selectedElements[e]
+                                                          .elementId);
+                                                  childCount++;
+                                                } on Exception catch (e) {
+                                                  debugPrint(e.toString());
                                                 }
                                               }
-                                            },
-                                            child: const Text(
-                                              'Create Load',
-
-                                            )),
-                                      const SizedBox(height: 20),
+                                              for (int i = 0; i <
+                                                  deletedSavedElements
+                                                      .length; i++) {
+                                                try {
+                                                  await deleteUD103A(
+                                                      deletedSavedElements[i]);
+                                                } catch (e) {
+                                                  debugPrint(e.toString());
+                                                }
+                                              }
+                                              for (var p = 0; p <
+                                                  selectedParts.length; p++) {
+                                                debugPrint(
+                                                    selectedParts[p].toString());
+                                                await updateUD103A({
+                                                  "Company": "158095",
+                                                  "Key1": loadIDController.text,
+                                                  /*                                           "ChildKey1": "${++ChildCount}",*/
+                                                  "Character01": selectedParts[p]
+                                                      .partNum,
+                                                  "Character02": selectedParts[p]
+                                                      .partDesc,
+                                                  "Character03": toWarehouseController
+                                                      .text,
+                                                  "Character04": toBinController
+                                                      .text,
+                                                  "Number01": selectedParts[p]
+                                                      .qty,
+                                                  "ShortChar07": selectedParts[p]
+                                                      .uom,
+                                                  "CheckBox13": true,
+                                                });
+                                              }
+                                              if (mounted) {
+                                                setState(() {
+                                                  disabled = true;
+                                                });
+                                                showDialog(
+                                                    context: context,
+                                                    builder: (
+                                                        BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Success'),
+                                                        content: Text(
+                                                            'Stock Loading details saved successfully, LoadID: ${loadIDController
+                                                                .text}'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                  context).pop();
+                                                            },
+                                                            child: const Text(
+                                                                'OK'),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    });
+                                              }
+                                            }
+                                            else{
+                                              if (mounted) {
+                                                showDialog(context: context, builder:(context)=>AlertDialog(title: const Text("Warning"),
+                                                  content: const Text("No Lines Added To Be Saved"),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(
+                                                            context).pop();
+                                                      },
+                                                      child: const Text(
+                                                          'OK'),
+                                                    ),
+                                                  ],) );
+                                              }
+                                            }
+                                          },
+                                          child: const Text(
+                                            'Save Load',
+                                          )
+                                      ),
                                     ],
                                   ),
                                 ),
                               ),
-                            ),
-                            //Tab 2 Content
-                            if(isLoaded)
-                              SingleChildScrollView(
-                                child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Column(
-                                        children: [
-                                          const Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Part Search Form',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                  color: Colors.blue),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10,),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade100,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected:  updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , addElement:_AddElement,project:projectIdController.text,disabled: disabled?true:false,),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20,),
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      const Text(
-                                        'Selected Elements',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Colors.blue),
-                                      ),
-                                      ElementTable(selectedElements: selectedElements ?? [],DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,disabled: disabled==true?true:false,OnElementSelected:updateElementInformation,),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      const Text(
-                                        'Selected Parts',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Colors.blue),
-                                      ),
-                                      PartTable(selectedParts: selectedParts),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _tabController.animateTo(2);
-                                          });
-                                        },
-                                        child: const Text('Next'),
-                                      )
-                                    ]),
-                              ),
-                            if(!isLoaded)
-                              const Center(
-                                child: Text('Please create a load first or Select a load to update'),
-                              ),
-                            //Tab 3 Content
-                            SingleChildScrollView(
-                              controller: ScrollController(),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Project Details', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.blue),),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        enabled: false,
-                                        initialValue: loadIDController.text,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Load ID"),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        enabled: false,
-                                        initialValue: projectIdController.text,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Project ID"),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextFormField(
-                                              enabled: false,
-                                              initialValue: dateController.text,
-                                              decoration: const InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Load Date"),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: loadTimeController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Load Time"),
-                                              ),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: fromWarehouseController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "From"),
-                                              ),
-                                            )
-                                        ),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: toWarehouseController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "To"),
-                                              ),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Truck Details', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.blue),),
-                                    ),
-                                    if(!widget.isUpdate)
-                                      buildTruckDetailsFrom(false),
-                                    if(widget.isUpdate)
-                                      TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
-
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Selected Elements', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.blue),),
-                                    ),
-                                    ElementTable(selectedElements: selectedElements,disabled: disabled?true:false,OnElementSelected: updateElementInformation),
-                                    const Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Selected Parts', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.blue),),
-                                    ),
-                                    PartTable(selectedParts: selectedParts),
-                                    const SizedBox(height: 20,),
-
-                                    if(!disabled)
-                                    ElevatedButton(
-
-                                        onPressed: () async {
-                                          if(widget.isUpdate){
-                                            await createNewLoad({
-                                              "Key1":loadIDController.text,
-                                              "Company": "158095",
-                                              "ShortChar07": plateNumberController.text,
-                                              "ShortChar05": projectIdController.text,
-                                              "ShortChar01": loadTypeValue,
-                                              "ShortChar04": loadConditionValue,
-                                              "ShortChar08": truckIdController.text,
-                                              "ShortChar03": "Open",
-                                              "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
-                                              "Number02": "0",
-                                              "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
-                                              "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
-                                              "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
-                                              "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
-                                              "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
-                                              "Date01": "${_selectedDate}T${loadTimeController.text}:00",
-                                              "Character02": driverNameController.text,
-                                              "Character03": driverNumberController.text,
-                                              "Character04": toWarehouseNameController.text,
-                                              "Character05": toBinController.text/*"Default"*/,
-                                              "Character07": toWarehouseController.text,
-                                              // "Character08": ,
-                                              "Character06": fromWarehouseController.text,
-                                              "Character09": resourceId,
-                                              "Createdby_c": entryPersonController?.text.toString().trim(),
-                                              "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                            });
-                                          }
-                                          if(selectedElements.length>0) {
-                                            debugPrint(selectedElements.length
-                                                .toString());
-                                            for (var e = 0; e <
-                                                selectedElements.length; e++) {
-                                              debugPrint(selectedElements[e]
-                                                  .toString());
-                                              try {
-                                                await updateUD103A({
-                                                  "Company": "158095",
-                                                  "ChildKey1": selectedElements[e]
-                                                      .childKey1,
-                                                  "Key1": loadIDController.text,
-                                                  "Character01": selectedElements[e]
-                                                      .partId,
-                                                  "Character02": selectedElements[e]
-                                                      .elementId,
-                                                  "Character03": fromWarehouseController
-                                                      .text,
-                                                  "Character04": selectedElements[e].binNum,
-                                                  "Character07": toWarehouseController
-                                                      .text,
-                                                  "Character08": toBinController
-                                                      .text,
-                                                  "Number01": selectedElements[e]
-                                                      .selectedQty
-                                                      .toString()
-                                                      .isNotEmpty
-                                                      ? selectedElements[e]
-                                                      .selectedQty.toString()
-                                                      : '0',
-                                                  "Number03": selectedElements[e]
-                                                      .weight
-                                                      .toString()
-                                                      .isNotEmpty
-                                                      ? selectedElements[e]
-                                                      .weight
-                                                      : '0',
-                                                  "Number04": selectedElements[e]
-                                                      .area
-                                                      .toString()
-                                                      .isNotEmpty
-                                                      ? selectedElements[e].area
-                                                      : '1',
-                                                  "Number05": selectedElements[e]
-                                                      .volume
-                                                      .toString()
-                                                      .isNotEmpty
-                                                      ? selectedElements[e]
-                                                      .volume
-                                                      : '0',
-                                                  "Number06": selectedElements[e]
-                                                      .erectionSeq
-                                                      .toString()
-                                                      .isNotEmpty
-                                                      ? selectedElements[e]
-                                                      .erectionSeq
-                                                      : '0',
-                                                  "ShortChar07": selectedElements[e]
-                                                      .uom,
-                                                  "CheckBox05": false,
-                                                  "CheckBox01": true,
-                                                  "CheckBox02": false,
-                                                  "CheckBox03": false,
-                                                  "CheckBox13": false,
-                                                });
-                                                updateInTransit(
-                                                    selectedElements[e].partId,
-                                                    selectedElements[e]
-                                                        .elementId);
-                                                childCount++;
-                                              } on Exception catch (e) {
-                                                debugPrint(e.toString());
-                                              }
-                                            }
-                                            for (int i = 0; i <
-                                                deletedSavedElements
-                                                    .length; i++) {
-                                              try {
-                                                await deleteUD103A(
-                                                    deletedSavedElements[i]);
-                                              } catch (e) {
-                                                debugPrint(e.toString());
-                                              }
-                                            }
-                                            for (var p = 0; p <
-                                                selectedParts.length; p++) {
-                                              debugPrint(
-                                                  selectedParts[p].toString());
-                                              await updateUD103A({
-                                                "Company": "158095",
-                                                "Key1": loadIDController.text,
-                                                /*                                           "ChildKey1": "${++ChildCount}",*/
-                                                "Character01": selectedParts[p]
-                                                    .partNum,
-                                                "Character02": selectedParts[p]
-                                                    .partDesc,
-                                                "Character03": toWarehouseController
-                                                    .text,
-                                                "Character04": toBinController
-                                                    .text,
-                                                "Number01": selectedParts[p]
-                                                    .qty,
-                                                "ShortChar07": selectedParts[p]
-                                                    .uom,
-                                                "CheckBox13": true,
-                                              });
-                                            }
-                                            if (mounted) {
-                                              setState(() {
-                                                disabled = true;
-                                              });
-                                              showDialog(
-                                                  context: context,
-                                                  builder: (
-                                                      BuildContext context) {
-                                                    return AlertDialog(
-                                                      title: const Text(
-                                                          'Success'),
-                                                      content: Text(
-                                                          'Stock Loading details saved successfully, LoadID: ${loadIDController
-                                                              .text}'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.of(
-                                                                context).pop();
-                                                          },
-                                                          child: const Text(
-                                                              'OK'),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  });
-                                            }
-                                          }
-                                          else{
-                                            showDialog(context: context, builder:(context)=>AlertDialog(title: Text("Warning"),
-                                              content: Text("No Lines Added To Be Saved"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(
-                                                        context).pop();
-                                                  },
-                                                  child: const Text(
-                                                      'OK'),
-                                                ),
-                                              ],) );
-                                          }
-                                        },
-                                        child: const Text(
-                                          'Save Load',
-                                        )
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ]),
-                    );}
-                  ),
-          ),
+                            ]),
+                      );}
+                    ),
+            ),
+        ),
+          const BottomRightText(text: 'V: Beta 1.7')
+        ]
       ),
     );
   }

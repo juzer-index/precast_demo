@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:IIT_precast_app/indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'cornerText.dart';
 import 'detailsPage.dart';
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];
@@ -247,213 +248,218 @@ class _ElementMasterState extends State<ElementMaster> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const IndexAppBar(title: 'Element Master',),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(
-                   // width: MediaQuery.of(context).size.width,
-                   // height: MediaQuery.of(context).size.height * 0.12,
-                    child: Card(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      elevation: 1,
-                      color: Colors.lightBlue.shade100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    elementIdController.clear();
-                                    currentPageIndex= 0;
-                                  });
-                                },
-                                controller: partNumController,
-                                decoration: const InputDecoration(
-                                  fillColor: Colors.white,
-                                    filled: true,
-                                    border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
-                                    ),
-                                    labelText: "Part Num"),
-
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    partNumController.clear();
-                                  });
-                                },
-                                controller: elementIdController,
-                                decoration: const InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
-                                    ),
-                                    labelText: "Element ID"),
-
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: isSearching?
-                                   const CircularProgressIndicator()
-                                 :IconButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        isSearching = true;
-                                      });
-
-                                      partElementList.clear();
-                                      setState(() {
-                                        currentPageIndex = 0;
-                                      });
-                                      dataTablekey.currentState?.pageTo(0);
-                                      if(partNumController.text.isNotEmpty) {
-                                        setState(() {
-                                          isSingleElement = false;
-                                        });
-
-                                        await getElementList(partNumController.text, false, 0);
-                                      }
-                                      if(elementIdController.text.isNotEmpty){
-                                        setState(() {
-                                          isSingleElement = true;
-                                        });
-                                        await getElementList(elementIdController.text, true,0);
-                                      }
-                                      setState(() {
-                                        isSearching = false;
-                                      });
-                                    },
-                                    icon: const Icon(Icons.search),/*
-                                  ),
-                                }
-                                return const CircularProgressIndicator();
-                              },*/
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Scan Element'),
-                                      content: SizedBox(
-                                        width: MediaQuery.of(context).size.width ,
-                                        height: MediaQuery.of(context).size.height * 0.35,
-                                        child: QRView(
-                                          key: qrKey,
-                                          onQRViewCreated: (QRViewController controller) {
-                                            this.controller = controller;
-                                            controller.scannedDataStream.listen((scanData) async {
-                                              String elementId = '';
-                                              String partNum = '';
-                                              String companyId = '';
-                                              controller.pauseCamera();
-                                              Navigator.pop(context);
-                                              debugPrint('this is the code ${scanData.code}');
-                                              List<String> scanResult = scanData.code!.split('-');
-                                              if (scanResult.length >= 4) {
-                                                elementId = scanResult.sublist(3).join("-");
-                                                partNum = scanResult[2];
-                                                companyId = scanResult[1];
-                                                await getScannedElement(partNum, elementId, companyId);
-                                              } else {
-                                                showDialog(context: context, builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Invalid QR Code'),
-                                                    content: const Text('Please scan a valid QR code'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(context);
-                                                        },
-                                                        child: const Text('OK'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                });
-                                              }
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    );
+    return Stack(
+      children:[
+        Scaffold(
+        appBar: const IndexAppBar(title: 'Element Master',),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    SizedBox(
+                     // width: MediaQuery.of(context).size.width,
+                     // height: MediaQuery.of(context).size.height * 0.12,
+                      child: Card(
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                        elevation: 1,
+                        color: Colors.lightBlue.shade100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  onTap: () {
+                                    setState(() {
+                                      elementIdController.clear();
+                                      currentPageIndex= 0;
+                                    });
                                   },
-                                );
-                              },
-                              icon: const Icon(Icons.qr_code_scanner),
+                                  controller: partNumController,
+                                  decoration: const InputDecoration(
+                                    fillColor: Colors.white,
+                                      filled: true,
+                                      border: UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      labelText: "Part Num"),
+
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  onTap: () {
+                                    setState(() {
+                                      partNumController.clear();
+                                    });
+                                  },
+                                  controller: elementIdController,
+                                  decoration: const InputDecoration(
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      border: UnderlineInputBorder(
+                                        borderSide: BorderSide(color: Colors.blue),
+                                      ),
+                                      labelText: "Element ID"),
 
-                SizedBox(
-                    child: Card(
-                      color: Colors.lightBlue.shade100,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: isSearching?
+                                     const CircularProgressIndicator()
+                                   :IconButton(
+                                      onPressed: () async {
+                                        setState(() {
+                                          isSearching = true;
+                                        });
 
-                                child: PaginatedDataTable(
-                                  key : dataTablekey,
-                                  onPageChanged: (page) async {
+                                        partElementList.clear();
+                                        setState(() {
+                                          currentPageIndex = 0;
+                                        });
+                                        dataTablekey.currentState?.pageTo(0);
+                                        if(partNumController.text.isNotEmpty) {
+                                          setState(() {
+                                            isSingleElement = false;
+                                          });
 
-                                    debugPrint(offset.toString());
-                                    if(page>offset){
-                                      offset=max(offset, page);
-                                      isElement ? await getElementList(elementIdController.text, true, page) : await getElementList(partNumController.text, false, page);
-                                    }
-                                   },
-                                  initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
-
-                                  columnSpacing: 30,
-                                  columns: const [
-                                    DataColumn(label: Text('Element ID')),
-                                    DataColumn(label: Text('Part Num')),
-                                    DataColumn(label: Text('Element Desc')),
-                                    DataColumn(label: Text('Project')),
-                                    DataColumn(label: Text('Status')),
-                                  ],
-                                  source: partElementList.isNotEmpty ?
-                                  MyDataTableSource(partElementList, context)
-                                      :
-                                  MyDataTableSource(partElementList, context),
-                                  )
-                              )
+                                          await getElementList(partNumController.text, false, 0);
+                                        }
+                                        if(elementIdController.text.isNotEmpty){
+                                          setState(() {
+                                            isSingleElement = true;
+                                          });
+                                          await getElementList(elementIdController.text, true,0);
+                                        }
+                                        setState(() {
+                                          isSearching = false;
+                                        });
+                                      },
+                                      icon: const Icon(Icons.search),/*
+                                    ),
+                                  }
+                                  return const CircularProgressIndicator();
+                                },*/
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: IconButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Scan Element'),
+                                        content: SizedBox(
+                                          width: MediaQuery.of(context).size.width ,
+                                          height: MediaQuery.of(context).size.height * 0.35,
+                                          child: QRView(
+                                            key: qrKey,
+                                            onQRViewCreated: (QRViewController controller) {
+                                              this.controller = controller;
+                                              controller.scannedDataStream.listen((scanData) async {
+                                                String elementId = '';
+                                                String partNum = '';
+                                                String companyId = '';
+                                                controller.pauseCamera();
+                                                Navigator.pop(context);
+                                                debugPrint('this is the code ${scanData.code}');
+                                                List<String> scanResult = scanData.code!.split('-');
+                                                if (scanResult.length >= 4) {
+                                                  elementId = scanResult.sublist(3).join("-");
+                                                  partNum = scanResult[2];
+                                                  companyId = scanResult[1];
+                                                  await getScannedElement(partNum, elementId, companyId);
+                                                } else {
+                                                  showDialog(context: context, builder: (context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Invalid QR Code'),
+                                                      content: const Text('Please scan a valid QR code'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.pop(context);
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                                }
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                                icon: const Icon(Icons.qr_code_scanner),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
 
-                ],
-              ),
-            ],
+                  SizedBox(
+                      child: Card(
+                        color: Colors.lightBlue.shade100,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+
+                                  child: PaginatedDataTable(
+                                    key : dataTablekey,
+                                    onPageChanged: (page) async {
+
+                                      debugPrint(offset.toString());
+                                      if(page>offset){
+                                        offset=max(offset, page);
+                                        isElement ? await getElementList(elementIdController.text, true, page) : await getElementList(partNumController.text, false, page);
+                                      }
+                                     },
+                                    initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
+
+                                    columnSpacing: 30,
+                                    columns: const [
+                                      DataColumn(label: Text('Element ID')),
+                                      DataColumn(label: Text('Part Num')),
+                                      DataColumn(label: Text('Element Desc')),
+                                      DataColumn(label: Text('Project')),
+                                      DataColumn(label: Text('Status')),
+                                    ],
+                                    source: partElementList.isNotEmpty ?
+                                    MyDataTableSource(partElementList, context)
+                                        :
+                                    MyDataTableSource(partElementList, context),
+                                    )
+                                )
+                          ),
+                        ),
+
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
+        const BottomRightText(text: 'V: Beta 1.7'),
+    ]
     );
   }
 }
