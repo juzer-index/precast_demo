@@ -176,7 +176,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
     }
     else{
-      dataLoaded = Future.value(true);
+      dataLoaded = makeSureDataLoaded();
       setState(() {
         isLoaded = true;
       });
@@ -560,7 +560,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               padding: const EdgeInsets.all(8.0),
                                               child: DropdownSearch(
                                                 selectedItem: fromWarehouseController.text,
-                                                enabled: !widget.isUpdate&&!creationDisabled,
+                                                enabled: !creationDisabled,
                                                 popupProps: const PopupProps.modalBottomSheet(
                                                   showSearchBox: true,
                                                   searchFieldProps: TextFieldProps(
@@ -628,7 +628,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         padding: const EdgeInsets.all(8.0),
                                         child: DropdownSearch(
                                           selectedItem: toBinController.text,
-                                          enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty&&!disabled,
+                                          enabled: (fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty&&!disabled)&&!widget.isUpdate,
                                           popupProps: const PopupProps.modalBottomSheet(
                                             showSearchBox: true,
                                             searchFieldProps: TextFieldProps(
@@ -1095,6 +1095,36 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     ElevatedButton(
 
                                         onPressed: () async {
+                                          if(widget.isUpdate){
+                                            await createNewLoad({
+                                              "Key1":loadIDController.text,
+                                              "Company": "158095",
+                                              "ShortChar07": plateNumberController.text,
+                                              "ShortChar05": projectIdController.text,
+                                              "ShortChar01": loadTypeValue,
+                                              "ShortChar04": loadConditionValue,
+                                              "ShortChar08": truckIdController.text,
+                                              "ShortChar03": "Open",
+                                              "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
+                                              "Number02": "0",
+                                              "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
+                                              "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
+                                              "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
+                                              "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
+                                              "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
+                                              "Date01": "${_selectedDate}T${loadTimeController.text}:00",
+                                              "Character02": driverNameController.text,
+                                              "Character03": driverNumberController.text,
+                                              "Character04": toWarehouseNameController.text,
+                                              "Character05": toBinController.text/*"Default"*/,
+                                              "Character07": toWarehouseController.text,
+                                              // "Character08": ,
+                                              "Character06": fromWarehouseController.text,
+                                              "Character09": resourceId,
+                                              "Createdby_c": entryPersonController?.text.toString().trim(),
+                                              "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                            });
+                                          }
                                           if(selectedElements.length>0) {
                                             debugPrint(selectedElements.length
                                                 .toString());
@@ -1263,7 +1293,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> makeSureDataLoaded() async {
-    if(!widget.isUpdate) {
+  /*  if(!widget.isUpdate) {*/
       await Future.wait([
         getProjectList(),
         getBinsFromWarehouse(),
@@ -1272,7 +1302,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         getLastLoadID(),
         getWarehouseList()
       ]);
-    }
+/*    }*/
 
 
   }

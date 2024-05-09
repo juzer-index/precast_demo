@@ -745,7 +745,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         if(widget.isOffloading){
                           key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.childKey1;
                         }
-                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty&&lotNoController.text.isNotEmpty){
+                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty
+                            &&lotNoController.text.isNotEmpty){
                           setState(() {
                             selectedElements.add(ElementData(
                               partId: elementNumberController.text,
@@ -766,6 +767,24 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                           });
 
 
+                        }else{
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Error'),
+                                  content: const Text('Element already selected'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                );
+                              }
+                          );
                         }
                         if (!isElement){
                           if(int.parse(onHandQtyController.text) < int.parse(selectedQtyController.text)){
