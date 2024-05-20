@@ -67,7 +67,7 @@ class MyDataTableSource extends DataTableSource{
               final String partNum = row["PartLot_PartNum"];
               Map<String, dynamic> elementDetails = {};
               final String basicAuth = 'Basic ${base64Encode(
-                  utf8.encode('manager:Adp@2023'))}';
+                  utf8.encode('manager:Adp@2024'))}';
               try {
                 final response = await http.get(
                   Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates(Precast,$partNum,$elementId)'),
@@ -146,7 +146,7 @@ class _ElementMasterState extends State<ElementMaster> {
   bool isSingleElement = false;
   bool isSearching = false;
 
-  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
 
   Barcode? elementResult;
   String elementResultCode = '';
@@ -180,7 +180,7 @@ class _ElementMasterState extends State<ElementMaster> {
     }
     try {
       final String basicAuth = 'Basic ${base64Encode(
-          utf8.encode('manager:Adp@2023'))}';
+          utf8.encode('manager:Adp@2024'))}';
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',

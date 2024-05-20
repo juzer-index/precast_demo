@@ -66,7 +66,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getTrucksFromURL() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try {
       final response = await http.get(
           truckURL,
@@ -87,7 +87,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getResourceForTrucks(String resourceID) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     var urL = Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final response = await http.get(
@@ -115,7 +115,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getDriverList() async {
-    final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try{
       final response = await http.get(
           Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_DriverName'),

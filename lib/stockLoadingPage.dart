@@ -133,7 +133,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   late final int l2;
   late final String nextLoad;
 
-  final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+  final basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
   late final Future dataLoaded;
   bool isPrinting = false ;
   int pdfCount =0;
@@ -1420,7 +1420,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     "agentTaskNum": 0,
     "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try {
       final SumbitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
@@ -1445,7 +1445,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<dynamic> fetchPDFCounts() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('manager:Adp@2024'))}';
     try {
       final PDFCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)');
       final response = await http.get(
@@ -1468,7 +1468,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
   Future<void> getProjectList() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('manager:Adp@2024'))}';
     try {
       final response = await http.get(
           Uri.parse(
@@ -1502,7 +1502,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     return output.readAsBytesSync();
   }
   Future<void> getWarehouseList() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try {
       final response = await http.get(
           Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.Bo.WarehseSvc/Warehses'),
@@ -1526,7 +1526,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getBinsFromWarehouse () async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('manager:Adp@2024'))}';
     try {
       final response = await http.get(
           Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.WhseBinSvc/WhseBins"),
@@ -1556,7 +1556,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> createNewLoad(Map<String, dynamic> loadItems) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try{
       final response = await http.post(
           Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD103Svc/UD103s'),

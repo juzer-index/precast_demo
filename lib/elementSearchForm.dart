@@ -59,7 +59,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
-  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+  final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
 
   bool isElement = false;
   bool isLoading = false;

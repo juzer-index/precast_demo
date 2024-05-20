@@ -68,7 +68,7 @@ class _StockOffloadingState extends State<StockOffloading>
   List<PartData> arrivedParts = [];
 
   final String username = 'manager';
-  final String password = 'Adp@2023';
+  final String password = 'Adp@2024';
 
   LoadData? offloadData;
 
@@ -175,7 +175,7 @@ class _StockOffloadingState extends State<StockOffloading>
       "agentTaskNum": 0,
       "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2024'))}';
     try {
       final submitReportURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
       final response = await http.post(
@@ -294,7 +294,7 @@ class _StockOffloadingState extends State<StockOffloading>
 }*/
   Future<dynamic> fetchPDFCounts() async {
     final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('manager:Adp@2023'))}';
+        utf8.encode('manager:Adp@2024'))}';
     try {
       final pdfCountsURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_getDN(158095)/?%24orderby=SysRptLst1_CreatedOn%20desc&%24top=1');
       final response = await http.get(
