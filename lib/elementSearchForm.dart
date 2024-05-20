@@ -276,9 +276,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   @override
   void initState() {
     super.initState();
-    if(!widget.isOffloading){
-    totalElements = widget.arrivedElements!;}
-  }
+  if(!widget.isOffloading){
+    totalElements = widget.arrivedElements!;}}
+
   void widgetDidUpdate(covariant oldWidget) {
 
     if(!widget.isOffloading){
@@ -294,7 +294,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   @override
   Widget build(BuildContext context) {
     setState(() {
-      elements= allElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();
+      if(!widget.isOffloading){
+      elements= allElements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList();}
     });
           return Column(
             children: [
@@ -314,7 +315,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: isLoading? const Center(
+                    child: isLoading&&!widget.isOffloading? const Center(
                       child: CircularProgressIndicator(),
                     ) : IconButton(
                       onPressed: () async {
@@ -367,8 +368,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   widget.arrivedElements!.length; i++) {
                                 if (widget.arrivedElements![i].partId ==
                                     elementNumberController.text) {
-                                  elements.add(widget.arrivedElements![i]
-                                      .elementId);
+                                  setState(() {
+                                    elements.add(widget.arrivedElements![i]
+                                        .elementId);
+                                  });
+
                                   setState(() {
                                     isElement = true;
                                   });
@@ -579,17 +583,21 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         labelText: "Lot No.",
                       ),
                     ),
-                    items:totalElements.isEmpty?elements: elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList(),
+                    items:widget.isOffloading?
+                    elements:
+                    elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList(),
                     onChanged: (value) async {
                       setState(() {
                         selectable = false;
                         elements.removeWhere((element) => element==value);
+
                       });
+                      debugPrint(elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList().toString());
                       await getElementDetailsFromLot(value, elementNumberController.text);
 
                     },
                   ),
-                    if(elements.isEmpty&&elementListData.isEmpty) const SizedBox(
+                    if(elements.isEmpty&&elementListData.isEmpty&&totalElements.isEmpty) const SizedBox(
                         height: 60,
                         child:Center(child: CircularProgressIndicator())
                     ),
@@ -742,10 +750,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     child: ElevatedButton(
                       onPressed:!selectable? () { }: () {
                         String key='';
+                        debugPrint(lotNoController.text);
                         if(widget.isOffloading){
                           key= widget.arrivedElements!.where((element) =>  element.elementId == lotNoController.text).first.childKey1;
                         }
-                        if (isElement&&totalElements.where((element) => element.elementId == lotNoController.text).isEmpty
+                        if (isElement
+                            &&
+                            totalElements.where((element) => element.elementId == lotNoController.text).isEmpty
                             &&lotNoController.text.isNotEmpty){
                           setState(() {
                             selectedElements.add(ElementData(

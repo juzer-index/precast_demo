@@ -155,24 +155,35 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         loadIDController.text = widget.historyLoadID;
       });
 
-      dataLoaded=fetchLoadDataFromURL(widget.historyLoadID).then((value) => {
-
-           offloadData = getLoadObjectFromJson(widget.historyLoadID),
-           getElementObjectFromJson(widget.historyLoadID),
-           getPartObjectFromJson(widget.historyLoadID),
-           setState(() {
-             projectIdController.text = offloadData!.projectId;
-             dateController.text = offloadData!.loadDate;
-             toWarehouseController.text = offloadData!.toWarehouse;
-             toBinController.text = offloadData!.toBin;
-             loadTypeValue = offloadData!.loadType;
-             loadConditionValue = offloadData!.loadCondition;
-             fromWarehouseController.text = offloadData!.fromWarehouse;
-             isLoaded = true;
-           }),
 
 
-    });
+      dataLoaded = makeSureDataLoaded().then((temp) => {
+        fetchLoadDataFromURL(widget.historyLoadID).then((value) {
+          // Fetch and process data from the URL
+          offloadData = getLoadObjectFromJson(widget.historyLoadID);
+          getElementObjectFromJson(widget.historyLoadID);
+          getPartObjectFromJson(widget.historyLoadID);
+
+          // Update the state with the fetched data
+          setState(() {
+            projectIdController.text = offloadData!.projectId;
+            dateController.text = offloadData!.loadDate;
+            toWarehouseController.text = offloadData!.toWarehouse;
+            toBinController.text = offloadData!.toBin;
+            loadTypeValue = offloadData!.loadType;
+            loadConditionValue = offloadData!.loadCondition;
+            fromWarehouseController.text = offloadData!.fromWarehouse;
+            isLoaded = true;
+            truckIdController.text = offloadData!.truckId;
+            resourceIdController.text = offloadData!.resourceId;
+            driverNameController.text = offloadData!.driverName;
+            driverNumberController.text = offloadData!.driverNumber;
+
+            plateNumberController.text = offloadData!.plateNumber;
+          });
+        })
+      });
+
 
 
     }
@@ -415,6 +426,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                         loadTypeValue = offloadData!.loadType;
                                                         loadConditionValue = offloadData!.loadCondition;
                                                         fromWarehouseController.text = offloadData!.fromWarehouse;
+                                                        truckIdController.text = offloadData!.truckId;
+                                                        resourceIdController.text = offloadData!.resourceId;
+                                                        driverNameController.text = offloadData!.driverName;
+
                                                         isLoaded = true;
                                                       });
                                                     }
@@ -808,10 +823,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 color: Colors.blue),
                                           ),
                                         ),
-                                        if(!widget.isUpdate)
+                                     /*   if(!widget.isUpdate)*/
                                           buildTruckDetailsFrom(disabled?false:true),
-                                        if(widget.isUpdate)
-                                          TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+                        /*                if(widget.isUpdate)
+                                          TruckDetailsForm(isEdit: true, truckDetails: offloadData,),*/
                                         const SizedBox(height: 20),
                                         if(widget.isUpdate)
                                           ElevatedButton(
@@ -1106,7 +1121,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       ElevatedButton(
 
                                           onPressed: () async {
-                                            if(widget.isUpdate){
+                                            if(widget.isUpdate&&truckIdController.text.isNotEmpty&&resourceId.isNotEmpty){
                                               await createNewLoad({
                                                 "Key1":loadIDController.text,
                                                 "Company": "158095",

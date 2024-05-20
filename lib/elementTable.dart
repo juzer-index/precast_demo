@@ -27,7 +27,7 @@ class _ElementTableState extends State<ElementTable> {
             DataColumn(label: Text('Erection Seq')),
             DataColumn(label: Text('Actions')),
           ],
-          rows: widget.selectedElements
+          rows: widget.selectedElements.isNotEmpty?widget.selectedElements
               .map((row) => DataRow(cells: [
             DataCell(Text(row.elementId)),
             DataCell(Text(row.partId)),
@@ -40,7 +40,7 @@ class _ElementTableState extends State<ElementTable> {
                 setState(() {
 
                   widget.selectedElements.remove(row);
-                  widget.OnElementSelected(widget.selectedElements,[]);
+                //  widget.OnElementSelected(widget.selectedElements,[]);
                   if(widget.DeletededSaveElements!=null){
                     widget.DeletededSaveElements.add(row.childKey1);
 
@@ -49,7 +49,7 @@ class _ElementTableState extends State<ElementTable> {
               },
             )),
           ]))
-              .toList(),
+              .toList():[],
         ),
       ),
     );
