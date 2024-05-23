@@ -1178,7 +1178,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     "Key1": loadIDController.text,
                                     "ChildKey1":selectedElements[v].childKey1,
                                     "CheckBox01": true,
-                                    "CheckBox02": false,
+                                    "CheckBox02": true,
                                     "CheckBox03": false,
                                     "CheckBox05": false,
                                     "Date02": loadDateFormat,
@@ -1192,7 +1192,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     "Character01": arrivedParts[v].partNum,
                                     "Company": '158095',
                                     "CheckBox01": true,
-                                    "CheckBox02": false,
+                                    "CheckBox02": true,
                                     "CheckBox03": false,
                                     "CheckBox05": false,
                                   });

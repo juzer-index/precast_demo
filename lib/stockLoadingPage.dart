@@ -860,6 +860,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 } else {
                                                   final newLoadId = 'I-${lastLoad!=50?lastLoad + 1:50}';
                                                   final loadDateFormat = '${_selectedDate}T${loadTimeController.text}:00';
+                                                  final Truck= truckValue.where((element) => element['Character02'] == plateNumberController.text).first['Key1'];
                                                   await createNewLoad({
                                                     "Key1": newLoadId,
                                                     "Company": "158095",
@@ -867,7 +868,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     "ShortChar05": projectIdController.text,
                                                     "ShortChar01": loadTypeValue,
                                                     "ShortChar04": loadConditionValue,
-                                                    "ShortChar08": truckIdController.text,
+                                                    "ShortChar08": Truck.toString(),
                                                     "ShortChar03": "Open",
                                                     "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
                                                     "Number02": "0",
@@ -1176,11 +1177,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     "Character08": toBinController
                                                         .text,
                                                     "Number01": selectedElements[e]
-                                                        .selectedQty
+                                                        .volume
                                                         .toString()
                                                         .isNotEmpty
                                                         ? selectedElements[e]
-                                                        .selectedQty.toString()
+                                                        .volume
+                                                        .toString()
                                                         : '0',
                                                     "Number03": selectedElements[e]
                                                         .weight
@@ -1212,7 +1214,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                     "ShortChar07": selectedElements[e]
                                                         .uom,
                                                     "CheckBox05": false,
-                                                    "CheckBox01": true,
+                                                    "CheckBox01": "true",
                                                     "CheckBox02": false,
                                                     "CheckBox03": false,
                                                     "CheckBox13": false,
@@ -1256,6 +1258,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       .qty,
                                                   "ShortChar07": selectedParts[p]
                                                       .uom,
+                                                  "CheckBox01": true,
                                                   "CheckBox13": true,
                                                 });
                                               }
