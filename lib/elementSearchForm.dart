@@ -67,6 +67,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   List<dynamic> partBinData = [];
   bool scanning=false;
+  bool isLotLoading= false;
   // bool isConsumable = false;
 
  // late Future _dataFuture;
@@ -597,10 +598,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
                     },
                   ),
-                    if(elements.isEmpty&&elementListData.isEmpty&&totalElements.isEmpty) const SizedBox(
-                        height: 60,
-                        child:Center(child: CircularProgressIndicator())
-                    ),
+               
                   ]),
                 ),
               Padding(
