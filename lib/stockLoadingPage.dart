@@ -1122,34 +1122,16 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       ElevatedButton(
 
                                           onPressed: () async {
-                                            if(widget.isUpdate&&truckIdController.text.isNotEmpty&&resourceId.isNotEmpty){
+                                            if(widget.isUpdate&&truckIdController.text.isNotEmpty&&resourceIdController.text.isNotEmpty){
                                               await createNewLoad({
                                                 "Key1":loadIDController.text,
                                                 "Company": "158095",
                                                 "ShortChar07": plateNumberController.text,
-                                                "ShortChar05": projectIdController.text,
-                                                "ShortChar01": loadTypeValue,
-                                                "ShortChar04": loadConditionValue,
                                                 "ShortChar08": truckIdController.text,
-                                                "ShortChar03": "Open",
-                                                "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
-                                                "Number02": "0",
-                                                "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
-                                                "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
-                                                "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
-                                                "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
-                                                "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
-                                                "Date01": "${_selectedDate}T${loadTimeController.text}:00",
                                                 "Character02": driverNameController.text,
                                                 "Character03": driverNumberController.text,
-                                                "Character04": toWarehouseNameController.text,
-                                                "Character05": toBinController.text/*"Default"*/,
-                                                "Character07": toWarehouseController.text,
-                                                // "Character08": ,
                                                 "Character06": fromWarehouseController.text,
-                                                "Character09": resourceId,
-                                                "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                                "Character09": resourceIdController.text,
                                               });
                                             }
                                             if(selectedElements.isNotEmpty) {
@@ -1176,7 +1158,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                         .text,
                                                     "Character08": toBinController
                                                         .text,
-                                                    "Number01": selectedElements[e]
+                                                    "Number01":  selectedElements[e]
                                                         .volume
                                                         .toString()
                                                         .isNotEmpty

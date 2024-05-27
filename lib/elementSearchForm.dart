@@ -92,9 +92,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         partData = jsonDecode(response.body);
          setState(() {
             partValue = partData['value'];
-            if(partValue.isNotEmpty){
-              fromBin=partValue[0]['PartBin_BinNum'];
-            }
+
          });
         debugPrint(partValue.length.toString());
       } else {
@@ -108,11 +106,34 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
+  Future<void> getBinForElement(String lotNo,String warehouse,String project) async {
+    try{
+      final response = await http.get(
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_GetAllParts3Return_M1(158095)/?LotNum=${lotNo}&Project=${project}&warehse=${warehouse}'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if (response.statusCode == 200) {
+        elementData = jsonDecode(response.body);
+        elementValue = elementData['value'];
+        setState(() {
+          fromBin = elementValue[0]['PartBin_BinNum'];
 
-  Future<void> getBinNumforScannedElement(String partNum, String warehouse,String project) async {
+        });
+      } else {
+        debugPrint(response.statusCode.toString());
+      }
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+  Future<void> getBinNumforScannedElement(String elementId, String warehouse,String project) async {
     try {
       final response = await http.get(
-          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_P_PartDetails_V1(158095)/?\$filter=Part_PartNum eq \'$partNum\' and PartWhse_WarehouseCode eq \'${warehouse}\'and PartLot_Project_c eq \'${project}\''),
+          Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_GetAllParts3Return_M1(158095)/?Project=${project}&warehse=${warehouse}\$filter=PartLot_LotNum eq \'${elementId}\' '),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -160,7 +181,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       });
        String partNum =elementNumberController.text;
 
-      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_PartAndLotNumber(158095)?\$filter=PartLot_PartNum  eq  \'$partNum\' and PartLot_Project_c eq \'${widget.project}\'');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
+      var elementLotURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_GetAllParts3Return_M1(158095)/?Project=${widget.project}&warehse=${widget.warehouse}');//?\$filter=PartLot_LotNum eq \'$Param\'&\$top=$page&\$skip=$offset';
       final response = await http.get(
           elementLotURL,
           headers: {
@@ -247,17 +268,41 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
-  Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
+  Future<void> getScannedElement(String Project, String elementId, String companyId,String Warehouse ) async {
     try {
       final response = await http.get(
           Uri.parse(
-              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)'),
+              'https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/BaqSvc/IIT_GetAllParts3Return_M1(158095)/?Project=${Project}&warehse=${Warehouse}&\$filter=PartLot_LotNum eq \'$elementId\''),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           });
       if (response.statusCode == 200) {
-        elementListData = jsonDecode(response.body);
+         dynamic temp = jsonDecode(response.body)['value'];
+        if(temp.length==0){
+          setState(() {
+            scanning = false;
+            selectable = false;
+          });
+          showDialog(context: context, builder: (context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('Element not found'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+
+          });
+        }else{
+          elementListData = temp[0];
+
+        }
 
       } else {
         debugPrint(response.statusCode.toString());
@@ -368,7 +413,10 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               for (var i = 0; i <
                                   widget.arrivedElements!.length; i++) {
                                 if (widget.arrivedElements![i].partId ==
-                                    elementNumberController.text) {
+                                    elementNumberController.text
+                                   && totalElements.where((element) => element.elementId == widget.arrivedElements![i].elementId).isEmpty
+                                ) {
+
                                   setState(() {
                                     elements.add(widget.arrivedElements![i]
                                         .elementId);
@@ -462,30 +510,62 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                     scanning = true;
                                                     selectable = false;
                                                   });
-                                                  await getScannedElement(partNum, elementId, companyId);
-                                                  await getBinNumforScannedElement(partNum,widget.warehouse,widget.project);
-                                                  setState(() {
-                                                    isElement = true;
-                                                    elementNumberController.text = partNum;
-                                                    elementDescriptionController.text = elementListData['PartLotDescription'];
-                                                    lotNoController.text = elementListData['LotNum'];
-                                                    uomController.text = elementListData['PartNumSalesUM'];
-                                                    erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
-                                                    weightController.text = elementListData['Ton_c'];
-                                                    areaController.text = elementListData['M2_c'];
-                                                    volumeController.text = elementListData['M3_c'];
-                                                    estErectionDateController.text = elementListData['ErectionPlannedDate_c'] ?? '';
-                                                    onHandQtyController.text = '1';
-                                                    selectedQtyController.text = '1';
-                                                    elementResult = scanData;
-                                                    elementResultCode =
-                                                        elementResult?.code ??
-                                                            'Unknown';
-                                                    elementNumberController.text =
-                                                        partNum;
-                                                    selectable = true;
+                                                  if(!widget.isOffloading){
+                                                    await getScannedElement(widget.project, elementId, companyId,widget.warehouse);
+                                                    setState(() {
+                                                      isElement = true;
+                                                      elementNumberController.text = partNum;
+                                                      elementDescriptionController.text = elementListData['PartLot_PartLotDescription'];
+                                                      lotNoController.text = elementListData['PartLot_LotNum'];
+                                                      uomController.text = elementListData['Part_IUM'];
+                                                      erectionSeqController.text = elementListData['PartLot_ErectionSequence_c'].toString();
+                                                      weightController.text = elementListData['PartLot_Ton_c'];
+                                                      areaController.text = elementListData['PartLot_M2_c'];
+                                                      volumeController.text = elementListData['PartLot_M3_c'];
+                                                      estErectionDateController.text = elementListData['PartLot_ErectionPlannedDate_c'] ?? '';
+                                                      onHandQtyController.text = '1';
+                                                      selectedQtyController.text = '1';
+                                                      fromBin= elementListData['PartBin_BinNum'];
+                                                      elementResult = scanData;
+                                                      elementResultCode =
+                                                          elementResult?.code ??
+                                                              'Unknown';
+                                                      elementNumberController.text =
+                                                          partNum;
+                                                      scanning = false;
+                                                      selectable = true;
 
-                                                  });
+
+
+                                                    });
+                                                  }
+                                                  else{
+                                                     dynamic element = widget.arrivedElements!.where((x) => x.elementId==elementId).first;
+
+
+                                                        setState(() {
+                                                          isElement = true;
+                                                          elementNumberController.text = partNum;
+                                                          fromBin=element.binNum;
+                                                          lotNoController.text = element.elementId;
+                                                          elementDescriptionController.text = element.elementDesc;
+                                                          uomController.text = element.uom;
+                                                          erectionSeqController.text = element.erectionSeq;
+                                                          weightController.text = element.weight;
+                                                          areaController.text = element.area;
+                                                          volumeController.text = element.volume;
+                                                          estErectionDateController.text = element.erectionDate;
+                                                          onHandQtyController.text = '1';
+                                                          selectedQtyController.text = '1';
+                                                          selectable = true;
+                                                          scanning = false;
+
+                                                        });
+
+                                                  }
+
+
+
 
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
@@ -590,15 +670,33 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     onChanged: (value) async {
                       setState(() {
                         selectable = false;
+                        dynamic element = widget.isOffloading?widget.arrivedElements!.where((element) => element.elementId==value).first:elementValue.where((element) => element['PartLot_LotNum']==value).first;
+                        setState(() {
+                          fromBin=widget.isOffloading?element.binNum:element['PartBin_BinNum'];
+                          setState(() {
+                            lotNoController.text = widget.isOffloading?element.elementId:element['PartLot_LotNum'].toString();
+                           elementDescriptionController.text = widget.isOffloading?element.elementDesc:element['PartLot_PartLotDescription'];
+                            uomController.text =widget.isOffloading?element.uom: element['Part_IUM'].toString();
+                            erectionSeqController.text = widget.isOffloading?element.erectionSeq:element['PartLot_ErectionSequence_c'].toString();
+                            weightController.text = widget.isOffloading?element.weight:element['PartLot_Ton_c'].toString();
+                            areaController.text = widget.isOffloading?element.area:element['PartLot_M2_c'].toString();
+                            volumeController.text = widget.isOffloading?element.volume:element['PartLot_M3_c'].toString();
+                            estErectionDateController.text = widget.isOffloading?element.erectionDate: element['ErectionPlannedDate_c'] ?? '';
+                            onHandQtyController.text = '1';
+                            selectedQtyController.text = '1';
+                            selectable = true;
+                          });
+                        });
                         elements.removeWhere((element) => element==value);
 
                       });
                       debugPrint(elements.where((element) => totalElements.map((e) => e.elementId).contains(element)==false).toList().toString());
-                      await getElementDetailsFromLot(value, elementNumberController.text);
+                     // await getBinForElement(value,widget.warehouse,widget.project);
+                   //   await getElementDetailsFromLot(value, elementNumberController.text);
 
                     },
                   ),
-               
+
                   ]),
                 ),
               Padding(
