@@ -843,7 +843,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Character04": toWarehouseNameController.text,
                                                   "Character05": toBinController.text,
                                                   "Character07": toWarehouseController.text,
-                                                  // "Character08": ,
+                                                  "Character08": toWarehouseController.text,
                                                   "Character06": fromWarehouseController.text,
                                                   "Character09": resourceId,
                                                 //  "Createdby_c": entryPersonController?.text.toString().trim(),
@@ -1832,7 +1832,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 onChanged: (value) async {
                   setState(() {
                     resourceIdController.text = value.toString();
-                    resourceId = resourceValue!.where((element) => element['Character01'] == value).first['Key1'];
+                    resourceId = resourceValue!.where((element) => element['Character01'] == value).first['ChildKey1'];
                   });
                   getResourceDetailsFromJson(resourceIdController.text);
                   if(resourceDetails != null){

@@ -86,7 +86,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                 widget.Warehouse == null&&widget.Project==null?
                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\''
                     :
-                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\' and PartWhse_WarehouseCode eq \'${widget.Warehouse}\'and PartLot_Project_c eq \'${widget.Project}\''),
+                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\' '),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -142,14 +142,25 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         elementValue = elementData['value'];
 
         elements= elementValue.map((e) => e['PartLot_LotNum']).toList();
+       setState(() {
 
+          isLoading = false;
+       });
         debugPrint(elements.toString());
       } else {
         debugPrint(response.statusCode.toString());
+        setState(() {
+
+          isLoading = false;
+        });
       }
     }
     on Exception catch (e) {
       debugPrint(e.toString());
+      setState(() {
+
+        isLoading = false;
+      });
     }
   }
 

@@ -1072,14 +1072,14 @@ class _StockOffloadingState extends State<StockOffloading>
                               }
                             }
                             else {
-                              final loadDateFormat = '${DateFormat('yyyy-mm-dd').format(DateTime.now())}T00:00:00';
+                              final loadDateFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(DateTime.now());
                               debugPrint(selectedElements.toString());
                              for (var v = 0; v < selectedElements.length; v++) {
                                 await updateUD103A({
                                   "Key1": loadIDController.text,
                                   "ChildKey1":selectedElements[v].ChildKey1,
                                   "CheckBox01": true,
-                                  "CheckBox02": false,
+                                  "CheckBox02": true,
                                   "CheckBox03": false,
                                   "CheckBox05": false,
                                   "Date02": loadDateFormat,
