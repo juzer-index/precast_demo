@@ -209,7 +209,8 @@ class _ElementMasterState extends State<ElementMaster> {
   Future<void> getScannedElement(String partNum, String elementId, String companyId) async {
     var url = Uri.parse('${context.read<tenantConfigProvider>().tenantConfig['httpVerbKey']}://${context.read<tenantConfigProvider>().tenantConfig['appPoolHost']}/${context.read<tenantConfigProvider>().tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)');
     try {
-       dynamic basicAuth=utf8.encode('${context.read<tenantConfigProvider>().tenantConfig['userID']}:${context.read<tenantConfigProvider>().tenantConfig['password']}');
+
+       final String basicAuth = 'Basic ${base64Encode(utf8.encode('${context.read<tenantConfigProvider>().tenantConfig['userID']}:${context.read<tenantConfigProvider>().tenantConfig['password']}' ))}';
       final response = await http.get(url, headers: {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
@@ -217,11 +218,12 @@ class _ElementMasterState extends State<ElementMaster> {
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         elementListData = json.decode(response.body);
-        if (mounted) {/*
+
+        if (mounted) {
           Navigator.push(
-            dialogContext,
+            context,
             MaterialPageRoute(builder: (context) => DetailsPage(elementId: elementId, elementDetails: elementListData, statusColor: Colors.transparent)),
-          );*/
+          );
         }
       }
     } on Exception catch (e) {
