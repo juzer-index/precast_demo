@@ -215,14 +215,15 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                  content: const Text("All unsaved data will be lost"),
                  actions: [
                    TextButton(
-                       child: const Text("Yes"),
+                       child: Text("Yes",style: TextStyle(color:Theme.of(context).canvasColor )),
+
                        onPressed: () {
                          Navigator.pop(context);
                          Navigator.pop(context);
                        }
                    ),
                    TextButton(
-                       child: const Text("No"),
+                       child: Text("No",style: TextStyle(color:Theme.of(context).canvasColor)),
                        onPressed: () {
                          Navigator.pop(context);
                        }
@@ -247,6 +248,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           length: 3,
           initialIndex: widget.initialTabIndex,
           child: Scaffold(
+            backgroundColor: Color(0xffF0F0F0),
             appBar: AppBar(
               backgroundColor: Theme
                   .of(context)
@@ -328,11 +330,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 future: dataLoaded,
                   builder:(context,snapshot){
                    if(snapshot.connectionState == ConnectionState.waiting){
-                        return  const Stack(
+                        return   Stack(
                           children: [
                             Center(
                               child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
                               ), // Show spinner when disabled
                             ),
                           ],
@@ -350,14 +352,14 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                 child: Center(
                                   child: Column(
                                     children: [
-                                      const Padding(
+                                      Padding(
                                         padding: EdgeInsets.all(8.0),
                                         child: Text(
                                           'Load Details',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
-                                              color: Colors.blue),
+                                              color:  Theme.of(context).primaryColor),
                                         ),
                                       ),
                                       if(!widget.isUpdate)
@@ -420,7 +422,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                                 onPressed: () {
                                                                   Navigator.pop(context);
                                                                 },
-                                                                child: const Text('Close'),
+                                                                child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                               ),
                                                             ],
                                                           );
@@ -691,13 +693,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             Expanded(
                                               child: Column(
                                                   children: [
-                                                    const Padding(
+                                                    Padding(
                                                       padding: EdgeInsets.all(8.0),
                                                       child: Text('Load Type',
                                                         style: TextStyle(
                                                             fontWeight: FontWeight.bold,
                                                             fontSize: 18,
-                                                            color: Colors.blue),
+                                                            color: Theme.of(context).canvasColor),
                                                       ),
                                                     ),
                                                     RadioListTile(
@@ -728,13 +730,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             Expanded(
                                               child: Column(
                                                   children: [
-                                                    const Padding(
+                                                   Padding(
                                                       padding: EdgeInsets.all(8.0),
                                                       child: Text('Load Condition',
                                                         style: TextStyle(
                                                             fontWeight: FontWeight.bold,
                                                             fontSize: 18,
-                                                            color: Colors.blue),
+                                                            color: Theme.of(context).canvasColor),
                                                       ),
                                                     ),
                                                     RadioListTile(
@@ -775,13 +777,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                           ]
                                       ),
-                                      const Padding(padding: EdgeInsets.all(8.0),
+                                       Padding(padding: EdgeInsets.all(8.0),
                                         child: Text(
                                           'Truck Details',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
-                                              color: Colors.blue),
+                                              color: Theme.of(context).canvasColor),
                                         ),
                                       ),
                                       if(!widget.isUpdate)
@@ -864,7 +866,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                                   Navigator.of(context).pop();
                                                                   _tabController.animateTo(1);
                                                                 },
-                                                                child: const Text('OK'),
+                                                                child: Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                               ),
                                                             ],
                                                           );
@@ -895,20 +897,20 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     children: [
                                       Column(
                                         children: [
-                                          const Padding(
+                                           Padding(
                                             padding: EdgeInsets.all(8.0),
                                             child: Text(
                                               'Part Search Form',
                                               style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 18,
-                                                  color: Colors.blue),
+                                                  color: Theme.of(context).canvasColor),
                                             ),
                                           ),
-                                          const SizedBox(height: 10,),
+                                           SizedBox(height: 10,),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: Colors.blue.shade100,
+                                              color: Theme.of(context).indicatorColor,
                                               borderRadius: BorderRadius.circular(10),
                                             ),
                                             child: Padding(
@@ -922,23 +924,23 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       const SizedBox(
                                         height: 20,
                                       ),
-                                      const Text(
+                                       Text(
                                         'Selected Elements',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.blue),
+                                            color: Theme.of(context).canvasColor),
                                       ),
                                       ElementTable(selectedElements: selectedElements,DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
                                       const SizedBox(
                                         height: 20,
                                       ),
-                                      const Text(
+                                       Text(
                                         'Selected Parts',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.blue),
+                                            color: Theme.of(context).canvasColor),
                                       ),
                                       PartTable(selectedParts: selectedParts),
                                       ElevatedButton(
@@ -961,12 +963,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                               child: Center(
                                 child: Column(
                                   children: [
-                                    const Padding(
+                                     Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Project Details', style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.blue),),
+                                          color: Theme.of(context).canvasColor),),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
@@ -1045,32 +1047,33 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         ),
                                       ],
                                     ),
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Truck Details', style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.blue),),
+                                        color: Theme.of(context).primaryColor
+                                          ),),
                                     ),
                                     if(!widget.isUpdate)
                                       buildTruckDetailsFrom(false),
                                     if(widget.isUpdate)
                                       TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
 
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Selected Elements', style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.blue),),
+                                          color: Theme.of(context).canvasColor),),
                                     ),
                                     ElementTable(selectedElements: selectedElements),
-                                    const Padding(
+                                   Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text('Selected Parts', style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Colors.blue),),
+                                          color: Theme.of(context).canvasColor),),
                                     ),
                                     PartTable(selectedParts: selectedParts),
                                     const SizedBox(height: 20,),
@@ -1142,7 +1145,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                         onPressed: () {
                                                           Navigator.of(context).pop();
                                                         },
-                                                        child: const Text('OK'),
+                                                        child: Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                       ),
                                                     ],
                                                   );
@@ -1857,8 +1860,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             enabled: isEditable,
             controller: plateNumberController,
             decoration: const InputDecoration(
-                fillColor: Colors.white,
-                filled: true,
+
                 border: OutlineInputBorder(),
                 labelText: "Plate Number"),
           ),
@@ -1923,8 +1925,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   enabled: isEditable,
                   controller: driverNumberController,
                   decoration: const InputDecoration(
-                      fillColor: Colors.white,
-                      filled: true,
+
                       border: OutlineInputBorder(),
                       labelText: "Driver Contact"),
                 ),

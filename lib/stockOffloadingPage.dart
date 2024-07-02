@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+
 import 'package:GoCastTrack/truckDetails.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -407,6 +408,7 @@ class _StockOffloadingState extends State<StockOffloading>
   @override
   Widget build (BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
         title: const Center(
@@ -455,14 +457,14 @@ class _StockOffloadingState extends State<StockOffloading>
                       key: _formKey,
                       child: Center(
                         child: Column(children: [
-                          const Padding(
+                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Load Details',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
-                                  color: Colors.blue),
+                                  color: Theme.of(context).canvasColor),
                             ),
                           ),
                           Padding(
@@ -472,11 +474,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                 Expanded(
                                   child: TextFormField(
                                     controller: loadIDController,
-                                    decoration: const InputDecoration(
+                                    decoration:  InputDecoration(
                                       fillColor: Colors.white,
                                       filled: true,
                                       border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
+                                        borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                       ),
                                       label: Text('Load ID'),
                                     ),
@@ -507,7 +509,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                                     onPressed: () {
                                                       Navigator.pop(context);
                                                     },
-                                                    child: const Text('Close'),
+                                                    child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                   ),
                                                 ],
                                               );
@@ -547,24 +549,24 @@ class _StockOffloadingState extends State<StockOffloading>
                                       }
                                     }
                                   },
-                                  icon: const Icon(
+                                  icon:  Icon(
                                     Icons.search,
-                                    color: Colors.blue,
+                                    color: Theme.of(context).canvasColor,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding:  EdgeInsets.all(8.0),
                             child: TextFormField(
                               controller: projectIDController,
                               enabled: false,
-                              decoration: const InputDecoration(
+                              decoration:  InputDecoration(
                                 fillColor: Colors.white,
                                 filled: true,
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.blue),
+                                  borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                 ),
                                 label: Text('Project ID'),
                               ),
@@ -575,11 +577,11 @@ class _StockOffloadingState extends State<StockOffloading>
                             child: TextFormField(
                               controller: loadDateController,
                               enabled: false,
-                              decoration: const InputDecoration(
+                              decoration:  InputDecoration(
                                 fillColor: Colors.white,
                                 filled: true,
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.blue),
+                                  borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                 ),
                                 label: Text('Load Date'),
                               ),
@@ -631,11 +633,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                   child: TextFormField(
                                     controller: toWarehouseController,
                                     enabled: false,
-                                    decoration: const InputDecoration(
+                                    decoration:  InputDecoration(
                                       fillColor: Colors.white,
                                       filled: true,
                                       border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
+                                        borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                       ),
                                       label: Text('To Warehouse'),
                                     ),
@@ -648,11 +650,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                   child: TextFormField(
                                     controller: toBinController,
                                     enabled: false,
-                                    decoration: const InputDecoration(
+                                    decoration:  InputDecoration(
                                       fillColor: Colors.white,
                                       filled: true,
                                       border: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.blue),
+                                        borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                       ),
                                       label: Text('To Bin'),
                                     ),
@@ -666,14 +668,14 @@ class _StockOffloadingState extends State<StockOffloading>
                               children: [
                                 Expanded(
                                   child: Column(children: [
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.all(8.0),
                                       child: Text(
                                         'Load Type',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
-                                            color: Colors.blue),
+                                            color: Theme.of(context).canvasColor),
                                       ),
                                     ),
                                     AbsorbPointer(
@@ -708,7 +710,10 @@ class _StockOffloadingState extends State<StockOffloading>
                                       padding: const EdgeInsets.all(8.0),
                                       child: Text(
                                         'Load Condition',
-                                          style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)
+                                          style:  TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color: Theme.of(context).canvasColor),
                                       ),
                                     ),
                                     AbsorbPointer(
@@ -750,9 +755,9 @@ class _StockOffloadingState extends State<StockOffloading>
                                   ]),
                                 ),
                               ]),
-                          const Padding(
+                           Padding(
                             padding: EdgeInsets.all(8.0),
-                            child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                            child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).canvasColor),),
                           ),
                           TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
                           const SizedBox(
@@ -777,20 +782,20 @@ class _StockOffloadingState extends State<StockOffloading>
                         children: [
                           Column(
                             children: [
-                              const Padding(
+                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
                                   'Verify Elements',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
-                                      color: Colors.blue),
+                                      color: Theme.of(context).canvasColor),
                                 ),
                               ),
                               const SizedBox(height: 10,),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
+                                  color: Theme.of(context).indicatorColor,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Padding(
@@ -801,26 +806,26 @@ class _StockOffloadingState extends State<StockOffloading>
                               const SizedBox(height: 20,),
                             ],
                           ),
-                          const Padding(
+                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
                               'Arrived Elements',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
-                                  color: Colors.blue),
+                                  color: Theme.of(context).canvasColor),
                             ),
                           ),
                           ElementTable(selectedElements: selectedElements),
                           const SizedBox(
                             height: 20,
                           ),
-                          const Text(
+                           Text(
                             'Arrived Parts',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.blue),
+                                color: Theme.of(context).canvasColor),
                           ),
                           PartTable(selectedParts: arrivedParts),
                           const SizedBox(height: 20,),
@@ -838,14 +843,14 @@ class _StockOffloadingState extends State<StockOffloading>
                   SingleChildScrollView(
                     child: Column(
                       children: [
-                        const Padding(
+                    Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Text(
                             'Review',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Colors.blue),
+                                color: Theme.of(context).canvasColor),
                           ),
                         ),
                         Padding(
@@ -853,11 +858,11 @@ class _StockOffloadingState extends State<StockOffloading>
                           child: TextFormField(
                             controller: loadIDController,
                             enabled: false,
-                            decoration: const InputDecoration(
+                            decoration:  InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
                               border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderSide: BorderSide(color: Theme.of(context).canvasColor),
                               ),
                               label: Text('Load ID'),
                             ),
@@ -868,11 +873,11 @@ class _StockOffloadingState extends State<StockOffloading>
                           child: TextFormField(
                             controller: projectIDController,
                             enabled: false,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
                               border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderSide: BorderSide(color: Theme.of(context).canvasColor),
                               ),
                               label: Text('Project ID'),
                             ),
@@ -883,11 +888,11 @@ class _StockOffloadingState extends State<StockOffloading>
                           child: TextFormField(
                             controller: loadDateController,
                             enabled: false,
-                            decoration: const InputDecoration(
+                            decoration:  InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
                               border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderSide: BorderSide(color: Theme.of(context).canvasColor),
                               ),
                               label: Text('Load Date'),
                             ),
@@ -898,11 +903,11 @@ class _StockOffloadingState extends State<StockOffloading>
                           child: TextFormField(
                             controller: offloadDateController,
                             enabled: false,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               fillColor: Colors.white,
                               filled: true,
                               border: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.blue),
+                                borderSide: BorderSide(color: Theme.of(context).canvasColor),
                               ),
                               label: Text('Offload Date'),
                             ),
@@ -916,11 +921,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                 child: TextFormField(
                                   controller: toWarehouseController,
                                   enabled: false,
-                                  decoration: const InputDecoration(
+                                  decoration:  InputDecoration(
                                     fillColor: Colors.white,
                                     filled: true,
                                     border: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
+                                      borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                     ),
                                     label: Text('To Warehouse'),
                                   ),
@@ -933,11 +938,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                 child: TextFormField(
                                   controller: toBinController,
                                   enabled: false,
-                                  decoration: const InputDecoration(
+                                  decoration:  InputDecoration(
                                     fillColor: Colors.white,
                                     filled: true,
                                     border: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
+                                      borderSide: BorderSide(color: Theme.of(context).canvasColor),
                                     ),
                                     label: Text('To Bin'),
                                   ),
@@ -947,30 +952,30 @@ class _StockOffloadingState extends State<StockOffloading>
                           ],
                         ),
                         const SizedBox(height: 20,),
-                        const Padding(
+                    Padding(
                           padding: EdgeInsets.all(8.0),
-                          child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue),),
+                          child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).canvasColor),),
                         ),
                         TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
                         const SizedBox(height: 20,),
-                        const Text(
+                        Text(
                           'Arrived Elements',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Colors.blue),
+                              color: Theme.of(context).canvasColor),
                         ),
 
                         ElementTable(selectedElements: selectedElements),
                         const SizedBox(
                           height: 20,
                         ),
-                        const Text(
+                         Text(
                           'Arrived Parts',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Colors.blue),
+                              color: Theme.of(context).canvasColor),
                         ),
 
                         PartTable(selectedParts: arrivedParts),
@@ -1026,7 +1031,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                                   onPressed: () {
                                                     Navigator.pop(context);
                                                   },
-                                                  child: const Text('Close'),
+                                                  child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                 ),
                                               ],
                                             );
@@ -1063,7 +1068,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: const Text('Close'),
+                                          child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                         ),
                                       ],
                                     );
@@ -1142,7 +1147,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: const Text('Close'),
+                                          child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                         ),
                                       ],
                                     );

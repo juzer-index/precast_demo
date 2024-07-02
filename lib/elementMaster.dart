@@ -259,6 +259,7 @@ class _ElementMasterState extends State<ElementMaster> {
     final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Element Master',),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -277,7 +278,7 @@ class _ElementMasterState extends State<ElementMaster> {
                         borderRadius: BorderRadius.all(Radius.circular(10)),
                       ),
                       elevation: 1,
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -292,11 +293,11 @@ class _ElementMasterState extends State<ElementMaster> {
                                   });
                                 },
                                 controller: partNumController,
-                                decoration: const InputDecoration(
+                                decoration:  InputDecoration(
                                   fillColor: Colors.white,
                                     filled: true,
                                     border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
+                                      borderSide: BorderSide(color: Theme.of(context).indicatorColor),
                                     ),
                                     labelText: "Part Num"),
 
@@ -313,11 +314,11 @@ class _ElementMasterState extends State<ElementMaster> {
                                   });
                                 },
                                 controller: elementIdController,
-                                decoration: const InputDecoration(
+                                decoration:  InputDecoration(
                                     fillColor: Colors.white,
                                     filled: true,
                                     border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.blue),
+                                      borderSide: BorderSide(color: Theme.of(context).indicatorColor),
                                     ),
                                     labelText: "Element ID"),
 
@@ -402,7 +403,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                                         onPressed: () {
                                                           Navigator.pop(context);
                                                         },
-                                                        child: const Text('OK'),
+                                                        child:Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                       ),
                                                     ],
                                                   );
@@ -426,7 +427,7 @@ class _ElementMasterState extends State<ElementMaster> {
 
                 SizedBox(
                     child: Card(
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
 

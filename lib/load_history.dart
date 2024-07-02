@@ -89,6 +89,7 @@ class _LoadHistoryState extends State<LoadHistory> {
   // TODO: implement widget
   Widget build(BuildContext context){
     return Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -97,7 +98,7 @@ class _LoadHistoryState extends State<LoadHistory> {
           children: [
             SizedBox(
               child: Card(
-                  color: Colors.lightBlue.shade100,
+                 color: Theme.of(context).indicatorColor,
                   child: Padding(
                       padding: const EdgeInsets.all(8.0),
 

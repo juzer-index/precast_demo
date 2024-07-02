@@ -17,6 +17,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final ImagePath = 'assets/app-logo.png';
+  late Image image;
+
   String username = '' ;
   String password = '';
   String tenantId = '';
@@ -103,25 +106,30 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
   @override
-  void initState() {
+  void  initState() {
     super.initState();
+    image =  Image.asset(ImagePath,width: 150,height: 150,);
     isLogged();
 
   }
-
+@override
+void didChangeDependencies() {
+  precacheImage(image.image, context);
+  super.didChangeDependencies();
+}
 
   @override
   Widget build(BuildContext context) {
-    var Imagepath = 'assets/Index-Logo.jpg';
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        title: const Center(
+        backgroundColor: Theme.of(context).shadowColor,
+        title:  Center(
           child: Text(
             'GoCast - Track',
             style: TextStyle(
-                color: Colors.lightBlue,
+                color: Theme.of(context).primaryColor,
                 fontSize: 20 , fontWeight: FontWeight.bold),
           ),
         ),
@@ -135,13 +143,10 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Padding(
+                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Image.asset(
-                      Imagepath,
-                      width: 150,
-                      height: 150,
-                    ),
+
+                    child: image,
                   ),
                   Card(
                     child: Container(

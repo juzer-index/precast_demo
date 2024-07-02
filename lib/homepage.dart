@@ -42,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
@@ -56,7 +57,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(8),
                 child: Text(
                   'Welcome, ${context.watch<UserManagementProvider>().userManagement?.firstName}  ',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue.shade400,),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF5E9746),),
                 ),
               ),
               SizedBox(
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                 height: MediaQuery.of(context).size.height * 0.12,
                 child: Card(
                   elevation: 1,
-                  color: Colors.lightBlue.shade100,
+                  color: Theme.of(context).indicatorColor,
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
@@ -188,7 +189,7 @@ class _HomePageState extends State<HomePage> {
                                 },
                                 icon: Icon(
                                   Icons.info,
-                                  color: Colors.blueGrey.shade800,
+                                  color: Colors.white,
                                 )))
                       ],
                     ),
@@ -207,7 +208,7 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     Card(
                       elevation: 1,
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -223,7 +224,7 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.settings,
                               size: 50,
-                              color: Colors.blueGrey,
+                              color: Colors.white,
                             ),
                             SizedBox(height: 10),
                             Text(
@@ -237,7 +238,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Card(
                       elevation: 1,
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -253,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.assignment,
                               size: 50,
-                              color: Colors.blueGrey,
+                              color: Colors.white,
                             ),
                             SizedBox(height: 10),
                             Text(
@@ -267,7 +268,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Card(
                       elevation: 1,
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -283,7 +284,7 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.assignment_turned_in,
                               size: 50,
-                              color: Colors.blueGrey,
+                              color: Colors.white,
                             ),
                             SizedBox(height: 10),
                             Text(
@@ -297,7 +298,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Card(
                       elevation: 1,
-                      color: Colors.lightBlue.shade100,
+                      color: Theme.of(context).indicatorColor,
                       child: InkWell(
                         onTap: () {
                           Navigator.push(
@@ -314,7 +315,7 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.assignment_late,
                               size: 50,
-                              color: Colors.blueGrey,
+                              color:Colors.white ,
                             ),
                             SizedBox(height: 10),
                             Text(

@@ -178,7 +178,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                             controller: truckIdController,
                             enabled: widget.isEdit,
                             decoration: const InputDecoration(
-                                fillColor: Colors.white,
+
                                 filled: true,
                                 border: OutlineInputBorder(),
                                 labelText: "Truck ID"),
@@ -298,13 +298,12 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding:  EdgeInsets.all(8.0),
                   child: TextFormField(
                     enabled: widget.isEdit,
                     controller: plateNumberController,
                     decoration: const InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
+
                         border: OutlineInputBorder(),
                         labelText: "Plate Number"),
                   ),
@@ -316,13 +315,12 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                     if(!widget.isEdit)
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding:  EdgeInsets.all(8.0),
                           child: TextFormField(
                             enabled: widget.isEdit,
                             controller: driverNameController,
-                            decoration: const InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
+                            decoration:  InputDecoration(
+
                                 border: OutlineInputBorder(),
                                 labelText: "Driver Name"),
                           ),
@@ -369,8 +367,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                           enabled: widget.isEdit,
                           controller: driverNumberController,
                           decoration: const InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
+
                               border: OutlineInputBorder(),
                               labelText: "Driver Contact"),
                         ),

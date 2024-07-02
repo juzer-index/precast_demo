@@ -130,7 +130,7 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
         ListTile(
             leading: Icon(
               Icons.history,
-              color: Colors.blue.shade400,
+              color: Theme.of(context).primaryColor,
             ),
             title: const Text('Load History'),
             onTap: () {
@@ -144,7 +144,7 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
         ListTile(
             leading: Icon(
               Icons.exit_to_app,
-              color: Colors.blue.shade400,
+              color: Theme.of(context).primaryColor,
             ),
             title: const Text('Logout'),
             onTap: () {

@@ -337,7 +337,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          child: const Text('OK'),
+                                          child:  Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                         ),
                                       ],
                                     );
@@ -360,6 +360,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               return Dialog(
                                 shape: const RoundedRectangleBorder(
                                   borderRadius: BorderRadius.zero,
+
                                 ),
                                 child: SizedBox(
                                   height: MediaQuery
@@ -410,7 +411,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                           onPressed: () {
                                                             Navigator.pop(context);
                                                           },
-                                                          child: const Text('OK'),
+                                                          child: Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                                         ),
                                                       ],
                                                     );
@@ -695,7 +696,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: const Text('OK'),
+                                        child:  Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                       ),
                                     ],
                                   );
@@ -714,7 +715,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                         onPressed: () {
                                           Navigator.of(context).pop();
                                         },
-                                        child: const Text('OK'),
+                                        child:  Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                       ),
                                     ],
                                   );
@@ -734,7 +735,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          child: const Text('OK'),
+                                          child:  Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
                                         ),
                                       ],
                                     );
