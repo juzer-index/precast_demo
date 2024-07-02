@@ -1,4 +1,5 @@
 import 'package:GoCastTrack/stockOffloadingPage.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'stockLoadingPage.dart';
 import 'indexAppBar.dart';
@@ -7,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'elementMaster.dart';
 import 'load_model.dart';
 import 'Providers/UserManagement.dart';
+import 'package:fl_chart/fl_chart.dart';
+import './ElementPieChart.dart';
 
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
@@ -197,10 +200,13 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 20),
+              ElementPieChart(),
+
               const Divider(),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GridView.count(
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
                   crossAxisCount: 2,
                   crossAxisSpacing: 10,
