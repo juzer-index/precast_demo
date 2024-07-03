@@ -235,6 +235,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
 
       final response = await http.get(
+
           Uri.parse(
               '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates($companyId,$partNum,$elementId)'),
           headers: {

@@ -96,7 +96,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
               initiallyExpanded: true,
               title: Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
               children:[ SizedBox(
-                width: 500 , height: 350,
+                width: 500 , height: 333,
                 child: Card(
                   elevation: 3,
                   color:Theme.of(context).indicatorColor ,

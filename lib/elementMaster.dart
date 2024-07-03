@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:math';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -143,11 +146,11 @@ class _ElementMasterState extends State<ElementMaster> {
   Map<String, dynamic> elementListData = {};
   List<dynamic> elementListValue = [];
   List<dynamic> partElementList = [];
-
+  List<dynamic> filteredElementList = [];
 
   TextEditingController partNumController = TextEditingController();
   TextEditingController elementIdController = TextEditingController();
-
+  TextEditingController projectController = TextEditingController();
   bool isSingleElement = false;
   bool isSearching = false;
 
@@ -162,11 +165,14 @@ class _ElementMasterState extends State<ElementMaster> {
   bool isElement = false;
   int offset = 0;
   int currentPageIndex = 0;
+  bool SearchExpanded = false;
+
   final GlobalKey<PaginatedDataTableState> dataTablekey = GlobalKey();
+  List<dynamic>projects=[];
 
   @override
-  void initState() {
-
+  void initState()  {
+     getProjectList(widget.tenantConfig);
     super.initState();
 
   }
@@ -176,11 +182,11 @@ class _ElementMasterState extends State<ElementMaster> {
     int page = offset == 0 ? 11: 10;
     if(!isElement) {
       url = Uri.parse(
-          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_PartNum eq \'$param\'&\$top=$page''&\$skip=$offset');
+          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_PartNum eq \'$param\' ${projectController.text.isEmpty?'':'and PartLot_Project_c eq \'${projectController.text}\''} &\$top=$page''&\$skip=$offset');
     }
     else {
       url = Uri.parse(
-          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_LotNum eq \'$param\'&\$top=$page&\$skip=$offset');
+          '${tenantConfig2['httpVerbKey']}://${tenantConfig2['appPoolHost']}/${tenantConfig2['appPoolInstance']}/api/v1/BaqSvc/IIT_AllElement(${tenantConfig2['company']})?\$filter=PartLot_LotNum eq \'$param\' ${projectController.text.isEmpty?'':'and PartLot_Project_c eq \'${projectController.text}\''} &\$top=$page&\$skip=$offset');
       isElement = true;
     }
     try {
@@ -195,12 +201,38 @@ class _ElementMasterState extends State<ElementMaster> {
         var elementListValue = elementListData['value'];
         setState(() {
           partElementList+=elementListValue;
+          filteredElementList = partElementList;
           offset += elementListValue.length as int;
         });
         debugPrint(elementListValue.toString());
       }
       else {
         debugPrint(response.statusCode.toString());
+      }
+    } on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+  Future<void> getProjectList(dynamic tenantConfigP) async {
+    final String basicAuth = 'Basic ${base64Encode(
+        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final response = await http.get(
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.ProjectSvc/List/'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          }
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          projects = json.decode(response.body)['value'];
+          projects = projects.map((e) => e['ProjectID']).toList();
+
+        });
+      } else {
+        throw Exception('Failed to load Project');
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -237,6 +269,7 @@ class _ElementMasterState extends State<ElementMaster> {
         if (elementListValue[i]['PartLot_PartNum'] == partNum) {
           setState(() {
             partElementList.add(elementListValue[i]);
+            filteredElementList = partElementList;
           });
         }
       }
@@ -246,6 +279,7 @@ class _ElementMasterState extends State<ElementMaster> {
         if (elementListValue[i]['PartLot_LotNum'] == partNum) {
           setState(() {
             partElementList.add(elementListValue[i]);
+            filteredElementList = partElementList;
           });
         }
       }
@@ -258,7 +292,7 @@ class _ElementMasterState extends State<ElementMaster> {
   Widget build(BuildContext context) {
     final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
 
-    return Scaffold(
+    return projects.length>0?Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Element Master',),
       body: Padding(
@@ -279,149 +313,216 @@ class _ElementMasterState extends State<ElementMaster> {
                       ),
                       elevation: 1,
                       color: Theme.of(context).indicatorColor,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    elementIdController.clear();
-                                    currentPageIndex= 0;
-                                  });
-                                },
-                                controller: partNumController,
-                                decoration:  InputDecoration(
-                                  fillColor: Colors.white,
-                                    filled: true,
-                                    border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Theme.of(context).indicatorColor),
-                                    ),
-                                    labelText: "Part Num"),
-
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: TextFormField(
-                                onTap: () {
-                                  setState(() {
-                                    partNumController.clear();
-                                  });
-                                },
-                                controller: elementIdController,
-                                decoration:  InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: UnderlineInputBorder(
-                                      borderSide: BorderSide(color: Theme.of(context).indicatorColor),
-                                    ),
-                                    labelText: "Element ID"),
-
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: isSearching?
-                                   const CircularProgressIndicator()
-                                 :IconButton(
-                                    onPressed: () async {
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    onTap: () {
                                       setState(() {
-                                        isSearching = true;
-                                      });
-
-                                      partElementList.clear();
-                                      setState(() {
-                                        currentPageIndex = 0;
-                                      });
-                                      dataTablekey.currentState?.pageTo(0);
-                                      if(partNumController.text.isNotEmpty) {
-                                        setState(() {
-                                          isSingleElement = false;
-                                        });
-
-                                        await getElementList(partNumController.text, false, 0,tenantConfigP!);
-                                      }
-                                      if(elementIdController.text.isNotEmpty){
-                                        setState(() {
-                                          isSingleElement = true;
-                                        });
-                                        await getElementList(elementIdController.text, true,0,tenantConfigP!);
-                                      }
-                                      setState(() {
-                                        isSearching = false;
+                                        elementIdController.clear();
+                                        currentPageIndex= 0;
                                       });
                                     },
-                                    icon: const Icon(Icons.search),/*
-                                  ),
-                                }
-                                return const CircularProgressIndicator();
-                              },*/
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return AlertDialog(
-                                      title: const Text('Scan Element'),
-                                      content: SizedBox(
-                                        width: MediaQuery.of(context).size.width ,
-                                        height: MediaQuery.of(context).size.height * 0.35,
-                                        child: QRView(
-                                          key: qrKey,
-                                          onQRViewCreated: (QRViewController controller) {
-                                            this.controller = controller;
-                                            controller.scannedDataStream.listen((scanData) async {
-                                              String elementId = '';
-                                              String partNum = '';
-                                              String companyId = '';
-                                              controller.pauseCamera();
-                                              Navigator.pop(context);
-                                              debugPrint('this is the code ${scanData.code}');
-                                              List<String> scanResult = scanData.code!.split('-');
-                                              if (scanResult.length >= 4) {
-                                                elementId = scanResult.sublist(3).join("-");
-                                                partNum = scanResult[2];
-                                                companyId = scanResult[1];
-                                                await getScannedElement(partNum, elementId, companyId);
-                                              } else {
-                                                showDialog(context: context, builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Invalid QR Code'),
-                                                    content: const Text('Please scan a valid QR code'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(context);
-                                                        },
-                                                        child:Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
-                                                      ),
-                                                    ],
-                                                  );
-                                                });
-                                              }
-                                            });
-                                          },
+                                    controller: partNumController,
+                                    decoration:  InputDecoration(
+                                      fillColor: Colors.white,
+                                        filled: true,
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Theme.of(context).indicatorColor),
                                         ),
+                                        labelText: "Part Num"),
+
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    onTap: () {
+                                      setState(() {
+                                        partNumController.clear();
+                                      });
+                                    },
+                                    controller: elementIdController,
+                                    decoration:  InputDecoration(
+                                        fillColor: Colors.white,
+                                        filled: true,
+                                        border: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Theme.of(context).indicatorColor),
+                                        ),
+                                        labelText: "Element ID"),
+
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: isSearching?
+                                       const CircularProgressIndicator()
+                                     :IconButton(
+                                        onPressed: () async {
+                                          setState(() {
+                                            isSearching = true;
+                                          });
+
+                                          partElementList.clear();
+                                          filteredElementList.clear();
+                                          setState(() {
+                                            currentPageIndex = 0;
+                                          });
+                                          dataTablekey.currentState?.pageTo(0);
+                                          if(partNumController.text.isNotEmpty) {
+                                            setState(() {
+                                              isSingleElement = false;
+                                            });
+
+                                            await getElementList(partNumController.text, false, 0,tenantConfigP!);
+                                          }
+                                          if(elementIdController.text.isNotEmpty){
+                                            setState(() {
+                                              isSingleElement = true;
+                                            });
+                                            await getElementList(elementIdController.text, true,0,tenantConfigP!);
+                                          }
+                                          setState(() {
+                                            isSearching = false;
+                                          });
+                                        },
+                                        icon: const Icon(Icons.search),/*
                                       ),
+                                    }
+                                    return const CircularProgressIndicator();
+                                  },*/
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('Scan Element'),
+                                          content: SizedBox(
+                                            width: MediaQuery.of(context).size.width ,
+                                            height: MediaQuery.of(context).size.height * 0.35,
+                                            child: QRView(
+                                              key: qrKey,
+                                              onQRViewCreated: (QRViewController controller) {
+                                                this.controller = controller;
+                                                controller.scannedDataStream.listen((scanData) async {
+                                                  String elementId = '';
+                                                  String partNum = '';
+                                                  String companyId = '';
+                                                  controller.pauseCamera();
+                                                  Navigator.pop(context);
+                                                  debugPrint('this is the code ${scanData.code}');
+                                                  List<String> scanResult = scanData.code!.split('-');
+                                                  if (scanResult.length >= 4) {
+                                                    elementId = scanResult.sublist(3).join("-");
+                                                    partNum = scanResult[2];
+                                                    companyId = scanResult[1];
+                                                    await getScannedElement(partNum, elementId, companyId);
+                                                  } else {
+                                                    showDialog(context: context, builder: (context) {
+                                                      return AlertDialog(
+                                                        title: const Text('Invalid QR Code'),
+                                                        content: const Text('Please scan a valid QR code'),
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.pop(context);
+                                                            },
+                                                            child:Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    });
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     );
                                   },
-                                );
-                              },
-                              icon: const Icon(Icons.qr_code_scanner),
-                            ),
+                                  icon: const Icon(Icons.qr_code_scanner),
+                                ),
+                              ),
+
+                            ],
                           ),
+
+                          Row(
+                            children: [
+                              Expanded(child:SearchExpanded?
+                              Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: DropdownSearch(
+
+
+                                  popupProps: const PopupProps.modalBottomSheet(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration: InputDecoration(
+                                        suffixIcon: Icon(Icons.search),
+                                        border: OutlineInputBorder(),
+                                        labelText: "Search",
+                                      ),
+                                    ),
+                                  ),
+                                  autoValidateMode: AutovalidateMode.onUserInteraction,
+                                  selectedItem: projectController.text.isNotEmpty?projectController.text:null,
+                                  dropdownDecoratorProps:  DropDownDecoratorProps(
+                                    dropdownSearchDecoration: InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Project ID",
+                                      filled: true,
+                                      fillColor: Theme.of(context).shadowColor
+                                    ),
+                                  ),
+                                  items: projects,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      projectController.text = value.toString();
+                                      filteredElementList=partElementList.where((element) => element['PartLot_Project_c']==value).toList();
+                                    });
+                                  },
+
+                                ),
+                              ):Container(),
+                              ),
+
+                            ],
+                          ),
+                          //expanding button
+                         Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                            IconButton(
+                              padding: const EdgeInsets.all(0),
+                              iconSize: 25,
+                            icon : SearchExpanded? Icon(Icons.arrow_drop_up) : Icon(Icons.arrow_drop_down),
+                              onPressed: () {
+                                 setState(() {
+                                   SearchExpanded = !SearchExpanded;
+                                 })
+                              ;
+                            }
+                            )
+                           ],
+                         )
                         ],
                       ),
+
                     ),
                   ),
 
@@ -451,10 +552,10 @@ class _ElementMasterState extends State<ElementMaster> {
                                     DataColumn(label: Text('Project')),
                                     DataColumn(label: Text('Status')),
                                   ],
-                                  source: partElementList.isNotEmpty ?
-                                  MyDataTableSource(partElementList, context,tenantConfigP!)
+                                  source: filteredElementList.isNotEmpty ?
+                                  MyDataTableSource(filteredElementList, context,tenantConfigP!)
                                       :
-                                  MyDataTableSource(partElementList, context,tenantConfigP!),
+                                  MyDataTableSource(filteredElementList, context,tenantConfigP!),
                                   )
                               )
                         ),
@@ -465,6 +566,11 @@ class _ElementMasterState extends State<ElementMaster> {
             ],
           ),
         ),
+      ),
+    ) :Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
+      body: Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
