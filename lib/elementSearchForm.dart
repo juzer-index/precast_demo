@@ -83,10 +83,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
       final response = await http.get(
             Uri.parse(
-                widget.Warehouse == null&&widget.Project==null?
-               '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\''
-                    :
-                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_P_PartDetails_V1(${widget.tenantConfig['company']})/?\$filter=Part_PartNum   eq    \'${PartNum}\' '),
+                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&Project=${widget.Project}&Warehouse=${widget.Warehouse}'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -95,9 +92,46 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(response.toString());
       if (response.statusCode == 200) {
         partData = jsonDecode(response.body);
+          if(partData['value'].isEmpty){
+            showDialog(context: context, builder: (BuildContext context){
+              return AlertDialog(
+                title: const Text('Error'),
+                content: const Text('Part not found'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child:  Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
+                  ),
+                ],
+              );
+            });
+          }
+          else{
          setState(() {
-            partValue = partData['value'];
+           partValue = partData['value'];
+           if (partValue[0]['Part_IsElementPart_c'] == true) {
+             isElement = true;
+             elementValue = partValue;
+             elements = elementValue.map((e) => e['PartLot_LotNum']).toList();
+             isLoading = false;
+           }
+           else {
+             isElement = false;
+             elementDescriptionController.text =
+             partValue[0]['Part_PartDescription'];
+             uomController.text = partValue[0]['Part_IUM'];
+             onHandQtyController.text =
+                 partValue[0]['Calculated_Calculated_OnhandQty']
+                     .toString();
+             isLoading = false;
+           }
          });
+          }
+
+
+
 
 
 
@@ -138,14 +172,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           }
       );
       if (response.statusCode == 200) {
-        elementData = jsonDecode(response.body);
-        elementValue = elementData['value'];
 
-        elements= elementValue.map((e) => e['PartLot_LotNum']).toList();
-       setState(() {
-
-          isLoading = false;
-       });
         debugPrint(elements.toString());
       } else {
         debugPrint(response.statusCode.toString());
@@ -305,7 +332,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               isLoading = false;
                             });
 
-                            if(partValue[0]['Part_IsElementPart_c'] == true){
+                         /*   if(partValue[0]['Part_IsElementPart_c'] == true){
                               isElement = true;
                               await getLotForElements();
 
@@ -313,7 +340,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             else{
                               isElement = false;
                               await getConsumableDetails(elementNumberController.text);
-                            }}
+                            }*/}
                           }
                        if(widget.isOffloading){
                           if(elementNumberController.text.isNotEmpty){
@@ -501,11 +528,24 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     ),
                     items: elements.isNotEmpty?elements:[],
                     onChanged: (value) async {
+                
+                     // await getElementDetailsFromLot(value, elementNumberController.text);
+                     dynamic selectedElement=elementValue.where((element) =>element['PartLot_LotNum']==value).first;
                       setState(() {
-                        selectable = false;
+                        lotNoController.text = selectedElement['PartLot_LotNum'];
+                        elementDescriptionController.text = selectedElement['Part_PartDescription'];
+                        uomController.text = selectedElement['Part_IUM'];
+                        erectionSeqController.text = selectedElement['PartLot_ErectionSequence_c'].toString();
+                        weightController.text = selectedElement['PartLot_Ton_c'];
+                        areaController.text = selectedElement['PartLot_M2_c'];
+                        volumeController.text = selectedElement['PartLot_M3_c'];
+                        estErectionDateController.text = selectedElement['PartLot_ErectionPlannedDate_c']!=null?selectedElement['ErectionPlannedDate_c']:'';
+                        onHandQtyController.text = '1';
+                        selectedQtyController.text = '1';
                       });
-                      await getElementDetailsFromLot(value, elementNumberController.text);
-
+                      setState(() {
+                        selectable = true;
+                      });
                     },
                   ),
                     if(elements.isEmpty&&elementListData.isEmpty) const SizedBox(
@@ -646,6 +686,19 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
+                        onChanged: (value) {
+                         if(int.parse(selectedQtyController.text)<=int.parse(onHandQtyController.text)||isElement){
+                           setState(() {
+                             selectable = true;
+                           });
+                         }
+                         else{
+                           setState(() {
+                             selectable = false;
+                           });
+                         }
+                          //
+                        },
                         controller: selectedQtyController,
                         enabled: isElement ? false : true,
                         decoration: const InputDecoration(
