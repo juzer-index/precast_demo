@@ -539,13 +539,12 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                         weightController.text = selectedElement['PartLot_Ton_c'];
                         areaController.text = selectedElement['PartLot_M2_c'];
                         volumeController.text = selectedElement['PartLot_M3_c'];
-                        estErectionDateController.text = selectedElement['PartLot_ErectionPlannedDate_c']!=null?selectedElement['ErectionPlannedDate_c']:'';
+                        estErectionDateController.text = selectedElement['PartLot_ErectionPlannedDate_c']!=null?selectedElement['PartLot_ErectionPlannedDate_c']:'';
                         onHandQtyController.text = '1';
                         selectedQtyController.text = '1';
-                      });
-                      setState(() {
                         selectable = true;
                       });
+
                     },
                   ),
                     if(elements.isEmpty&&elementListData.isEmpty) const SizedBox(

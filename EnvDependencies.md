@@ -26,3 +26,10 @@
       - UD103Svc **load header level**
       - UD103A   **load detail level**
       - UD102 **truck details**
+## BPMs
+-Data Directive on UD103A
+-- IIT_MITPostLines
+   **Conditions**: -  CheckBox01 = True
+                   - CheckBox02 = True
+                   - CheckBox03 = True
+                   - CheckBox07 = false

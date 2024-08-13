@@ -60,29 +60,33 @@ class ElementPieChart extends StatefulWidget{
 class _ElementPieChartState extends State<ElementPieChart>{
   late List status=[];
   Future<void> fetchElements( tenantConfigP) async {
-    try{
-      var url =  Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_ProjectChart");
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    if(status.length==0) {
+      try {
+        var url = Uri.parse(
+            "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_ProjectChart");
+        final basicAuth = 'Basic ${base64Encode(
+            utf8.encode(
+                '${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
-      final response = await http.get(
-          url,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
+        final response = await http.get(
+            url,
+            headers: {
+              HttpHeaders.authorizationHeader: basicAuth,
+              HttpHeaders.contentTypeHeader: 'application/json',
+            });
+        if (response.statusCode == 200) {
+          final List<dynamic> data = json.decode(response.body)['value'];
+          setState(() {
+            status = data;
           });
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body)['value'];
-        setState(() {
-          status=data;
-        });
-      } else {
-        throw Exception('Failed to load data');
+        } else {
+          throw Exception('Failed to load data');
+        }
+      } catch (e) {
+        print(e);
       }
-    }catch(e){
-      print(e);
-
     }
+    else return;
   }
   @override
   Widget build(BuildContext context) {
@@ -118,7 +122,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
 
                                       sections: status.map((section) =>
                                           PieChartSectionData(
-                                            color: widget.colors[widget.colorIndex++ % widget.colors.length],
+                                            color: widget.colors[((widget.colorIndex++)) % widget.colors.length],
                                             value:  section['Calculated_NO'].toDouble(),
                                             title:"",
                                             radius: 20,
