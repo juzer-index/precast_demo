@@ -16,11 +16,14 @@ class _DetailsPageState extends State<DetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).shadowColor,
       appBar: IndexAppBar(title: 'Element Details',),
       body: Padding(
+
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
           child: SizedBox(
+
             height: MediaQuery.of(context).size.height * 0.8,
             width: MediaQuery.of(context).size.width ,
             child: Column(
@@ -29,10 +32,10 @@ class _DetailsPageState extends State<DetailsPage> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text('Element ID: ${widget.elementId}',
-                    style: const TextStyle(
+                    style:  TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Theme.of(context).canvasColor,
                     ),
                   ),
                 ),
@@ -43,12 +46,12 @@ class _DetailsPageState extends State<DetailsPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
                         enabled: false,
-                        decoration: const InputDecoration(
+                        decoration:  InputDecoration(
                           labelText: 'Part Num',
                           fillColor: Colors.white,
                           filled: true,
                           border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.blue),
+                            borderSide: BorderSide(color: Theme.of(context).canvasColor),
                           ),
                         ),
                         initialValue: widget.elementDetails

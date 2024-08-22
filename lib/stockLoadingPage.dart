@@ -1100,8 +1100,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 "ShortChar07": selectedElements[e].UOM,
                                                 "CheckBox05":false,
                                                 "CheckBox01":true,
-                                                "CheckBox02":false,
+                                                "CheckBox02":true,
                                                 "CheckBox03":false,
+                                                "CheckBox07":false,
                                                 "CheckBox13": false,
                                               },tenantConfigP);
                                               updateInTransit(selectedElements[e].partId, selectedElements[e].elementId,tenantConfigP);

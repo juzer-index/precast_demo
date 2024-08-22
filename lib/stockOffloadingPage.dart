@@ -1161,14 +1161,14 @@ class _StockOffloadingState extends State<StockOffloading>
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
-                                      title: const Text('Error', style: TextStyle(color: Colors.red),),
-                                      content: const Text('Offload Failed'),
+                                      title: const Text('Success'),
+                                      content: const Text('Load Offloaded'),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
                                             Navigator.pop(context);
                                           },
-                                          child: const Text('Close'),
+                                          child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
                                         ),
                                       ],
                                     );
