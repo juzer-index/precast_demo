@@ -5,7 +5,7 @@ import 'stockLoadingPage.dart';
 import 'indexAppBar.dart';
 import 'sideBarMenu.dart';
 import 'package:provider/provider.dart';
-import 'elementMaster.dart';
+import 'elementTracker.dart';
 import 'load_model.dart';
 import 'Providers/UserManagement.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -190,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                                       }
                                       );
                                 },
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.info,
                                   color: Colors.white,
                                 )))
@@ -228,13 +228,13 @@ class _HomePageState extends State<HomePage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.settings,
+                              Icons.search,
                               size: 50,
                               color: Colors.white,
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Element Master',
+                              'Element Tracker',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
