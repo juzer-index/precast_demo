@@ -294,7 +294,7 @@ class _ElementMasterState extends State<ElementMaster> {
 
     return projects.length>0?Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
-      appBar: const IndexAppBar(title: 'Element Master',),
+      appBar: const IndexAppBar(title: 'Element Tracker',),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SingleChildScrollView(
@@ -569,7 +569,7 @@ class _ElementMasterState extends State<ElementMaster> {
       ),
     ) :Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
-      body: Center(
+      body: const Center(
         child: CircularProgressIndicator(),
       ),
     );
