@@ -7,7 +7,8 @@ class ReDropDown extends StatefulWidget {
   final List<dynamic> data;
   final String label;
   TextEditingController controller = TextEditingController();
-  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller});
+  List<dynamic> dataMap;
+  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap});
 
   @override
   State<StatefulWidget> createState() {
@@ -64,8 +65,9 @@ class _DropDownState extends State<ReDropDown> {
             ),
             items: widget.data,
             onChanged: (value) {
+             dynamic element= widget.dataMap.where((element) => element['Description'] == value).first;
               setState(() {
-                widget.controller.text = value.toString();
+                widget.controller.text =element['BinNum'];
               });
             },
           ),

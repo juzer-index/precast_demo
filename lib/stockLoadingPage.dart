@@ -663,7 +663,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           },
                                         ),
                                       ),*/
-                                      ReDropDown(enabled: toWarehouseController.text!="", data: fetchedBinValue.map((bin) => bin['Description']).toList(), label: "To Bin" , controller: toBinController),
+                                      ReDropDown(enabled: toWarehouseController.text!="", data: fetchedBinValue.map((bin) => bin['Description']).toList(), label: "To Bin" , controller: toBinController,dataMap:fetchedBinValue,),
                                       if(loadConditionValue == 'External')
                                         Row(
                                           children: [
@@ -827,6 +827,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               } else {
                                                 final newLoadId = 'I-${lastLoad+1}';
                                                 final loadDateFormat = '${_selectedDate}T00:00:00';
+                                                debugPrint(toBinController.text);
                                                 await createNewLoad({
                                                   "Key1": newLoadId,
                                                   "Company": "${tenantConfigP['company']}",
