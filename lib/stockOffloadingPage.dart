@@ -144,7 +144,7 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> fetchLoadDataFromURL() async {
-    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/GetByID');
+    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/GetByID');
     Map<String, dynamic> body = {
       "key1": loadIDController.text,
       "key2": "",
@@ -171,11 +171,11 @@ class _StockOffloadingState extends State<StockOffloading>
 
         setState(() {
           loadData = jsonResponse['returnObj'];
-          loadValue = loadData['UD103'];
+          loadValue = loadData['UD104'];
 
-          elementValue = loadData['UD103A']?.where((element) =>
+          elementValue = loadData['UD104A']?.where((element) =>
           element['CheckBox13'] == false).toList();
-          partValue = loadData['UD103A']?.where((part) =>
+          partValue = loadData['UD104A']?.where((part) =>
           part['CheckBox13'] == true).toList();
           arrivedElements = elementValue.map((e) => ElementData.fromJson(e)).toList();
           arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
@@ -229,7 +229,7 @@ class _StockOffloadingState extends State<StockOffloading>
   Future<void> fetchElementDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
       final response = await http.get(
           detailsURL,
           headers: {
@@ -267,7 +267,7 @@ class _StockOffloadingState extends State<StockOffloading>
   Future<void> fetchPartDataFromURL() async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
       final response = await http.get(
           detailsURL,
           headers: {
@@ -300,7 +300,7 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
   Future<void> updateLoadStatus(Map<String, dynamic> statusData) async {
-    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103s?\$filter=Key1 eq \'${loadIDController.text}\'');
+    final loadURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104s');
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
       final response = await http.post(
@@ -337,25 +337,25 @@ class _StockOffloadingState extends State<StockOffloading>
   }
 
 
-  Future<void> updateUD103A(Map<String, dynamic> ud103AData) async {
+  Future<void> updateUD104A(Map<String, dynamic> UD104AData ,String ChildKey) async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD103Svc/UD103As');
-      final response = await http.post(
+      final detailsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As(${widget.tenantConfig['company']},${loadIDController.text},,,,,$ChildKey,,,,)');
+      final response = await http.patch(
           detailsURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode(ud103AData)
+          body: jsonEncode(UD104AData)
       );
-      if(response.statusCode == 201){
+      if(response.statusCode == 204){
         setState(() {
           elementsAndPartsLoaded = true;
         });
       }
       else {
-        debugPrint('UD103A Update Failed');
+        debugPrint('UD104A Update Failed');
         debugPrint(response.body);
       }
     } on Exception catch (e) {
@@ -806,6 +806,8 @@ class _StockOffloadingState extends State<StockOffloading>
                               const SizedBox(height: 20,),
                             ],
                           ),
+
+
                            Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
@@ -1080,20 +1082,21 @@ class _StockOffloadingState extends State<StockOffloading>
                               final loadDateFormat = DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(DateTime.now());
                               debugPrint(selectedElements.toString());
                              for (var v = 0; v < selectedElements.length; v++) {
-                                await updateUD103A({
-                                  "Key1": loadIDController.text,
-                                  "ChildKey1":selectedElements[v].ChildKey1,
+                                await updateUD104A({
+
                                   "CheckBox01": true,
                                   "CheckBox02": true,
                                   "CheckBox03": false,
                                   "CheckBox05": false,
                                   "Date02": loadDateFormat,
-                                });
+                                },
+
+                                selectedElements[v].ChildKey1);
                                 await updateStatusOnSite(selectedElements[v].partId, selectedElements[v].elementId);
                                 debugPrint(selectedElements[v].elementId);
                               }
                               for (var v = 0; v < arrivedParts.length; v++) {
-                                await updateUD103A({
+                                await updateUD104A({
                                   "Key1": loadIDController.text,
                                   "Character01": arrivedParts[v].partNum,
                                   "Company": '${widget.tenantConfig['company']}',
@@ -1101,12 +1104,16 @@ class _StockOffloadingState extends State<StockOffloading>
                                   "CheckBox02": false,
                                   "CheckBox03": false,
                                   "CheckBox05": false,
-                                });
+                                },
+                                "1");
+
+
+
                                 debugPrint(arrivedParts[v].partNum);
                               }
                               await updateLoadStatus({
                                 "Key1": loadIDController.text,
-                                "Company": '158095',
+                                "Company": widget.tenantConfig['company'],
                                 "ShortChar03": loadStatus,
                               });
                             }
@@ -1140,8 +1147,8 @@ class _StockOffloadingState extends State<StockOffloading>
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
-                                      title: const Text('Success'),
-                                      content: const Text('Load Offloaded'),
+                                      title: const Text('warning'),
+                                      content: const Text('Some Elements and Parts could not be offloaded'),
                                       actions: [
                                         TextButton(
                                           onPressed: () {
@@ -1161,8 +1168,8 @@ class _StockOffloadingState extends State<StockOffloading>
                                   context: context,
                                   builder: (context) {
                                     return AlertDialog(
-                                      title: const Text('Success'),
-                                      content: const Text('Load Offloaded'),
+                                      title: const Text('Error'),
+                                      content: const Text('Load could not be offloaded'),
                                       actions: [
                                         TextButton(
                                           onPressed: () {

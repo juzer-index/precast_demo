@@ -40,6 +40,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<ElementData> selectedElements = [];
   List<PartData> selectedParts  = [];
   TextEditingController lotNoController = TextEditingController();
+  TextEditingController fromBin = TextEditingController();
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
@@ -83,7 +84,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
       final response = await http.get(
             Uri.parse(
-                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&Project=${widget.Project}&Warehouse=${widget.Warehouse}'),
+                '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&Project=${widget.Project}&WAREHSE=${widget.Warehouse}'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -125,6 +126,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
              onHandQtyController.text =
                  partValue[0]['Calculated_Calculated_OnhandQty']
                      .toString();
+             fromBin.text=partValue[0]['PartBin_BinNum'];
              isLoading = false;
            }
          });
@@ -212,6 +214,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           weightController.text = lotData['Ton_c'];
           areaController.text = lotData['M2_c'];
           volumeController.text = lotData['M3_c'];
+          fromBin.text=lotData["PartBin_BinNum"];
           estErectionDateController.text = lotData['ErectionPlannedDate_c']!=null?lotData['ErectionPlannedDate_c']:'';
           onHandQtyController.text = '1';
           selectedQtyController.text = '1';
@@ -465,6 +468,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   elementNumberController.text =
                                                   partNum;
                                                   selectable = true;
+
                                                 });
                                               });
                                             },
@@ -527,23 +531,33 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                       ),
                     ),
                     items: elements.isNotEmpty?elements:[],
-                    onChanged: (value) async {
+                    onChanged:
                 
                      // await getElementDetailsFromLot(value, elementNumberController.text);
-                     dynamic selectedElement=elementValue.where((element) =>element['PartLot_LotNum']==value).first;
-                      setState(() {
-                        lotNoController.text = selectedElement['PartLot_LotNum'];
-                        elementDescriptionController.text = selectedElement['Part_PartDescription'];
-                        uomController.text = selectedElement['Part_IUM'];
-                        erectionSeqController.text = selectedElement['PartLot_ErectionSequence_c'].toString();
-                        weightController.text = selectedElement['PartLot_Ton_c'];
-                        areaController.text = selectedElement['PartLot_M2_c'];
-                        volumeController.text = selectedElement['PartLot_M3_c'];
-                        estErectionDateController.text = selectedElement['PartLot_ErectionPlannedDate_c']!=null?selectedElement['PartLot_ErectionPlannedDate_c']:'';
-                        onHandQtyController.text = '1';
-                        selectedQtyController.text = '1';
-                        selectable = true;
-                      });
+                     (value) async {
+                     setState(() {
+                     selectable = false;
+                     dynamic element = widget.isOffloading?widget.arrivedElements!.where((element) => element.elementId==value).first:elementValue.where((element) => element['PartLot_LotNum']==value).first;
+
+
+                     setState(() {
+                       fromBin.text=widget.isOffloading?element.fromBin:element['PartBin_BinNum'];
+                     lotNoController.text = widget.isOffloading?element.elementId:element['PartLot_LotNum'].toString();
+                     elementDescriptionController.text = widget.isOffloading?element.elementDesc:element['PartLot_PartLotDescription'];
+                     uomController.text =widget.isOffloading?element.UOM: element['Part_IUM'].toString();
+                     erectionSeqController.text = widget.isOffloading?element.erectionSeq:element['PartLot_ErectionSequence_c'].toString();
+                     weightController.text = widget.isOffloading?element.weight:element['PartLot_Ton_c'].toString();
+                     areaController.text = widget.isOffloading?element.area:element['PartLot_M2_c'].toString();
+                     volumeController.text = widget.isOffloading?element.volume:element['PartLot_M3_c'].toString();
+                     estErectionDateController.text = widget.isOffloading?element.erectionDate: element['ErectionPlannedDate_c'] ?? '';
+                     onHandQtyController.text = '1';
+                     selectedQtyController.text = '1';
+                     selectable = true;
+                     });
+                     });
+
+
+
 
                     },
                   ),
@@ -732,6 +746,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               quantity: onHandQtyController.text,
                               selectedQty: selectedQtyController.text,
                               ChildKey1: widget.isOffloading?key.toString():  '${specifyMaxChildKey() + 1}',
+                              fromBin: fromBin.text,
+
                             ));
                           });
 

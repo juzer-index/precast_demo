@@ -39,21 +39,20 @@ class ElementPieChart extends StatefulWidget{
 '#891E1E', // cancelled (Dark maroon)
 '#630000', // closed (Black)*/
 
-  final List colors = [
-   Color(0xFFDDAF5B),
-    Color(0xFF00A2F3),
-    Color(0xFF77A36F),
-    Color(0xFF8A8A8A),
-    Color(0xFFFD9494),
-    Color(0xFFA35BA3),
-    Color(0xFFE6E68A),
-    Color(0xFFEB5050),
-    Color(0xFF891E1E),
-    Color(0xFF630000),
 
+  Map<String,Color> colorMap={
+    "Draft":Color(0xFFDDAF5B),
+    "Entered":Color(0xFF00A2F3),
+    "Approved":Color(0xFF77A36F),
+    "Casted":Color(0xFF8A8A8A),
+    "In-Transit":Color(0xFFFD9494),
+    "OnSite":Color(0xFFA35BA3),
+    "Erected":Color(0xFFE6E68A),
+    "Hold":Color(0xFFEB5050),
+    "Cancelled":Color(0xFF891E1E),
+    "Closed":Color(0xFF630000)
+  };
 
-
-  ];
   int colorIndex = 0;
 
 }
@@ -63,7 +62,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
     if(status.length==0) {
       try {
         var url = Uri.parse(
-            "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_ProjectChart");
+            "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_ProjectChart(${tenantConfigP['company']})");
         final basicAuth = 'Basic ${base64Encode(
             utf8.encode(
                 '${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
@@ -122,7 +121,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
 
                                       sections: status.map((section) =>
                                           PieChartSectionData(
-                                            color: widget.colors[((widget.colorIndex++)) % widget.colors.length],
+                                            color: widget.colorMap[section["PartLot_ElementStatus_c"]],
                                             value:  section['Calculated_NO'].toDouble(),
                                             title:"",
                                             radius: 20,
@@ -252,7 +251,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
                       width: 10,
                       alignment: Alignment.topLeft,
                     ),
-                    Text("In Transit"),
+                    Text("In-Transit"),
                   ],
                 ),
               ),
