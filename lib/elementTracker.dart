@@ -424,7 +424,7 @@ class _ElementMasterState extends State<ElementMaster> {
                                                   controller.pauseCamera();
                                                   Navigator.pop(context);
                                                   debugPrint('this is the code ${scanData.code}');
-                                                  List<String> scanResult = scanData.code!.split('-');
+                                                  List<String> scanResult = scanData.code!.split(' ');
                                                   if (scanResult.length >= 4) {
                                                     elementId = scanResult.sublist(3).join("-");
                                                     partNum = scanResult[2];
