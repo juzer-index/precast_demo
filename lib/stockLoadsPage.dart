@@ -23,26 +23,30 @@ import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
 
-class StockLoading extends StatefulWidget {
+class StockLoads extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
+  final bool isOffloading;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
   final String historyLoadID;
+  final dynamic tenantConfig;
 
-  const StockLoading(
+  const StockLoads(
       {super.key,
       required this.initialTabIndex,
       required this.isUpdate,
       required this.loadDataList,
       required this.addLoadData,
-      this.historyLoadID = ''});
+      this.historyLoadID = '',
+      required this.isOffloading,
+      required this.tenantConfig});
 
   @override
-  State<StockLoading> createState() => _StockLoadingState();
+  State<StockLoads> createState() => _StockLoadsState();
 }
 
-class _StockLoadingState extends State<StockLoading>
+class _StockLoadsState extends State<StockLoads>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   TextEditingController dateController = TextEditingController();
@@ -260,7 +264,10 @@ class _StockLoadingState extends State<StockLoading>
                     const Text('Edit Load',
                         style: TextStyle(color: Colors.white)),
                   if (!widget.isUpdate)
-                    const Text('Stock Loading',
+                    Text(
+                        (widget.isOffloading)
+                            ? 'Stock Offloading'
+                            : 'Stock Loading',
                         style: TextStyle(color: Colors.white)),
                   // ClipOval(
                   //   child: Image.network(
@@ -284,11 +291,13 @@ class _StockLoadingState extends State<StockLoading>
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => StockLoading(
+                                  builder: (context) => StockLoads(
                                         initialTabIndex: 0,
                                         isUpdate: false,
                                         loadDataList: widget.loadDataList,
                                         addLoadData: widget.addLoadData,
+                                        isOffloading: widget.isOffloading,
+                                        tenantConfig: widget.tenantConfig,
                                       )));
                         },
                       ),
@@ -302,11 +311,13 @@ class _StockLoadingState extends State<StockLoading>
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => StockLoading(
+                                  builder: (context) => StockLoads(
                                         initialTabIndex: 0,
                                         isUpdate: true,
                                         loadDataList: widget.addLoadData,
                                         addLoadData: widget.addLoadData,
+                                        isOffloading: widget.isOffloading,
+                                        tenantConfig: widget.tenantConfig,
                                       )));
                         },
                       ),
@@ -387,12 +398,88 @@ class _StockLoadingState extends State<StockLoading>
                                   if (!widget.isUpdate)
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        controller: loadIDController,
-                                        enabled: false,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Load ID"),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              controller: loadIDController,
+                                              enabled: widget.isOffloading,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load ID"),
+                                            ),
+                                          ),
+                                          if (widget.isOffloading)
+                                            IconButton(
+                                              onPressed: () async {
+                                                await fetchLoadDataFromURL(
+                                                    loadIDController.text,
+                                                    tenantConfigP);
+                                                // await fetchElementDataFromURL();
+                                                //await fetchPartDataFromURL();
+                                                String projectLoadID =
+                                                    loadIDController.text;
+                                                offloadData =
+                                                    getLoadObjectFromJson(
+                                                        projectLoadID);
+                                                getElementObjectFromJson(
+                                                    projectLoadID);
+                                                getPartObjectFromJson(
+                                                    projectLoadID);
+                                                if (offloadData != null) {
+                                                  setState(() {
+                                                    projectIdController.text =
+                                                        offloadData!.projectId;
+                                                    dateController.text =
+                                                        offloadData!.loadDate;
+                                                    toWarehouseController.text =
+                                                        offloadData!
+                                                            .toWarehouse;
+                                                    toBinController.text =
+                                                        offloadData!.toBin;
+                                                    loadTypeValue =
+                                                        offloadData!.loadType;
+                                                    truckTypeValue =
+                                                        offloadData!.truckType;
+                                                    fromWarehouseController
+                                                            .text =
+                                                        offloadData!
+                                                            .fromWarehouse;
+                                                    isLoaded = true;
+                                                  });
+                                                } else {
+                                                  if (mounted) {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Error'),
+                                                          content: const Text(
+                                                              'Load ID not found'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.pop(
+                                                                    context);
+                                                              },
+                                                              child: Text(
+                                                                  'Close',
+                                                                  style: TextStyle(
+                                                                      color: Theme.of(
+                                                                              context)
+                                                                          .canvasColor)),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                              icon: const Icon(Icons.search),
+                                            )
+                                        ],
                                       ),
                                     ),
                                   if (widget.isUpdate)
@@ -846,7 +933,8 @@ class _StockLoadingState extends State<StockLoading>
                                         Expanded(
                                           child: Column(children: [
                                             Padding(
-                                              padding: EdgeInsets.all(8.0),
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
                                               child: Text(
                                                 'Truck Type',
                                                 style: TextStyle(
@@ -1031,72 +1119,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   ? double.parse(
                                                       widthController.text)
                                                   : "0",
-                                              // createdBy: entryPersonController
-                                              //     ?.text
-                                              //     .toString()
-                                              //     .trim(),
-                                              // DeviceID: deviceIDController?.text
-                                              //     .toString()
-                                              //     .trim(),
                                             );
-                                            /* await createNewLoad({
-                                              "Key1": newLoadId,
-                                              "Company":
-                                                  "${tenantConfigP['company']}",
-                                              "ShortChar07":
-                                                  plateNumberController.text,
-                                              "ShortChar05":
-                                                  projectIdController.text,
-                                              "ShortChar01": loadTypeValue,
-                                              "ShortChar04": truckTypeValue,
-                                              "ShortChar08":
-                                                  truckIdController.text,
-                                              "ShortChar03": "Open",
-                                              "Number01": loadedController
-                                                      .text.isNotEmpty
-                                                  ? loadedController.text
-                                                  : '0',
-                                              "Number02": "0",
-                                              "Number06": capacityController
-                                                      .text.isNotEmpty
-                                                  ? capacityController.text
-                                                  : '0',
-                                              "Number07": volumeController
-                                                      .text.isNotEmpty
-                                                  ? volumeController.text
-                                                  : '0',
-                                              "Number08": heightController
-                                                      .text.isNotEmpty
-                                                  ? heightController.text
-                                                  : '0',
-                                              "Number09": widthController
-                                                      .text.isNotEmpty
-                                                  ? widthController.text
-                                                  : '0',
-                                              "Number10": lengthController
-                                                      .text.isNotEmpty
-                                                  ? lengthController.text
-                                                  : '0',
-                                              "Date01": loadDateFormat,
-                                              "Character02":
-                                                  driverNameController.text,
-                                              "Character03":
-                                                  driverNumberController.text,
-                                              "Character04":
-                                                  toWarehouseNameController
-                                                      .text,
-                                              "Character05":
-                                                  toBinController.text,
-                                              "Character07":
-                                                  toWarehouseController.text,
-                                              "Character08":
-                                                  toBinController.text,
-                                              "Character06":
-                                                  fromWarehouseController.text,
-                                              "Character09": resourceId,
-                                              //  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                              //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                            }, tenantConfigP);*/
                                             await createNewLoad(
                                                 tempLoad.toJson(),
                                                 tenantConfigP);

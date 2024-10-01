@@ -1,7 +1,7 @@
 import 'load_model.dart';
 import 'package:flutter/material.dart';
 import 'indexAppBar.dart';
-import 'stockLoadingPage.dart';
+import 'stockLoadsPage.dart';
 
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
@@ -42,12 +42,14 @@ class LoadTableSource extends DataTableSource {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => StockLoading(
+                    builder: (context) => StockLoads(
                           initialTabIndex: 0,
                           isUpdate: true,
                           loadDataList: loads,
                           addLoadData: addLoadData,
                           historyLoadID: loads[index].loadID,
+                          isOffloading: false,
+                          tenantConfig: tenantConfig,
                         )));
           },
           child: Text(loads[index].loadID),
