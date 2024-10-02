@@ -2,82 +2,76 @@ import 'load_model.dart';
 import 'package:flutter/material.dart';
 import 'indexAppBar.dart';
 import 'stockLoadingPage.dart';
-
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
-}
 
+
+
+}
 class LoadHistory extends StatefulWidget {
-  final List<LoadData> loads;
-  final dynamic addLoad;
-  final dynamic tenantConfig;
-  const LoadHistory(
-      {super.key,
-      required this.loads,
-      required this.addLoad,
-      required this.tenantConfig});
+   final List<LoadData> loads;
+   final dynamic addLoad;
+   final dynamic tenantConfig;
+   const LoadHistory({super.key, required this.loads, required this.addLoad, required this.tenantConfig}) ;
 
   @override
   State<LoadHistory> createState() => _LoadHistoryState();
-}
 
-class LoadTableSource extends DataTableSource {
-  List<LoadData> loads = [];
+}
+class LoadTableSource extends DataTableSource{
+  List<LoadData> loads=[];
   final BuildContext context;
   dynamic addLoadData;
   dynamic tenantConfig;
-  LoadTableSource(
-      {Key? key,
-      required this.loads,
-      required this.context,
-      required this.addLoadData,
-      required this.tenantConfig});
+  LoadTableSource({Key? key, required this.loads, required this.context,required this.addLoadData,required this.tenantConfig }) ;
 
   @override
   DataRow? getRow(int index) {
-    return DataRow.byIndex(index: index, cells: [
-      DataCell(
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => StockLoading(
-                          initialTabIndex: 0,
-                          isUpdate: true,
-                          loadDataList: loads,
-                          addLoadData: addLoadData,
-                          historyLoadID: loads[index].loadID,
-                        )));
-          },
-          child: Text(loads[index].loadID),
-        ),
-      ),
-      DataCell(Text(loads[index].projectId)),
-      DataCell(Text(loads[index].loadDate)),
-      DataCell(Text(loads[index].fromWarehouse)),
-      DataCell(Text(loads[index].toWarehouse)),
-      DataCell(Text(loads[index].toBin)),
-      DataCell(Text(loads[index].loadType)),
-      DataCell(Text(loads[index].truckType)),
-      DataCell(Text(loads[index].loadStatus)),
-      DataCell(Text(loads[index].truckId)),
-      DataCell(Text(loads[index].resourceId)),
-      DataCell(Text(loads[index].plateNumber)),
-      DataCell(Text(loads[index].driverName)),
-      DataCell(Text(loads[index].driverNumber)),
-      DataCell(Text(loads[index].resourceCapacity.toString())),
-      DataCell(Text(loads[index].resourceLoaded.toString())),
-      DataCell(Text(loads[index].resourceLength.toString())),
-      DataCell(Text(loads[index].resourceWidth.toString())),
-      DataCell(Text(loads[index].resourceHeight.toString())),
-      DataCell(Text(loads[index].resourceVolume.toString())),
-      DataCell(Text(loads[index].foremanId.toString())),
-      DataCell(Text(loads[index].foremanName)),
-      DataCell(Text(loads[index].comments)),
-    ]);
-  }
+   return DataRow.byIndex(
+       index: index,
+       cells: [
+         DataCell(
+           GestureDetector(
+             onTap: ()
+                 {
+                   Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                       StockLoading(initialTabIndex: 0,
+                         isUpdate: true,
+                         loadDataList: loads,
+                         addLoadData: addLoadData,
+                         historyLoadID: loads[index].loadID,
+                    )));
+                 },
+             child: Text(loads[index].loadID),
 
+           ),
+         ),
+         DataCell(Text(loads[index].projectId)),
+          DataCell(Text(loads[index].loadDate)),
+          DataCell(Text(loads[index].fromWarehouse)),
+          DataCell(Text(loads[index].toWarehouse)),
+          DataCell(Text(loads[index].toBin)),
+          DataCell(Text(loads[index].loadType)),
+          DataCell(Text(loads[index].loadCondition)),
+          DataCell(Text(loads[index].loadStatus)),
+          DataCell(Text(loads[index].truckId)),
+          DataCell(Text(loads[index].resourceId)),
+          DataCell(Text(loads[index].plateNumber)),
+          DataCell(Text(loads[index].driverName)),
+          DataCell(Text(loads[index].driverNumber)),
+          DataCell(Text(loads[index].resourceCapacity.toString())),
+          DataCell(Text(loads[index].resourceLoaded.toString())),
+          DataCell(Text(loads[index].resourceLength.toString())),
+          DataCell(Text(loads[index].resourceWidth.toString())),
+          DataCell(Text(loads[index].resourceHeight.toString())),
+          DataCell(Text(loads[index].resourceVolume.toString())),
+          DataCell(Text(loads[index].foremanId.toString())),
+          DataCell(Text(loads[index].foremanName)),
+          DataCell(Text(loads[index].comments)),
+
+       ]
+   );
+  }
   @override
   bool get isRowCountApproximate => false;
 
@@ -85,14 +79,15 @@ class LoadTableSource extends DataTableSource {
   int get rowCount => loads.length;
   @override
   int get selectedRowCount => loads.length;
-}
 
+}
 class _LoadHistoryState extends State<LoadHistory> {
-  _LoadHistoryState();
+
+  _LoadHistoryState() ;
   final GlobalKey<PaginatedDataTableState> dataTableKey = GlobalKey();
   @override
   // TODO: implement widget
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context){
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
@@ -103,11 +98,14 @@ class _LoadHistoryState extends State<LoadHistory> {
           children: [
             SizedBox(
               child: Card(
-                  color: Theme.of(context).indicatorColor,
+                 color: Theme.of(context).indicatorColor,
                   child: Padding(
                       padding: const EdgeInsets.all(8.0),
+
                       child: PaginatedDataTable(
-                        key: dataTableKey,
+                        key : dataTableKey,
+
+
                         columnSpacing: 30,
                         columns: const [
                           DataColumn(label: Text('Load ID')),
@@ -134,15 +132,15 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Foreman Name')),
                           DataColumn(label: Text('Comments')),
                         ],
-                        source: LoadTableSource(
-                            loads: widget.loads.reversed.toList(),
-                            context: context,
-                            addLoadData: widget.addLoad,
-                            tenantConfig: widget.tenantConfig),
-                      ))),
+                       source:LoadTableSource(loads:widget.loads.reversed.toList(), context: context, addLoadData: widget.addLoad ,tenantConfig:widget.tenantConfig),
+
+                      )
+                  )
+              ),
             ),
           ],
         ),
+
       ),
     );
   }
