@@ -303,6 +303,15 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           );
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => StockOffloading(
+                          //       tenantConfig: widget.tenantConfig,
+                          //       initialTabIndex: 0,
+                          //     ),
+                          //   ),
+                          // );
                         },
                         child: const Column(
                           mainAxisAlignment: MainAxisAlignment.center,

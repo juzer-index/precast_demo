@@ -51,6 +51,7 @@ class _StockLoadsState extends State<StockLoads>
   late TabController _tabController;
   TextEditingController dateController = TextEditingController();
   TextEditingController loadTimeController = TextEditingController();
+  TextEditingController offloadDateController = TextEditingController();
   TextEditingController truckController = TextEditingController();
   TextEditingController loadIDController = TextEditingController();
   String _selectedDate = '';
@@ -155,7 +156,7 @@ class _StockLoadsState extends State<StockLoads>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    if (!widget.isUpdate) {
+    if (!widget.isUpdate && !widget.isOffloading) {
       dataLoaded =
           makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
       getDeviceID();
@@ -558,7 +559,8 @@ class _StockLoadsState extends State<StockLoads>
                                         icon: const Icon(Icons.search),
                                       ),
                                     ]),
-                                  Padding(
+                                  if (!widget.isOffloading)
+                                    Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: FutureBuilder(
                                         future: getProjectList(tenantConfigP),
@@ -605,114 +607,214 @@ class _StockLoadsState extends State<StockLoads>
                                             },
                                           );
                                         },
-                                      )),
+                                      ),
+                                    ),
+                                  if (widget.isOffloading)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        controller: projectIdController,
+                                        enabled: false,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Project ID"),
+                                      ),
+                                    ),
                                   Row(
                                     children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: !widget.isUpdate,
-                                            controller: dateController,
-                                            onTap: () async {
-                                              final DateTime? date =
-                                                  await showDatePicker(
-                                                builder: (BuildContext context,
-                                                    Widget? child) {
-                                                  return Theme(
-                                                    data: ThemeData.light()
-                                                        .copyWith(
-                                                      colorScheme:
-                                                          ColorScheme.light(
-                                                        primary:
-                                                            Theme.of(context)
-                                                                .primaryColor,
-                                                        background:
-                                                            Colors.white,
-                                                        secondary:
-                                                            Theme.of(context)
-                                                                .primaryColor,
-                                                        outline:
-                                                            Colors.cyanAccent,
+                                      if (!widget.isOffloading)
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              enabled: !widget.isUpdate,
+                                              onTap: () async {
+                                                final DateTime? date =
+                                                    await showDatePicker(
+                                                  builder:
+                                                      (BuildContext context,
+                                                          Widget? child) {
+                                                    return Theme(
+                                                      data: ThemeData.light()
+                                                          .copyWith(
+                                                        colorScheme:
+                                                            ColorScheme.light(
+                                                          primary:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          background:
+                                                              Colors.white,
+                                                          secondary:
+                                                              Theme.of(context)
+                                                                  .primaryColor,
+                                                          outline:
+                                                              Colors.cyanAccent,
+                                                        ),
                                                       ),
-                                                    ),
-                                                    child: child!,
-                                                  );
-                                                },
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(2018),
-                                                lastDate: DateTime(2030),
-                                              );
-                                              if (date != null) {
-                                                setState(() {
-                                                  dateController.text =
-                                                      "${date.day}/${date.month}/${date.year}";
-                                                  _selectedDate =
-                                                      DateFormat('yyyy-MM-dd')
-                                                          .format(date);
-                                                });
-                                              }
-                                            },
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load Date"),
+                                                      child: child!,
+                                                    );
+                                                  },
+                                                  context: context,
+                                                  firstDate: DateTime(2018),
+                                                  lastDate: DateTime(2030),
+                                                );
+                                                if (date != null) {
+                                                  setState(() {
+                                                    dateController.text =
+                                                        "${date.day}/${date.month}/${date.year}";
+                                                    _selectedDate =
+                                                        DateFormat('yyyy-MM-dd')
+                                                            .format(date);
+                                                  });
+                                                }
+                                              },
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load Date"),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Expanded(
+                                      if (!widget.isOffloading)
+                                        Expanded(
                                           child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextFormField(
-                                          enabled: !widget.isUpdate,
-                                          onTap: () async {
-                                            final TimeOfDay? time =
-                                                await showTimePicker(
-                                                    context: context,
-                                                    initialTime:
-                                                        TimeOfDay.now(),
-                                                    builder: (context, child) {
-                                                      return Theme(
-                                                        data: Theme.of(context)
-                                                            .copyWith(
-                                                          colorScheme:
-                                                              ColorScheme.light(
-                                                            primary: Theme.of(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              enabled: !widget.isUpdate,
+                                              onTap: () async {
+                                                final TimeOfDay? time =
+                                                    await showTimePicker(
+                                                        context: context,
+                                                        initialTime:
+                                                            TimeOfDay.now(),
+                                                        builder:
+                                                            (context, child) {
+                                                          return Theme(
+                                                            data: Theme.of(
                                                                     context)
-                                                                .primaryColor,
-                                                            onPrimary:
-                                                                Colors.white,
-                                                            secondary: Theme.of(
-                                                                    context)
-                                                                .primaryColor,
-                                                          ),
-                                                        ),
-                                                        child: child!,
-                                                      );
-                                                    });
-                                            if (time != null) {
-                                              setState(() {
-                                                loadTimeController.text =
-                                                    "${time.hour}:${time.minute}";
-                                              });
-                                            }
-                                          },
-                                          controller: loadTimeController,
-                                          decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Load Time"),
+                                                                .copyWith(
+                                                              colorScheme:
+                                                                  ColorScheme
+                                                                      .light(
+                                                                primary: Theme.of(
+                                                                        context)
+                                                                    .primaryColor,
+                                                                onPrimary:
+                                                                    Colors
+                                                                        .white,
+                                                                secondary: Theme.of(
+                                                                        context)
+                                                                    .primaryColor,
+                                                              ),
+                                                            ),
+                                                            child: child!,
+                                                          );
+                                                        });
+                                                if (time != null) {
+                                                  setState(() {
+                                                    loadTimeController.text =
+                                                        "${time.hour}:${time.minute}";
+                                                  });
+                                                }
+                                              },
+                                              controller: loadTimeController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load Time"),
+                                            ),
+                                          ),
                                         ),
-                                      )),
+                                      if (widget.isOffloading)
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: dateController,
+                                              enabled: false,
+                                              decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                     ],
                                   ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
+                                  if (widget.isOffloading)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        controller: offloadDateController,
+                                        enabled: false,
+                                        decoration: InputDecoration(
+                                          fillColor: Colors.white,
+                                          filled: true,
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Theme.of(context)
+                                                    .canvasColor),
+                                          ),
+                                          label: Text('Offload Date'),
+                                        ),
+                                      ),
+                                    ),
+                                  if (!widget.isOffloading)
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: DropdownSearch(
+                                              selectedItem:
+                                                  fromWarehouseController.text,
+                                              enabled: true,
+                                              popupProps: const PopupProps
+                                                  .modalBottomSheet(
+                                                showSearchBox: true,
+                                                searchFieldProps:
+                                                    TextFieldProps(
+                                                  decoration: InputDecoration(
+                                                    suffixIcon:
+                                                        Icon(Icons.search),
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                    labelText: "Search",
+                                                  ),
+                                                ),
+                                              ),
+                                              autoValidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              dropdownDecoratorProps:
+                                                  const DropDownDecoratorProps(
+                                                dropdownSearchDecoration:
+                                                    InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "From Warehouse",
+                                                ),
+                                              ),
+                                              items: fetchedWarehouseValue
+                                                  //.where((warehouse) => warehouse['FinishGoods_c'] == true)
+                                                  .map((warehouse) =>
+                                                      warehouse['Description'])
+                                                  .toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  fromWarehouseController
+                                                      .text = fetchedWarehouseValue
+                                                          .firstWhere((warehouse) =>
+                                                              warehouse[
+                                                                  'Description'] ==
+                                                              value)[
+                                                      'WarehouseCode'];
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                            child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: DropdownSearch(
                                             selectedItem:
-                                                fromWarehouseController.text,
+                                                toWarehouseController.text,
                                             enabled: true,
                                             popupProps: const PopupProps
                                                 .modalBottomSheet(
@@ -733,17 +835,16 @@ class _StockLoadsState extends State<StockLoads>
                                               dropdownSearchDecoration:
                                                   InputDecoration(
                                                 border: OutlineInputBorder(),
-                                                labelText: "From Warehouse",
+                                                labelText: "To Warehouse",
                                               ),
                                             ),
                                             items: fetchedWarehouseValue
-                                                //.where((warehouse) => warehouse['FinishGoods_c'] == true)
                                                 .map((warehouse) =>
                                                     warehouse['Description'])
                                                 .toList(),
-                                            onChanged: (value) {
+                                            onChanged: (value) async {
                                               setState(() {
-                                                fromWarehouseController
+                                                toWarehouseController
                                                     .text = fetchedWarehouseValue
                                                         .firstWhere(
                                                             (warehouse) =>
@@ -751,63 +852,61 @@ class _StockLoadsState extends State<StockLoads>
                                                                     'Description'] ==
                                                                 value)[
                                                     'WarehouseCode'];
+                                                toWarehouseNameController.text =
+                                                    value.toString();
+                                                fetchedBinValue = [];
                                               });
+                                              await getBinsFromWarehouse(
+                                                  tenantConfigP,
+                                                  toWarehouseController.text);
                                             },
                                           ),
-                                        ),
-                                      ),
-                                      Expanded(
+                                        )),
+                                      ],
+                                    ),
+                                  if (widget.isOffloading)
+                                    Row(
+                                      children: [
+                                        Expanded(
                                           child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem:
-                                              toWarehouseController.text,
-                                          enabled: true,
-                                          popupProps:
-                                              const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: toWarehouseController,
+                                              enabled: false,
                                               decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context)
+                                                          .canvasColor),
+                                                ),
+                                                label: Text('To Warehouse'),
                                               ),
                                             ),
                                           ),
-                                          autoValidateMode: AutovalidateMode
-                                              .onUserInteraction,
-                                          dropdownDecoratorProps:
-                                              const DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Warehouse",
+                                        ),
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: toBinController,
+                                              enabled: false,
+                                              decoration: InputDecoration(
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context)
+                                                          .canvasColor),
+                                                ),
+                                                label: Text('To Bin'),
+                                              ),
                                             ),
                                           ),
-                                          items: fetchedWarehouseValue
-                                              .map((warehouse) =>
-                                                  warehouse['Description'])
-                                              .toList(),
-                                          onChanged: (value) async {
-                                            setState(() {
-                                              toWarehouseController.text =
-                                                  fetchedWarehouseValue
-                                                      .firstWhere((warehouse) =>
-                                                          warehouse[
-                                                              'Description'] ==
-                                                          value)['WarehouseCode'];
-                                              toWarehouseNameController.text =
-                                                  value.toString();
-                                              fetchedBinValue = [];
-                                            });
-                                            await getBinsFromWarehouse(
-                                                tenantConfigP,
-                                                toWarehouseController.text);
-                                          },
                                         ),
-                                      )),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
                                   /* Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: DropdownSearch(
@@ -841,15 +940,16 @@ class _StockLoadsState extends State<StockLoads>
                                           },
                                         ),
                                       ),*/
-                                  ReDropDown(
-                                    enabled: toWarehouseController.text != "",
-                                    data: fetchedBinValue
-                                        .map((bin) => bin['Description'])
-                                        .toList(),
-                                    label: "To Bin",
-                                    controller: toBinController,
-                                    dataMap: fetchedBinValue,
-                                  ),
+                                  if (!widget.isOffloading)
+                                    ReDropDown(
+                                      enabled: toWarehouseController.text != "",
+                                      data: fetchedBinValue
+                                          .map((bin) => bin['Description'])
+                                          .toList(),
+                                      label: "To Bin",
+                                      controller: toBinController,
+                                      dataMap: fetchedBinValue,
+                                    ),
                                   if (truckTypeValue == 'External')
                                     Row(
                                       children: [
@@ -857,6 +957,7 @@ class _StockLoadsState extends State<StockLoads>
                                             child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: TextFormField(
+                                            enabled: !widget.isOffloading,
                                             controller: poNumberController,
                                             decoration: const InputDecoration(
                                                 border: OutlineInputBorder(),
@@ -867,6 +968,7 @@ class _StockLoadsState extends State<StockLoads>
                                             child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: TextFormField(
+                                            enabled: !widget.isOffloading,
                                             controller: poLineController,
                                             decoration: const InputDecoration(
                                                 border: OutlineInputBorder(),
@@ -892,41 +994,47 @@ class _StockLoadsState extends State<StockLoads>
                                                         .canvasColor),
                                               ),
                                             ),
-                                            RadioListTile(
-                                              title: Text('Return Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.022,
-                                                  )),
-                                              value: 'Return',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
+                                            AbsorbPointer(
+                                              absorbing: widget.isOffloading,
+                                              child: RadioListTile(
+                                                title: Text('Return Trip',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.022,
+                                                    )),
+                                                value: 'Return',
+                                                groupValue: loadTypeValue,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    loadTypeValue =
+                                                        value.toString();
+                                                  });
+                                                },
+                                              ),
                                             ),
-                                            RadioListTile(
-                                              title: Text('Delivery Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.022,
-                                                  )),
-                                              value: 'Issue Load',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
+                                            AbsorbPointer(
+                                              absorbing: widget.isOffloading,
+                                              child: RadioListTile(
+                                                title: Text('Delivery Trip',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.022,
+                                                    )),
+                                                value: 'Issue Load',
+                                                groupValue: loadTypeValue,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    loadTypeValue =
+                                                        value.toString();
+                                                  });
+                                                },
+                                              ),
                                             ),
                                           ]),
                                         ),
@@ -944,41 +1052,47 @@ class _StockLoadsState extends State<StockLoads>
                                                         .canvasColor),
                                               ),
                                             ),
-                                            RadioListTile(
-                                              title: Text('External',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.022,
-                                                  )),
-                                              value: 'External',
-                                              groupValue: truckTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  truckTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
+                                            AbsorbPointer(
+                                              absorbing: widget.isOffloading,
+                                              child: RadioListTile(
+                                                title: Text('External',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.022,
+                                                    )),
+                                                value: 'External',
+                                                groupValue: truckTypeValue,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    truckTypeValue =
+                                                        value.toString();
+                                                  });
+                                                },
+                                              ),
                                             ),
-                                            RadioListTile(
-                                              title: Text('Internal',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                        MediaQuery.of(context)
-                                                                .size
-                                                                .height *
-                                                            0.022,
-                                                  )),
-                                              value: 'Internal Truck',
-                                              groupValue: truckTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  truckTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
+                                            AbsorbPointer(
+                                              absorbing: widget.isOffloading,
+                                              child: RadioListTile(
+                                                title: Text('Internal',
+                                                    style: TextStyle(
+                                                      fontSize:
+                                                          MediaQuery.of(context)
+                                                                  .size
+                                                                  .height *
+                                                              0.022,
+                                                    )),
+                                                value: 'Internal Truck',
+                                                groupValue: truckTypeValue,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    truckTypeValue =
+                                                        value.toString();
+                                                  });
+                                                },
+                                              ),
                                             ),
                                             /* RadioListTile(
                                               title: Text('Ex-Factory',
@@ -1011,13 +1125,17 @@ class _StockLoadsState extends State<StockLoads>
                                           color: Theme.of(context).canvasColor),
                                     ),
                                   ),
-                                  if (!widget.isUpdate)
-                                    buildTruckDetailsFrom(true),
-                                  if (widget.isUpdate)
-                                    TruckDetailsForm(
-                                      isEdit: true,
-                                      truckDetails: offloadData,
-                                    ),
+                                  if (!widget.isOffloading)
+                                    if (!widget.isUpdate)
+                                      buildTruckDetailsFrom(true),
+                                  if (!widget.isOffloading)
+                                    if (widget.isUpdate)
+                                      TruckDetailsForm(
+                                        isEdit: true,
+                                        truckDetails: offloadData,
+                                      ),
+                                  if (widget.isOffloading)
+                                    buildTruckDetailsFrom(false),
                                   const SizedBox(height: 20),
                                   if (widget.isUpdate)
                                     ElevatedButton(
@@ -1028,8 +1146,9 @@ class _StockLoadsState extends State<StockLoads>
                                       },
                                       child: const Text('Next'),
                                     ),
-                                  if (!widget.isUpdate)
-                                    ElevatedButton(
+                                  if (!widget.isOffloading)
+                                    if (!widget.isUpdate)
+                                      ElevatedButton(
                                         onPressed: () async {
                                           if (truckIdController.text.isEmpty ||
                                               resourceIdController
@@ -1166,7 +1285,17 @@ class _StockLoadsState extends State<StockLoads>
                                         },
                                         child: const Text(
                                           'Create Load',
-                                        )),
+                                        ),
+                                      ),
+                                  if (widget.isOffloading)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _tabController.animateTo(1);
+                                        });
+                                      },
+                                      child: const Text('Next'),
+                                    ),
                                   const SizedBox(height: 20),
                                 ],
                               ),
@@ -1185,7 +1314,9 @@ class _StockLoadsState extends State<StockLoads>
                                       Padding(
                                         padding: EdgeInsets.all(8.0),
                                         child: Text(
-                                          'Part Search Form',
+                                          (widget.isOffloading)
+                                              ? 'Verify Elements'
+                                              : 'Part Search Form',
                                           style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 18,
@@ -1212,7 +1343,7 @@ class _StockLoadsState extends State<StockLoads>
                                                 selectedElements.isNotEmpty
                                                     ? selectedElements
                                                     : [],
-                                            isOffloading: false,
+                                            isOffloading: widget.isOffloading,
                                             Warehouse: fromWarehouseController
                                                         .text !=
                                                     ''
@@ -1408,142 +1539,140 @@ class _StockLoadsState extends State<StockLoads>
                                   height: 20,
                                 ),
                                 ElevatedButton(
-                                    onPressed: () async {
+                                  onPressed: () async {
+                                    debugPrint(
+                                        selectedElements.length.toString());
+                                    for (var e = 0;
+                                        e < selectedElements.length;
+                                        e++) {
                                       debugPrint(
-                                          selectedElements.length.toString());
-                                      for (var e = 0;
-                                          e < selectedElements.length;
-                                          e++) {
-                                        debugPrint(
-                                            selectedElements[e].toString());
-                                        try {
-                                          await updateUD104A({
-                                            "Company":
-                                                "${tenantConfigP['company']}",
-                                            "ChildKey1":
-                                                selectedElements[e].ChildKey1,
-                                            "Key1": loadIDController.text,
-                                            "Character01":
-                                                selectedElements[e].partId,
-                                            "Character02":
-                                                selectedElements[e].elementId,
-                                            "Character03":
-                                                fromWarehouseController.text,
-                                            "Character04":
-                                                selectedElements[e].fromBin,
-                                            "Character07":
-                                                toWarehouseController.text,
-                                            "Character05": toBinController.text,
-                                            "Number01": selectedElements[e]
-                                                    .selectedQty
-                                                    .toString()
-                                                    .isNotEmpty
-                                                ? selectedElements[e]
-                                                    .selectedQty
-                                                    .toString()
-                                                : '0',
-                                            "Number03": selectedElements[e]
-                                                    .weight
-                                                    .toString()
-                                                    .isNotEmpty
-                                                ? selectedElements[e].weight
-                                                : '0',
-                                            "Number04": selectedElements[e]
-                                                    .area
-                                                    .toString()
-                                                    .isNotEmpty
-                                                ? selectedElements[e].area
-                                                : '0',
-                                            "Number05": selectedElements[e]
-                                                    .volume
-                                                    .toString()
-                                                    .isNotEmpty
-                                                ? selectedElements[e].volume
-                                                : '0',
-                                            "Number06": selectedElements[e]
-                                                    .erectionSeq
-                                                    .toString()
-                                                    .isNotEmpty
-                                                ? selectedElements[e]
-                                                    .erectionSeq
-                                                : '0',
-                                            "ShortChar07":
-                                                selectedElements[e].UOM,
-                                            "CheckBox05": false,
-                                            "CheckBox01": true,
-                                            "CheckBox02": false,
-                                            "CheckBox03": false,
-                                            "CheckBox07": false,
-                                            "CheckBox13": false,
-                                          }, tenantConfigP);
-                                          updateInTransit(
-                                              selectedElements[e].partId,
-                                              selectedElements[e].elementId,
-                                              tenantConfigP);
-                                          childCount++;
-                                        } on Exception catch (e) {
-                                          debugPrint(e.toString());
-                                        }
-                                      }
-                                      for (int i = 0;
-                                          i < deletedSavedElements.length;
-                                          i++) {
-                                        try {
-                                          await deleteUD104A(
-                                              deletedSavedElements[i],
-                                              tenantConfigP);
-                                        } catch (e) {
-                                          debugPrint(e.toString());
-                                        }
-                                      }
-                                      for (var p = 0;
-                                          p < selectedParts.length;
-                                          p++) {
-                                        debugPrint(selectedParts[p].toString());
+                                          selectedElements[e].toString());
+                                      try {
                                         await updateUD104A({
                                           "Company":
                                               "${tenantConfigP['company']}",
+                                          "ChildKey1":
+                                              selectedElements[e].ChildKey1,
                                           "Key1": loadIDController.text,
                                           "Character01":
-                                              selectedParts[p].partNum,
+                                              selectedElements[e].partId,
                                           "Character02":
-                                              selectedParts[p].partDesc,
+                                              selectedElements[e].elementId,
                                           "Character03":
+                                              fromWarehouseController.text,
+                                          "Character04":
+                                              selectedElements[e].fromBin,
+                                          "Character07":
                                               toWarehouseController.text,
-                                          "Character04": toBinController.text,
-                                          "Number01": selectedParts[p].qty,
-                                          "ShortChar07": selectedParts[p].uom,
-                                          "CheckBox13": true,
+                                          "Character05": toBinController.text,
+                                          "Number01": selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                                  .isNotEmpty
+                                              ? selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                              : '0',
+                                          "Number03": selectedElements[e]
+                                                  .weight
+                                                  .toString()
+                                                  .isNotEmpty
+                                              ? selectedElements[e].weight
+                                              : '0',
+                                          "Number04": selectedElements[e]
+                                                  .area
+                                                  .toString()
+                                                  .isNotEmpty
+                                              ? selectedElements[e].area
+                                              : '0',
+                                          "Number05": selectedElements[e]
+                                                  .volume
+                                                  .toString()
+                                                  .isNotEmpty
+                                              ? selectedElements[e].volume
+                                              : '0',
+                                          "Number06": selectedElements[e]
+                                                  .erectionSeq
+                                                  .toString()
+                                                  .isNotEmpty
+                                              ? selectedElements[e].erectionSeq
+                                              : '0',
+                                          "ShortChar07":
+                                              selectedElements[e].UOM,
+                                          "CheckBox05": false,
+                                          "CheckBox01": true,
+                                          "CheckBox02": false,
+                                          "CheckBox03": false,
+                                          "CheckBox07": false,
+                                          "CheckBox13": false,
                                         }, tenantConfigP);
+                                        updateInTransit(
+                                            selectedElements[e].partId,
+                                            selectedElements[e].elementId,
+                                            tenantConfigP);
+                                        childCount++;
+                                      } on Exception catch (e) {
+                                        debugPrint(e.toString());
                                       }
-                                      if (mounted) {
-                                        showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text('Success'),
-                                                content: Text(
-                                                    'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                    child: Text('OK',
-                                                        style: TextStyle(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .canvasColor)),
-                                                  ),
-                                                ],
-                                              );
-                                            });
+                                    }
+                                    for (int i = 0;
+                                        i < deletedSavedElements.length;
+                                        i++) {
+                                      try {
+                                        await deleteUD104A(
+                                            deletedSavedElements[i],
+                                            tenantConfigP);
+                                      } catch (e) {
+                                        debugPrint(e.toString());
                                       }
-                                    },
-                                    child: const Text(
-                                      'Save Load',
-                                    )),
+                                    }
+                                    for (var p = 0;
+                                        p < selectedParts.length;
+                                        p++) {
+                                      debugPrint(selectedParts[p].toString());
+                                      await updateUD104A({
+                                        "Company":
+                                            "${tenantConfigP['company']}",
+                                        "Key1": loadIDController.text,
+                                        "Character01": selectedParts[p].partNum,
+                                        "Character02":
+                                            selectedParts[p].partDesc,
+                                        "Character03":
+                                            toWarehouseController.text,
+                                        "Character04": toBinController.text,
+                                        "Number01": selectedParts[p].qty,
+                                        "ShortChar07": selectedParts[p].uom,
+                                        "CheckBox13": true,
+                                      }, tenantConfigP);
+                                    }
+                                    if (mounted) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Success'),
+                                              content: Text(
+                                                  'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('OK',
+                                                      style: TextStyle(
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .canvasColor)),
+                                                ),
+                                              ],
+                                            );
+                                          });
+                                    }
+                                  },
+                                  child: Text(widget.isOffloading
+                                      ? 'Offload Elements'
+                                      : 'Save Load'),
+                                ),
                               ],
                             ),
                           ),

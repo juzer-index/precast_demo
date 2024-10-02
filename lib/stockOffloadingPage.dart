@@ -683,110 +683,108 @@ class _StockOffloadingState extends State<StockOffloading>
                             ],
                           ),
                           Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Load Type',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color:
-                                                Theme.of(context).canvasColor),
-                                      ),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Load Type',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).canvasColor),
                                     ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Return Trip',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.022,
-                                            )),
-                                        value: 'Return',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
+                                  ),
+                                  AbsorbPointer(
+                                    child: RadioListTile(
+                                      title: Text('Return Trip',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.022,
+                                          )),
+                                      value: 'Return',
+                                      groupValue: loadTypeValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          loadTypeValue = value.toString();
+                                        });
+                                      },
                                     ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Delivery Trip',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.022,
-                                            )),
-                                        value: 'Issue Load',
-                                        groupValue: loadTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
+                                  ),
+                                  AbsorbPointer(
+                                    child: RadioListTile(
+                                      title: Text('Delivery Trip',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.022,
+                                          )),
+                                      value: 'Issue Load',
+                                      groupValue: loadTypeValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          loadTypeValue = value.toString();
+                                        });
+                                      },
                                     ),
-                                  ]),
-                                ),
-                                Expanded(
-                                  child: Column(children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Truck Type',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color:
-                                                Theme.of(context).canvasColor),
-                                      ),
+                                  ),
+                                ]),
+                              ),
+                              Expanded(
+                                child: Column(children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Truck Type',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).canvasColor),
                                     ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('External',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.022,
-                                            )),
-                                        value: 'External',
-                                        groupValue: truckTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            truckTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
+                                  ),
+                                  AbsorbPointer(
+                                    child: RadioListTile(
+                                      title: Text('External',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.022,
+                                          )),
+                                      value: 'External',
+                                      groupValue: truckTypeValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          truckTypeValue = value.toString();
+                                        });
+                                      },
                                     ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Internal',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.022,
-                                            )),
-                                        value: 'Internal Truck',
-                                        groupValue: truckTypeValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            truckTypeValue = value.toString();
-                                          });
-                                        },
-                                      ),
+                                  ),
+                                  AbsorbPointer(
+                                    child: RadioListTile(
+                                      title: Text('Internal',
+                                          style: TextStyle(
+                                            fontSize: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.022,
+                                          )),
+                                      value: 'Internal Truck',
+                                      groupValue: truckTypeValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          truckTypeValue = value.toString();
+                                        });
+                                      },
                                     ),
-                                    AbsorbPointer(
-                                        /* child: RadioListTile(
+                                  ),
+                                  AbsorbPointer(
+                                      /* child: RadioListTile(
                                         title: Text('Ex-Factory',
                                             style: TextStyle(
                                               fontSize: MediaQuery.of(context)
@@ -803,10 +801,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                           });
                                         },
                                       ),*/
-                                        )
-                                  ]),
-                                ),
-                              ]),
+                                      )
+                                ]),
+                              ),
+                            ],
+                          ),
                           Padding(
                             padding: EdgeInsets.all(8.0),
                             child: Text(
