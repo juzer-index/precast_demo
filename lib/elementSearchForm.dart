@@ -426,11 +426,11 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                 controller!.pauseCamera();
                                                 Navigator.pop(context);
                                                 debugPrint('this is the code ${scanData.code}');
-                                                List<String> scanResult = scanData.code!.split(' ');
-                                                if (scanResult.length >= 4) {
-                                                  elementId = scanResult.sublist(3).join("-");
-                                                  partNum = scanResult[2];
-                                                  companyId = scanResult[1];
+                                                List<String> scanResult = scanData.code!.split('  ');
+                                                if (scanResult.length > 4) {
+                                                  elementId = scanResult[4];
+                                                  partNum = scanResult[3];
+                                                  companyId = scanResult[2];
                                                   await getScannedElement(partNum, elementId, companyId);
                                                 } else {
                                                   showDialog(context: context, builder: (context) {
@@ -458,6 +458,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                   erectionSeqController.text = elementListData['ErectionSequence_c'].toString();
                                                   weightController.text = elementListData['Ton_c'];
                                                   areaController.text = elementListData['M2_c'];
+
                                                   volumeController.text = elementListData['M3_c'];
                                                   estErectionDateController.text = elementListData['ErectionPlannedDate_c'] ?? '';
                                                   onHandQtyController.text = '1';
