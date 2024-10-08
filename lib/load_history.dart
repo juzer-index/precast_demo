@@ -66,8 +66,8 @@ class LoadTableSource extends DataTableSource{
           DataCell(Text(loads[index].resourceHeight.toString())),
           DataCell(Text(loads[index].resourceVolume.toString())),
           DataCell(Text(loads[index].foremanId.toString())),
-          DataCell(Text(loads[index].foremanName)),
-          DataCell(Text(loads[index].comments)),
+
+
 
        ]
    );
@@ -129,8 +129,8 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Resource Height')),
                           DataColumn(label: Text('Resource Volume')),
                           DataColumn(label: Text('Foreman ID')),
-                          DataColumn(label: Text('Foreman Name')),
-                          DataColumn(label: Text('Comments')),
+
+
                         ],
                        source:LoadTableSource(loads:widget.loads.reversed.toList(), context: context, addLoadData: widget.addLoad ,tenantConfig:widget.tenantConfig),
 

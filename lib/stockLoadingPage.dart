@@ -69,6 +69,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   LoadData? currentLoad;
   int childCount = 1;
 
+
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
   bool back = false;
@@ -97,7 +98,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   ResourceDetails? resourceDetails;
   TextEditingController foremanId = TextEditingController();
   TextEditingController foremanName = TextEditingController();
-
+  bool toBinLoading = false;
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
 
@@ -132,6 +133,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> deletedSavedElements=[];
 
   late int lastLoad = 50;
+  late int lastCustShip= 0;
+  late int custNum = 0;
   late final int l1;
   late final int l2;
   late final String nextLoad;
@@ -144,10 +147,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   void initState() {
 
 
-    toWarehouseNameController.text = 'Site';
+
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
+
     if (!widget.isUpdate) {
       dataLoaded =
           makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
@@ -159,7 +163,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         loadIDController.text = widget.historyLoadID;
       });
 
-      dataLoaded = fetchLoadDataFromURL(widget.historyLoadID,
+ dataLoaded =  fetchLoadDataFromURL(widget.historyLoadID,
               context.read<tenantConfigProvider>().tenantConfig)
           .then((value) => {
                 offloadData = getLoadObjectFromJson(widget.historyLoadID),
@@ -175,6 +179,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   fromWarehouseController.text = offloadData!.fromWarehouse;
                   isLoaded = true;
                 }),
+
+
               });
     } else {
       dataLoaded = Future.value(true);
@@ -389,9 +395,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               ),
                                               IconButton(
                                                 onPressed: () async {
-                                                  await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                                //  await makeSureDataLoaded(tenantConfigP);
+                                                 // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
                                                  // await fetchElementDataFromURL();
                                                   //await fetchPartDataFromURL();
+                                                  await loadLoadAndData(tenantConfigP);
                                                   String projectLoadID = loadIDController.text;
                                                   offloadData = getLoadObjectFromJson(projectLoadID);
                                                   getElementObjectFromJson(projectLoadID);
@@ -466,6 +474,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                 onChanged: (value) {
                                                   setState(() {
                                                     projectIdController.text = fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ProjectID'];
+                                                    custNum= fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ConCustNum'];
                                                   });
                                                 },
                                               );
@@ -594,7 +603,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                               child: Padding(
                                                 padding: const EdgeInsets.all(8.0),
                                                 child: DropdownSearch(
-                                                  selectedItem: toWarehouseController.text,
+                                                  selectedItem: toWarehouseNameController.text,
                                                   enabled:  true,
                                                   popupProps: const PopupProps.modalBottomSheet(
                                                     showSearchBox: true,
@@ -620,10 +629,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
                                                       toWarehouseNameController.text = value.toString();
                                                       fetchedBinValue=[];
-
+                                                      toBinLoading = true;
                                                     });
                                                     await getBinsFromWarehouse(tenantConfigP,toWarehouseController.text);
-
+                                                    setState(() {
+                                                      toBinLoading = false;
+                                                    });
                                                   },
                                                 ),
                                               )
@@ -634,6 +645,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                         padding: const EdgeInsets.all(8.0),
                                         child: DropdownSearch(
                                           selectedItem: toBinController.text,
+
+
                                           enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty,
                                           popupProps: const PopupProps.modalBottomSheet(
                                             showSearchBox: true,
@@ -663,7 +676,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                           },
                                         ),
                                       ),*/
-                                      ReDropDown(enabled: toWarehouseController.text!="", data: fetchedBinValue.map((bin) => bin['Description']).toList(), label: "To Bin" , controller: toBinController,dataMap:fetchedBinValue,),
+                                      ReDropDown(enabled: toWarehouseController.text!="", data: fetchedBinValue.map((bin) => bin['Description']).toList(), label: "To Bin", loading:toBinLoading, controller: toBinController,dataMap:fetchedBinValue,),
                                       if(loadConditionValue == 'External')
                                         Row(
                                           children: [
@@ -764,18 +777,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                               value.toString();
                                                         });
                                                       },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Ex-Factory', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Ex-Factory',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
                                                     )
+
                                                   ]
                                               ),
                                             ),
@@ -837,6 +840,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "ShortChar04": loadConditionValue,
                                                   "ShortChar08": truckIdController.text,
                                                   "ShortChar03": "Open",
+
                                                   "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
                                                   "Number02": "0",
                                                   "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
@@ -844,7 +848,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                   "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
                                                   "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
                                                   "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
+                                                  "Number11": (lastCustShip+1).toString(),
+                                                  "Number12": custNum.toString(),
                                                   "Date01": loadDateFormat,
+
                                                   "Character02": driverNameController.text,
                                                   "Character03": driverNumberController.text,
                                                   "Character04": toWarehouseNameController.text,
@@ -1177,16 +1184,17 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> makeSureDataLoaded(dynamic tenantConfigP) async {
-    if(!widget.isUpdate) {
+
       await Future.wait([
         getProjectList(tenantConfigP),
 
         getTrucksFromURL(tenantConfigP),
         getDriverList(tenantConfigP),
         getLastLoadID(tenantConfigP),
-        getWarehouseList(tenantConfigP)
+        getWarehouseList(tenantConfigP),
+        getLastCustomerShipment(tenantConfigP)
       ]);
-    }
+
 
 
   }
@@ -1413,6 +1421,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
     on Exception catch (e) {
       debugPrint(e.toString());
+      setState(() {
+        toBinLoading = false;
+      });
     }
   }
 
@@ -1487,6 +1498,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getResourceForTrucks(String resourceID,tenantConfigP) async {
+    resourceValue = [];
     var urL = Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final basicAuth = 'Basic ${base64Encode(
@@ -1558,9 +1570,33 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
+  Future<void> getLastCustomerShipment(dynamic tenantConfigP) async {
+    try{
+      final basicAuth = 'Basic ${base64Encode(
+          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
+      final response = await http.get(
+          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_MaxShip(${tenantConfigP['company']})'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if(response.statusCode == 200){
+        Map<String, dynamic> rp = json.decode(response.body);
+        setState(() {
+          lastCustShip = rp['value'][0]['Calculated_Max_packNum'];
+        });
+        debugPrint(lastCustShip.toString());
+      }
+    }
+    on Exception catch (e) {
+      debugPrint(e.toString());
+    }
+  }
   Future<dynamic> fetchLoadDataFromURL(String loadId,dynamic tenantConfigP) async {
     try {
+
+
       final basicAuth = 'Basic ${base64Encode(
           utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
@@ -1732,7 +1768,34 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-
+ Future<void> loadLoadAndData(dynamic tenantConfigP) async{
+    await fetchLoadDataFromURL(loadIDController.text,  tenantConfigP ) ;
+    offloadData = getLoadObjectFromJson(widget.historyLoadID);
+    getElementObjectFromJson(widget.historyLoadID);
+    getPartObjectFromJson(widget.historyLoadID);
+    setState(() {
+      projectIdController.text = offloadData!.projectId;
+      dateController.text = offloadData!.loadDate;
+      toWarehouseController.text = offloadData!.toWarehouse;
+      toBinController.text = offloadData!.toBin;
+      loadTypeValue = offloadData!.loadType;
+      loadConditionValue = offloadData!.loadCondition;
+      fromWarehouseController.text = offloadData!.fromWarehouse;
+      isLoaded = true;
+    });
+    await getWarehouseList(tenantConfigP);
+    await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);
+    await getResourceForTrucks(offloadData!.resourceId, tenantConfigP);
+    await getResourceDetailsFromJson(offloadData!.resourceId);
+    setState(() {
+      capacityController.text = resourceDetails!.capacity;
+      lengthController.text = resourceDetails!.length;
+      widthController.text = resourceDetails!.width;
+      heightController.text = resourceDetails!.height;
+      volumeController.text = resourceDetails!.volume;
+      loadedController.text = resourceDetails!.loaded;
+    });
+ }
   Widget buildTruckDetailsFrom(bool isEditable) {
     return Column(
       children: [
@@ -1820,6 +1883,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: DropdownSearch(
+                enabled:resourceValue?.isNotEmpty ?? false,
                 selectedItem: resourceIdController.text,
                 popupProps: const PopupProps.modalBottomSheet(
                   showSearchBox: true,
@@ -1835,7 +1899,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 dropdownDecoratorProps: const DropDownDecoratorProps(
                   dropdownSearchDecoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Resource",
+                    labelText: "Truck Attachment",
                   ),
                 ),
                 items: resourceValue?.map((value) => value['Character01'])
@@ -1865,7 +1929,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextFormField(
-            enabled: isEditable,
+            enabled: false,
             controller: plateNumberController,
             decoration: const InputDecoration(
 
@@ -1921,6 +1985,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     onChanged: (value) async {
                       setState(() {
                         driverNameController.text = value.toString();
+                        driverNumberController.text=fetchedDriverValue.where((element) => element['Driver_Name'] == value.toString()).first['Driver_Contact_c'];
                       });
                     },
                   ),
@@ -1930,7 +1995,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
-                  enabled: isEditable,
+                  enabled: false,
                   controller: driverNumberController,
                   decoration: const InputDecoration(
 
@@ -2056,13 +2121,13 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 //add dropdown item list with label truck ID
-                if(!isEditable)
+
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: TextFormField(
-                        enabled: isEditable,
-                        controller: foremanId,
+                        enabled: false,
+                        initialValue: context.watch<UserManagementProvider>().userManagement?.id.toString(),
                         decoration: const InputDecoration(
                             fillColor: Colors.white,
                             filled: true,
@@ -2071,44 +2136,14 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                       ),
                     ),
                   ),
-                if(isEditable)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: DropdownButtonFormField(
-                        hint: const Text('Foreman ID'),
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                        ),
 
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Foreman 1',
-                            child: Text('Foreman 1'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Foreman 2',
-                            child: Text('Foreman 2'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Foreman 3',
-                            child: Text('Foreman 3'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            // foremanName = value.toString();
-                          });
-                        },
-                      ),
-                    ),
-                  ),
 
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      enabled: isEditable,
+                      initialValue: context.watch<UserManagementProvider>().userManagement?.firstName.toString(),
+                      enabled: false,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,

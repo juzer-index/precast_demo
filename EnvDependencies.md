@@ -15,19 +15,19 @@
       - WarehseSvc **to fetch the warehouses**
       - WhseBinSvc **to fetch the bins**
       - LotSelectUpdateSvc **to fetch the lots**
-      - UD103Svc **load header level**
-      - UD103A   **load detail level**
+      - UD104Svc **load header level**
+      - UD104A   **load detail level**
       - UD102 **truck details**
 - stockOffLoading
    - BaQs
       - IIT_getDN     **to fetch the reports**
    - Tables
       - LotSelectUpdateSvc **to fetch the lots**
-      - UD103Svc **load header level**
-      - UD103A   **load detail level**
+      - UD104Svc **load header level**
+      - UD104A   **load detail level**
       - UD102 **truck details**
 ## BPMs
--Data Directive on UD103A
+-Data Directive on UD104A
 -- IIT_MITPostLines
    **Conditions**: -  CheckBox01 = True
                    - CheckBox02 = True

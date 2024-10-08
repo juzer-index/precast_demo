@@ -8,7 +8,8 @@ class ReDropDown extends StatefulWidget {
   final String label;
   TextEditingController controller = TextEditingController();
   List<dynamic> dataMap;
-  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap});
+  bool loading = false;
+  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap,required this.loading});
 
   @override
   State<StatefulWidget> createState() {
@@ -18,24 +19,24 @@ class ReDropDown extends StatefulWidget {
 
 class _DropDownState extends State<ReDropDown> {
 
-  bool isLoading = false;
-
-  @override
-  void didUpdateWidget(covariant ReDropDown oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Check if the data has changed and reset the selected item
-
-    if(widget.data.isEmpty&&widget.enabled){
-      setState(() {
-        isLoading = true;
-        widget.controller.text = '';
-      });
-}else{
-      setState(() {
-        isLoading = false;
-      });
-
-  }}
+//   bool isLoading = false;
+//
+//   @override
+//   void didUpdateWidget(covariant ReDropDown oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     // Check if the data has changed and reset the selected item
+//
+//     if(widget.loading){
+//       setState(() {
+//         isLoading = true;
+//         widget.controller.text = '';
+//       });
+// }else{
+//       setState(() {
+//         isLoading = false;
+//       });
+//
+//   }}
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,7 @@ class _DropDownState extends State<ReDropDown> {
         children: [
           DropdownSearch(
             selectedItem: widget.controller.text ,
-            enabled: widget.enabled&& !isLoading,
+            enabled: widget.enabled,
             popupProps: const PopupProps.modalBottomSheet(
               showSearchBox: true,
               searchFieldProps: TextFieldProps(
@@ -73,7 +74,7 @@ class _DropDownState extends State<ReDropDown> {
           ),
           Builder(
             builder: (context) {
-              if (isLoading) {
+              if (widget.loading) {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Center(child: CircularProgressIndicator()),
