@@ -1,3 +1,4 @@
+import 'package:GoCastTrack/elementInstallationPg.dart';
 import 'package:GoCastTrack/stockOffloadingPage.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -13,8 +14,8 @@ import './ElementPieChart.dart';
 
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
-  final dynamic tenantConfig ;
-  const HomePage({super.key,  required this.tenantConfig, this.userManagement});
+  final dynamic tenantConfig;
+  const HomePage({super.key, required this.tenantConfig, this.userManagement});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -25,17 +26,16 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
   }
+
   List<LoadData> loads = [];
   void addLoadData(LoadData load) {
     setState(() {
-      for(int i=0;i<loads.length;i++)
-        {
-          if(loads[i].loadID==load.loadID)
-            {
-              loads.removeAt(i);
-              break;
-            }
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
         }
+      }
     });
     setState(() {
       loads.add(load);
@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
       appBar: const IndexAppBar(
         title: 'Home Page',
       ),
-      drawer: SideBarMenu(context, loads, addLoadData,widget.tenantConfig),
+      drawer: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -60,7 +60,11 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(8),
                 child: Text(
                   'Welcome, ${context.watch<UserManagementProvider>().userManagement?.firstName}  ',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF5E9746),),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF5E9746),
+                  ),
                 ),
               ),
               SizedBox(
@@ -89,15 +93,17 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                   Text(
-                                  'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
+                                  Text(
+                                    'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
                                     style: const TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   Text(
                                     'Department: Sales ',
                                     style: TextStyle(
-                                        fontSize: 15, color: Colors.grey.shade800),
+                                        fontSize: 15,
+                                        color: Colors.grey.shade800),
                                   ),
                                 ],
                               ),
@@ -128,7 +134,8 @@ class _HomePageState extends State<HomePage> {
                                                     0.5,
                                                 child: Padding(
                                                     padding:
-                                                        const EdgeInsets.all(12.0),
+                                                        const EdgeInsets.all(
+                                                            12.0),
                                                     child: Column(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
@@ -145,7 +152,8 @@ class _HomePageState extends State<HomePage> {
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          const SizedBox(height: 10),
+                                                          const SizedBox(
+                                                              height: 10),
                                                           Text(
                                                             'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName} ${context.watch<UserManagementProvider>().userManagement?.lastName}',
                                                             style: const TextStyle(
@@ -154,7 +162,8 @@ class _HomePageState extends State<HomePage> {
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          const SizedBox(height: 10),
+                                                          const SizedBox(
+                                                              height: 10),
                                                           Text(
                                                             'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
                                                             style: const TextStyle(
@@ -163,32 +172,30 @@ class _HomePageState extends State<HomePage> {
                                                                     FontWeight
                                                                         .bold),
                                                           ),
-                                                          const SizedBox(height: 10),
+                                                          const SizedBox(
+                                                              height: 10),
                                                           Text(
                                                             'tenant ID: ${context.watch<UserManagementProvider>().userManagement?.tenantId}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                                    FontWeight
+                                                                        .bold),
                                                           ),
-                                                          const SizedBox(height: 10),
+                                                          const SizedBox(
+                                                              height: 10),
                                                           Text(
                                                             'Email: ${context.watch<UserManagementProvider>().userManagement?.userFileEMailAddress}',
                                                             style: const TextStyle(
                                                                 fontSize: 18,
                                                                 fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                                    FontWeight
+                                                                        .bold),
                                                           ),
-                                                          const SizedBox(height: 10),
-                                                        ]
-                                                    )
-                                                )
-                                            )
-                                        );
-                                      }
-                                      );
+                                                          const SizedBox(
+                                                              height: 10),
+                                                        ]))));
+                                      });
                                 },
                                 icon: const Icon(
                                   Icons.info,
@@ -201,7 +208,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
               ElementPieChart(),
-
               const Divider(),
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -220,7 +226,9 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>  ElementMaster(tenantConfig: widget.tenantConfig,),
+                              builder: (context) => ElementMaster(
+                                tenantConfig: widget.tenantConfig,
+                              ),
                             ),
                           );
                         },
@@ -250,7 +258,11 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList: loads,addLoadData: addLoadData),
+                              builder: (context) => StockLoading(
+                                  initialTabIndex: 0,
+                                  isUpdate: false,
+                                  loadDataList: loads,
+                                  addLoadData: addLoadData),
                             ),
                           );
                         },
@@ -280,7 +292,9 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>  StockOffloading(initialTabIndex: 0,tenantConfig:widget.tenantConfig),
+                              builder: (context) => StockOffloading(
+                                  initialTabIndex: 0,
+                                  tenantConfig: widget.tenantConfig),
                             ),
                           );
                         },
@@ -310,8 +324,11 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  StockLoading(initialTabIndex: 0, isUpdate: true, loadDataList: loads, addLoadData: addLoadData),
+                              builder: (context) => StockLoading(
+                                  initialTabIndex: 0,
+                                  isUpdate: true,
+                                  loadDataList: loads,
+                                  addLoadData: addLoadData),
                             ),
                           );
                         },
@@ -321,11 +338,44 @@ class _HomePageState extends State<HomePage> {
                             Icon(
                               Icons.assignment_late,
                               size: 50,
-                              color:Colors.white ,
+                              color: Colors.white,
                             ),
                             SizedBox(height: 10),
                             Text(
                               'Edit Stock Load',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Card(
+                      //
+                      elevation: 1,
+                      color: Theme.of(context).indicatorColor,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ElementInstallation(
+                                tenantConfig: widget.tenantConfig,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.install_desktop_sharp,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Element Installation',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
