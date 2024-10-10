@@ -78,7 +78,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
       final jsonResponse = json.decode(response.body);
       setState(() {
         truckData = jsonResponse;
-        truckValue = truckData['value'];
+        truckValue = truckData['value']?? [];
       });
     }
     on Exception catch (e) {

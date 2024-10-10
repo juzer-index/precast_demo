@@ -7,7 +7,7 @@
       - LotSelectUpdate  **to fetch the lots**
 - stockLoading
    - BaQs
-      - IIT_getDN     **to fetch the reports**
+      - IIT_getDN2     **to fetch the reports**
       - IIT_DriverName  **to fetch the drivers**
       - IIT_UD103AutoGenerateNum_Test   **to fetch the last number**
    - Tables

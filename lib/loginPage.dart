@@ -59,9 +59,10 @@ class _LoginPageState extends State<LoginPage> {
           context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         }
         if (mounted) {
-          Navigator.push(
+          Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
+
           );
         }
       }
@@ -88,28 +89,12 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
   }
-  isLogged() async {
 
-    SharedPreferences prefs =  await  SharedPreferences.getInstance();
-    if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
-   UserManagement userManagement = UserManagement.fromJson(json.decode(prefs.getString('userManagement')!)!);
-      context.read<UserManagementProvider>().updateUserManagement(userManagement!);
-      context.read<tenantConfigProvider>().updateTenantConfig(json.decode(prefs.getString('tenantConfig')!));
-      tenantConfig = json.decode(prefs.getString('tenantConfig')!);
-      if (mounted) {
-       Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
-        );
-
-      }
-    }
-  }
   @override
   void  initState() {
     super.initState();
     image =  Image.asset(ImagePath,width: 150,height: 150,);
-    isLogged();
+
 
   }
 @override

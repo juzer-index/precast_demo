@@ -88,7 +88,7 @@ class _StockOffloadingState extends State<StockOffloading>
           {
             "Summary": false,
             "BAQRptID": "",
-            "ReportID": "IIT_DeliveryNot",
+            "ReportID": "IIT_Delivery",
             "Option01": loadIDController.text,
             "SysRowID": "00000000-0000-0000-0000-000000000000",
             "AutoAction": "SSRSGenerate",
@@ -117,7 +117,7 @@ class _StockOffloadingState extends State<StockOffloading>
       "agentID": "",
       "agentSchedNum": 0,
       "agentTaskNum": 0,
-      "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
+      "maintProgram": "Ice.UIRpt.IIT_Delivery"
     };
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
@@ -207,7 +207,7 @@ class _StockOffloadingState extends State<StockOffloading>
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
-      final pdfCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN/?%24orderby=SysRptLst1_CreatedOn%20desc&%24top=1');
+      final pdfCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN2/?%24orderby=SysRptLst_CreatedOn%20desc&%24top=1');
       final response = await http.get(
           pdfCountsURL,
           headers: {
@@ -1014,8 +1014,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                                           filePath:
                                                               'DeliveryNote${loadIDController.text}.pdf',
                                                           generatePdf: deliveryNote(
-                                                              updatedCounts[0][
-                                                                  'SysRptLst1_RptData']))));
+                                                              updatedCounts[0]['SysRptLst_RptData']))));
                                       }
                                             break; // Exit the loop if condition is met
                                     }
