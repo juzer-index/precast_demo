@@ -14,7 +14,8 @@ class TruckDetailsForm extends StatefulWidget {
   LoadData? truckDetails;
   TruckDetails? truckMasterDetails;
   final Function(LoadData)? onTruckDetailsSelected;
-  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails, this.truckMasterDetails, this.onTruckDetailsSelected});
+  final dynamic tenantConfigP ;
+  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails, this.truckMasterDetails, this.onTruckDetailsSelected, required this.tenantConfigP});
 
   @override
   State<TruckDetailsForm> createState() => _TruckDetailsFormState();
@@ -39,10 +40,12 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   Map<String, dynamic> truckDetails = {};
   ResourceDetails? resourceDetails;
 
+
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  var truckURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102s');
-  var resourceURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As');
+//  var truckURL = Uri.parse('${widget.tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+ // var resourceURL = Uri.parse('https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As');
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
   Map<String, dynamic> resourceData = {};
@@ -66,10 +69,10 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getTrucksFromURL() async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
+    final String basicAuth = 'Basic ${utf8.encode('${widget.tenantConfigP['userID']}:${widget.tenantConfigP['password']}')}';
     try {
       final response = await http.get(
-          truckURL,
+          Uri.parse('${widget.tenantConfigP['httpVerbKey']}://${widget.tenantConfigP['appPoolHost']}/${widget.tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',

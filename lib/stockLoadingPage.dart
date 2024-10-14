@@ -796,7 +796,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                       if(!widget.isUpdate)
                                         buildTruckDetailsFrom(true),
                                       if(widget.isUpdate)
-                                        TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+                                        TruckDetailsForm(isEdit: true, truckDetails: offloadData,
+                                        tenantConfigP: tenantConfigP,
+                                        ),
                                       const SizedBox(height: 20),
                                       if(widget.isUpdate)
                                         ElevatedButton(
@@ -1070,7 +1072,9 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                     if(!widget.isUpdate)
                                       buildTruckDetailsFrom(false),
                                     if(widget.isUpdate)
-                                      TruckDetailsForm(isEdit: true, truckDetails: offloadData,),
+                                      TruckDetailsForm(isEdit: true, truckDetails: offloadData,
+                                      tenantConfigP: tenantConfigP,
+                                      ),
 
                                     Padding(
                                       padding: EdgeInsets.all(8.0),

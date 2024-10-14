@@ -207,7 +207,9 @@ class _StockOffloadingState extends State<StockOffloading>
     final String basicAuth = 'Basic ${base64Encode(
         utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
     try {
+
       final pdfCountsURL = Uri.parse('${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN2/?%24orderby=SysRptLst_CreatedOn%20desc&%24top=1');
+
       final response = await http.get(
           pdfCountsURL,
           headers: {
@@ -315,6 +317,7 @@ class _StockOffloadingState extends State<StockOffloading>
         debugPrint('Load Status Updated');
         setState(() {
           loaded = true;
+          offloaded = true;
         });
       }
       else {
@@ -759,7 +762,9 @@ class _StockOffloadingState extends State<StockOffloading>
                             padding: EdgeInsets.all(8.0),
                             child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).canvasColor),),
                           ),
-                          TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
+                          TruckDetailsForm(isEdit: false, truckDetails: offloadData,
+                          tenantConfigP: widget.tenantConfig,
+                          ),
                           const SizedBox(
                             height: 20,
                           ),
@@ -958,7 +963,9 @@ class _StockOffloadingState extends State<StockOffloading>
                           padding: EdgeInsets.all(8.0),
                           child: Text('Truck Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).canvasColor),),
                         ),
-                        TruckDetailsForm(isEdit: false, truckDetails: offloadData,),
+                        TruckDetailsForm(isEdit: false, truckDetails: offloadData,
+                        tenantConfigP: widget.tenantConfig,
+                        ),
                         const SizedBox(height: 20,),
                         Text(
                           'Arrived Elements',
