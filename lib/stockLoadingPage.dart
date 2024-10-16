@@ -722,6 +722,7 @@ class _StockLoadingState extends State<StockLoading>
                                                 toWarehouseController.text);
                                             setState(() {
                                               toBinLoading = false;
+                                              toBinController.text= fetchedBinValue.first['BinNum'];
                                             });
                                           },
                                         ),

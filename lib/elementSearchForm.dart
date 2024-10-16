@@ -81,7 +81,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getAllParts(String PartNum) async {
     String URL = widget.isInstalling
-        ? '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_ElementErection(${widget.tenantConfig['company']})?\$filter=PartLot_Project_c  eq  \'${widget.Project}\''
+        ? '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_ElementFetch(${widget.tenantConfig['company']})?\$filter=PartLot_Project_c  eq  \'${widget.Project}\' and PartLot_PartNum eq \'$PartNum\' '
         : '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&Project=${widget.Project}&WAREHSE=${widget.Warehouse}';
 
     try {
@@ -294,6 +294,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
       debugPrint(e.toString());
     }
   }
+
 
   @override
   void initState() {
@@ -644,39 +645,42 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                 (element) => element['PartLot_LotNum'] == value)
                             .first;
 
-                    setState(() {
-                      fromBin.text = widget.isOffloading
-                          ? element.fromBin
-                          : element['PartBin_BinNum'];
-                      lotNoController.text = widget.isOffloading
-                          ? element.elementId
-                          : element['PartLot_LotNum'].toString();
-                      elementDescriptionController.text = widget.isOffloading
-                          ? element.elementDesc
-                          : element['PartLot_PartLotDescription'];
-                      uomController.text = widget.isOffloading
-                          ? element.UOM
-                          : element['Part_IUM'].toString();
-                      erectionSeqController.text = widget.isOffloading
-                          ? element.erectionSeq
-                          : element['PartLot_ErectionSequence_c'].toString();
-                      weightController.text = widget.isOffloading
-                          ? element.weight
-                          : element['PartLot_Ton_c'].toString();
-                      areaController.text = widget.isOffloading
-                          ? element.area
-                          : element['PartLot_M2_c'].toString();
-                      volumeController.text = widget.isOffloading
-                          ? element.volume
-                          : element['PartLot_M3_c'].toString();
-                      estErectionDateController.text = widget.isOffloading
-                          ? element.erectionDate
-                          : element['ErectionPlannedDate_c'] ?? '';
-                      onHandQtyController.text = '1';
-                      selectedQtyController.text = '1';
-                      selectable = true;
-                    });
+                 setState(() {
+                   fromBin.text = widget.isOffloading
+                       ? element.fromBin
+                       : element['PartBin_BinNum'] ?? " ";
+                   lotNoController.text = widget.isOffloading
+                       ? element.elementId
+                       : element['PartLot_LotNum'].toString() ?? "";
+                   elementDescriptionController.text = widget.isOffloading
+                       ? element.elementDesc
+                       : element['PartLot_PartLotDescription'] ?? "";
+                   uomController.text = widget.isOffloading
+                       ? element.UOM
+                       : element['Part_IUM'].toString() ?? "";
+                   erectionSeqController.text = widget.isOffloading
+                       ? element.erectionSeq
+                       : element['PartLot_ErectionSequence_c'].toString() ?? "";
+                   weightController.text = widget.isOffloading
+                       ? element.weight
+                       : element['PartLot_Ton_c'].toString() ?? "";
+                   areaController.text = widget.isOffloading
+                       ? element.area
+                       : element['PartLot_M2_c'].toString()?? "";
+                   volumeController.text = widget.isOffloading
+                       ? element.volume
+                       : element['PartLot_M3_c'].toString()?? "";
+                   estErectionDateController.text = widget.isOffloading
+                       ? element.erectionDate
+                       : element['ErectionPlannedDate_c'] ?? '';
+                   onHandQtyController.text = '1';
+                   selectedQtyController.text = '1';
+                   selectable = true;
+                 });
+
+
                   });
+
                 },
               ),
               if (elements.isEmpty && elementListData.isEmpty)

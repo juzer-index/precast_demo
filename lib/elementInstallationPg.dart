@@ -38,6 +38,83 @@ class _ElementInstallationState extends State<ElementInstallation> {
     tenatConfigP = widget.tenantConfig;
     dataLoaded = getProjectList(tenatConfigP);
   }
+  Future<void> InstallElement(String PartNum , String PartDes ,String JobNum ) async{
+    try {
+      final String basicAuth =
+          'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
+
+      final response = await http.post(
+        Uri.parse(
+            '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD100Svc/UD100s'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        }
+        ,
+        body: jsonEncode({
+          "Company": widget.tenantConfig['company'],
+          "ShortChar01": JobNum,
+          "ShortChar02": PartNum,
+          "ShortChar03": PartDes,
+          "CheckBox01": true,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+
+        AlertDialog dialog = AlertDialog(
+          title: const Text("Success"),
+          content: const Text("Element installed successfully"),
+          actions: [
+            TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.pop(context);
+                }),
+          ],
+        );
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return dialog;
+            });
+      } else {
+        AlertDialog dialog = AlertDialog(
+          title: const Text("Error"),
+          content: const Text("Failed to install element"),
+          actions: [
+            TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.pop(context);
+                }),
+          ],
+        );
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return dialog;
+            });
+      }
+    } on Exception catch (e) {
+      AlertDialog dialog = AlertDialog(
+        title: const Text("Error"),
+        content: const Text("Failed to install element"),
+        actions: [
+          TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+        ],
+      );
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return dialog;
+          });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -209,12 +286,20 @@ class _ElementInstallationState extends State<ElementInstallation> {
                         Padding(
                           padding: const EdgeInsets.only(top: 100),
                           child: ElevatedButton(
-                            onPressed: () {
-                              setState(
-                                () {
-                                  //_tabController.animateTo(2);
-                                },
-                              );
+                          style:selectedElements.isEmpty? ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.grey),
+                        )
+                        : null,
+                            onPressed: () async {
+
+                              for (var element in selectedElements) {
+
+                                  await InstallElement(element.partId, element.elementDesc, element.elementId);
+
+                              }
+
+
+
                             },
                             child: const Text('Save'),
                           ),
