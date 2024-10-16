@@ -630,10 +630,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                                       toWarehouseNameController.text = value.toString();
                                                       fetchedBinValue=[];
                                                       toBinLoading = true;
+
                                                     });
                                                     await getBinsFromWarehouse(tenantConfigP,toWarehouseController.text);
                                                     setState(() {
                                                       toBinLoading = false;
+                                                      toBinController.text=fetchedBinValue.first['BinNum'];
                                                     });
                                                   },
                                                 ),
@@ -929,7 +931,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                                             ),
                                             child: Padding(
                                               padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_addElement,Project:projectIdController.text,tenantConfig: tenantConfigP,),
+                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_addElement,Project:projectIdController.text,tenantConfig: tenantConfigP,isInstalling: false,),
                                             ),
                                           ),
                                           const SizedBox(height: 20,),

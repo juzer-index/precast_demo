@@ -805,7 +805,9 @@ class _StockOffloadingState extends State<StockOffloading>
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: ElementSearchForm(onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, tenantConfig: widget.tenantConfig,),
+                                  child: ElementSearchForm(
+                                    isInstalling: false,
+                                    onElementsSelected: updateElementInformation, arrivedElements: arrivedElements, isOffloading: true,AddElement:(ElementData)=>{}, tenantConfig: widget.tenantConfig,),
                                 ),
                               ),
                               const SizedBox(height: 20,),

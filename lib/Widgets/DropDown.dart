@@ -46,7 +46,7 @@ class _DropDownState extends State<ReDropDown> {
         children: [
           DropdownSearch(
             selectedItem: widget.controller.text ,
-            enabled: widget.enabled,
+            enabled: widget.enabled && !widget.loading,
             popupProps: const PopupProps.modalBottomSheet(
               showSearchBox: true,
               searchFieldProps: TextFieldProps(
