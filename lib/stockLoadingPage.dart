@@ -722,7 +722,9 @@ class _StockLoadingState extends State<StockLoading>
                                                 toWarehouseController.text);
                                             setState(() {
                                               toBinLoading = false;
-                                              toBinController.text= fetchedBinValue.first['BinNum'];
+                                              toBinController.text =
+                                                  fetchedBinValue
+                                                      .first['BinNum'];
                                             });
                                           },
                                         ),
@@ -1141,7 +1143,10 @@ class _StockLoadingState extends State<StockLoading>
                                       color: Theme.of(context).canvasColor),
                                 ),
                                 ElementTable(
-                                  selectedElements: selectedElements,
+                                  selectedElements: elementValue
+                                      .map((element) =>
+                                          ElementData.fromJson(element))
+                                      .toList(),
                                   DeletededSaveElements: widget.isUpdate
                                       ? deletedSavedElements
                                       : null,
@@ -1901,6 +1906,10 @@ class _StockLoadingState extends State<StockLoading>
         elementValue = loadData['UD104A']
             .where((element) => element['CheckBox13'] == false)
             .toList();
+        selectedElements = elementValue
+            .map((element) => ElementData.fromJson(element))
+            .toList();
+
         partValue = loadData['UD104A']
             .where((part) => part['CheckBox13'] == true)
             .toList();

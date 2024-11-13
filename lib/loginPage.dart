@@ -12,75 +12,74 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
   State<LoginPage> createState() => _LoginPageState();
-
-
 }
 
 class _LoginPageState extends State<LoginPage> {
   final ImagePath = 'assets/app-logo.png';
   late Image image;
 
-  String username = '' ;
+  String username = '';
   String password = '';
   String tenantId = '';
 
   dynamic tenantConfig;
-  bool RememberMe=false ;
+  bool RememberMe = false;
   bool isLoading = false;
   bool Checked = false;
   SharedPreferences? prefs;
   Future<void> login() async {
-    if(username.isNotEmpty && password.isNotEmpty && tenantId.isNotEmpty){
+    if (username.isNotEmpty && password.isNotEmpty && tenantId.isNotEmpty) {
       setState(() {
         isLoading = true;
       });
 
-    var url = Uri.parse('https://77.92.189.106:83/Account/${tenantId}/Login');
-      var response =  http.MultipartRequest('POST', url);
+      var url = Uri.parse('https://77.92.189.106:83/Account/${tenantId}/Login');
+      var response = http.MultipartRequest('POST', url);
       response.fields['username'] = username;
       response.fields['password'] = password;
       response.fields['tenantId'] = tenantId;
       var res = await response.send();
       setState(() {
         isLoading = false;
-
       });
 
-      if(res.statusCode == 200){
-        var responseData= json.decode(await res.stream.bytesToString());
+      if (res.statusCode == 200) {
+        var responseData = json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
-        SharedPreferences prefs =  await  SharedPreferences.getInstance();
-        if(RememberMe) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        if (RememberMe) {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
           tenantConfig = json.decode(prefs.getString('tenantConfig')!);
-          context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
+          context
+              .read<UserManagementProvider>()
+              .updateUserManagement(UserManagement.fromJson(userManagement)!);
           context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         }
         if (mounted) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
+            MaterialPageRoute(
+                builder: (context) => HomePage(
+                      tenantConfig: tenantConfig,
+                    )),
           );
         }
-      }
-      else if(res.statusCode == 500){
+      } else if (res.statusCode == 500) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Server Error'),
           ),
         );
-      }
-      else{
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invalid Credentials'),
           ),
         );
       }
-    }
-    else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Invalid Credentials'),
@@ -88,49 +87,62 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
   }
-  isLogged() async {
 
-    SharedPreferences prefs =  await  SharedPreferences.getInstance();
-    if(prefs.containsKey('userManagement') && prefs.containsKey('tenantConfig')){
-   UserManagement userManagement = UserManagement.fromJson(json.decode(prefs.getString('userManagement')!)!);
-      context.read<UserManagementProvider>().updateUserManagement(userManagement!);
-      context.read<tenantConfigProvider>().updateTenantConfig(json.decode(prefs.getString('tenantConfig')!));
+  isLogged() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey('userManagement') &&
+        prefs.containsKey('tenantConfig')) {
+      UserManagement userManagement = UserManagement.fromJson(
+          json.decode(prefs.getString('userManagement')!)!);
+      context
+          .read<UserManagementProvider>()
+          .updateUserManagement(userManagement!);
+      context
+          .read<tenantConfigProvider>()
+          .updateTenantConfig(json.decode(prefs.getString('tenantConfig')!));
       tenantConfig = json.decode(prefs.getString('tenantConfig')!);
       if (mounted) {
-       Navigator.push(
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage(tenantConfig: tenantConfig,)),
+          MaterialPageRoute(
+              builder: (context) => HomePage(
+                    tenantConfig: tenantConfig,
+                  )),
         );
-
       }
     }
   }
-  @override
-  void  initState() {
-    super.initState();
-    image =  Image.asset(ImagePath,width: 150,height: 150,);
-    isLogged();
 
+  @override
+  void initState() {
+    super.initState();
+    image = Image.asset(
+      ImagePath,
+      width: 150,
+      height: 150,
+    );
+    isLogged();
   }
-@override
-void didChangeDependencies() {
-  precacheImage(image.image, context);
-  super.didChangeDependencies();
-}
+
+  @override
+  void didChangeDependencies() {
+    precacheImage(image.image, context);
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Theme.of(context).shadowColor,
-        title:  Center(
+        title: Center(
           child: Text(
             'GoCast - Track',
             style: TextStyle(
                 color: Theme.of(context).primaryColor,
-                fontSize: 20 , fontWeight: FontWeight.bold),
+                fontSize: 20,
+                fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -143,9 +155,8 @@ void didChangeDependencies() {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                   Padding(
+                  Padding(
                     padding: const EdgeInsets.all(8.0),
-
                     child: image,
                   ),
                   Card(
@@ -153,112 +164,112 @@ void didChangeDependencies() {
                       alignment: Alignment.center,
                       height: 350,
                       width: 375,
-
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         color: Colors.white,
                       ),
-
-                      child: isLoading ? const CircularProgressIndicator() :
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "Username"),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter your email';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  username = value;
-                                });
-                              },
+                      child: isLoading
+                          ? const CircularProgressIndicator()
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: TextFormField(
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Username"),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please enter your email';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      setState(() {
+                                        username = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: TextFormField(
+                                    obscureText: true,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Password"),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please Enter Your Password';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      setState(() {
+                                        password = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: TextFormField(
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Tenant ID"),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Please Enter Your Tenant ID';
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      setState(() {
+                                        tenantId = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  height: 40,
+                                  alignment: Alignment.centerLeft,
+                                  child: Row(children: [
+                                    Checkbox(
+                                      value: RememberMe,
+                                      onChanged: (bool? value) {
+                                        if (value != null)
+                                          setState(() {
+                                            RememberMe = value;
+                                          });
+                                      },
+                                      fillColor: RememberMe
+                                          ? MaterialStateProperty.all<Color>(
+                                              Theme.of(context).primaryColor)
+                                          : MaterialStateProperty.all<Color>(
+                                              Colors.white),
+                                    ),
+                                    Text('Remember Me')
+                                  ]),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    login();
+                                  },
+                                  //style: ElevatedButton.styleFrom(
+                                  //  backgroundColor: Colors.blueGrey),
+                                  child: const Text('Login'),
+                                ),
+                              ],
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: TextFormField(
-                              obscureText: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "Password"),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please Enter Your Password';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  password = value;
-                                });
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: TextFormField(
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "Tenant ID"),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please Enter Your Tenant ID';
-                                }
-                                return null;
-                              },
-                              onChanged: (value) {
-                                setState(() {
-                                  tenantId = value;
-                                });
-                              },
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            height: 40,
-                            alignment: Alignment.centerLeft,
-
-                          child:
-                          Row( children:[Checkbox(value: RememberMe , onChanged: (bool?value) {
-                            if(value != null)
-                            setState(() {
-                              RememberMe = value;
-                            });
-                          },
-                          fillColor: RememberMe?MaterialStateProperty.all<Color>(Theme.of(context).primaryColor):MaterialStateProperty.all<Color>(Colors.white),
-                          ),Text('Remember Me')]),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              login();
-                            },
-                            //style: ElevatedButton.styleFrom(
-                            //  backgroundColor: Colors.blueGrey),
-                            child: const Text('Login'
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(
                     height: 60,
                   ),
-
-
-
-
                 ],
               ),
-
             ),
           ),
         ),
