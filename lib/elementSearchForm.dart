@@ -295,7 +295,6 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -645,42 +644,40 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                 (element) => element['PartLot_LotNum'] == value)
                             .first;
 
-                 setState(() {
-                   fromBin.text = widget.isOffloading
-                       ? element.fromBin
-                       : element['PartBin_BinNum'] ?? " ";
-                   lotNoController.text = widget.isOffloading
-                       ? element.elementId
-                       : element['PartLot_LotNum'].toString() ?? "";
-                   elementDescriptionController.text = widget.isOffloading
-                       ? element.elementDesc
-                       : element['PartLot_PartLotDescription'] ?? "";
-                   uomController.text = widget.isOffloading
-                       ? element.UOM
-                       : element['Part_IUM'].toString() ?? "";
-                   erectionSeqController.text = widget.isOffloading
-                       ? element.erectionSeq
-                       : element['PartLot_ErectionSequence_c'].toString() ?? "";
-                   weightController.text = widget.isOffloading
-                       ? element.weight
-                       : element['PartLot_Ton_c'].toString() ?? "";
-                   areaController.text = widget.isOffloading
-                       ? element.area
-                       : element['PartLot_M2_c'].toString()?? "";
-                   volumeController.text = widget.isOffloading
-                       ? element.volume
-                       : element['PartLot_M3_c'].toString()?? "";
-                   estErectionDateController.text = widget.isOffloading
-                       ? element.erectionDate
-                       : element['ErectionPlannedDate_c'] ?? '';
-                   onHandQtyController.text = '1';
-                   selectedQtyController.text = '1';
-                   selectable = true;
-                 });
-
-
+                    setState(() {
+                      fromBin.text = widget.isOffloading
+                          ? element.fromBin
+                          : element['PartBin_BinNum'] ?? " ";
+                      lotNoController.text = widget.isOffloading
+                          ? element.elementId
+                          : element['PartLot_LotNum'].toString() ?? "";
+                      elementDescriptionController.text = widget.isOffloading
+                          ? element.elementDesc
+                          : element['PartLot_PartLotDescription'] ?? "";
+                      uomController.text = widget.isOffloading
+                          ? element.UOM
+                          : element['Part_IUM'].toString() ?? "";
+                      erectionSeqController.text = widget.isOffloading
+                          ? element.erectionSeq
+                          : element['PartLot_ErectionSequence_c'].toString() ??
+                              "";
+                      weightController.text = widget.isOffloading
+                          ? element.weight
+                          : element['PartLot_Ton_c'].toString() ?? "";
+                      areaController.text = widget.isOffloading
+                          ? element.area
+                          : element['PartLot_M2_c'].toString() ?? "";
+                      volumeController.text = widget.isOffloading
+                          ? element.volume
+                          : element['PartLot_M3_c'].toString() ?? "";
+                      estErectionDateController.text = widget.isOffloading
+                          ? element.erectionDate
+                          : element['ErectionPlannedDate_c'] ?? '';
+                      onHandQtyController.text = '1';
+                      selectedQtyController.text = '1';
+                      selectable = true;
+                    });
                   });
-
                 },
               ),
               if (elements.isEmpty && elementListData.isEmpty)

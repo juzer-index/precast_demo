@@ -1143,10 +1143,7 @@ class _StockLoadingState extends State<StockLoading>
                                       color: Theme.of(context).canvasColor),
                                 ),
                                 ElementTable(
-                                  selectedElements: elementValue
-                                      .map((element) =>
-                                          ElementData.fromJson(element))
-                                      .toList(),
+                                  selectedElements: selectedElements,
                                   DeletededSaveElements: widget.isUpdate
                                       ? deletedSavedElements
                                       : null,
@@ -1791,7 +1788,9 @@ class _StockLoadingState extends State<StockLoading>
       setState(() {
         resourceData = jsonResponse;
         resourceValue = resourceData['value'];
-        resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
+        if (resourceValue!.isNotEmpty) {
+          resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
+        }
       });
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -2066,14 +2065,16 @@ class _StockLoadingState extends State<StockLoading>
     await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);
     await getResourceForTrucks(offloadData!.resourceId, tenantConfigP);
     await getResourceDetailsFromJson(offloadData!.resourceId);
-    setState(() {
-      capacityController.text = resourceDetails!.capacity;
-      lengthController.text = resourceDetails!.length;
-      widthController.text = resourceDetails!.width;
-      heightController.text = resourceDetails!.height;
-      volumeController.text = resourceDetails!.volume;
-      loadedController.text = resourceDetails!.loaded;
-    });
+    if (resourceDetails != null) {
+      setState(() {
+        capacityController.text = resourceDetails!.capacity ?? "";
+        lengthController.text = resourceDetails!.length ?? "";
+        widthController.text = resourceDetails!.width ?? "";
+        heightController.text = resourceDetails!.height ?? "";
+        volumeController.text = resourceDetails!.volume ?? "";
+        loadedController.text = resourceDetails!.loaded ?? "";
+      });
+    }
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
