@@ -18,7 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info/device_info.dart';
+
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
@@ -153,7 +153,7 @@ class _StockLoadingState extends State<StockLoading>
     if (!widget.isUpdate) {
       dataLoaded =
           makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
-      getDeviceID();
+
       entryPersonController?.text =
           context.read<UserManagementProvider>().userManagement!.firstName!;
     } else if (widget.isUpdate && widget.historyLoadID != '') {
@@ -2033,18 +2033,7 @@ class _StockLoadingState extends State<StockLoading>
     }
   }
 
-  Future<void> getDeviceID() async {
-    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-    try {
-      final AndroidDeviceInfo build = await deviceInfoPlugin.androidInfo;
-      debugPrint('Running on ${build.model}');
-      setState(() {
-        deviceIDController?.text = build.model;
-      });
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
+
 
   Future<void> loadLoadAndData(dynamic tenantConfigP) async {
     await fetchLoadDataFromURL(loadIDController.text, tenantConfigP);

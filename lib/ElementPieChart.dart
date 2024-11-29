@@ -18,7 +18,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info/device_info.dart';
+
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'package:fl_chart/fl_chart.dart';
