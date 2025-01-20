@@ -60,7 +60,7 @@ class _ElementInstallationState extends State<ElementInstallation> {
         }),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
 
         AlertDialog dialog = AlertDialog(
           title: const Text("Success"),
@@ -191,6 +191,7 @@ class _ElementInstallationState extends State<ElementInstallation> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
+                        /*
                         Text("Project",
                             style: TextStyle(
                                 fontSize: 18,
@@ -237,6 +238,8 @@ class _ElementInstallationState extends State<ElementInstallation> {
                             },
                           ),
                         ),
+
+                         */
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(

@@ -45,9 +45,9 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
 
       });
+      var responseData= json.decode(await res.stream.bytesToString());
+      if(res.statusCode == 200 && responseData['success']){
 
-      if(res.statusCode == 200){
-        var responseData= json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
         SharedPreferences prefs =  await  SharedPreferences.getInstance();
@@ -55,9 +55,10 @@ class _LoginPageState extends State<LoginPage> {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
           tenantConfig = json.decode(prefs.getString('tenantConfig')!);
-          context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
-          context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
+
         }
+        context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
+        context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         if (mounted) {
           Navigator.push(
             context,

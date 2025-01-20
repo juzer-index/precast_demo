@@ -181,7 +181,7 @@ class _StockOffloadingState extends State<StockOffloading>
         // Resolve the completer when the states are set
         completer.complete();
       } else {
-        debugPrint('Load Data Fetch Failed');
+     throw new Exception('Failed to load data');
       }
     } catch (e) {
       debugPrint(e.toString());

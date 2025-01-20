@@ -16,17 +16,17 @@ class ElementSearchForm extends StatefulWidget {
   List<ElementData>? arrivedElements = [];
   dynamic tenantConfig;
   bool isOffloading;
-  dynamic Project;
-  dynamic Warehouse;
+  String Project;
+  String Warehouse;
   bool isInstalling = false;
   ElementSearchForm(
       {super.key,
       required this.onElementsSelected,
       this.arrivedElements,
       required this.isOffloading,
-      this.Warehouse,
+      this.Warehouse='',
       required this.AddElement,
-      this.Project,
+      this.Project='',
       required this.tenantConfig,
       required this.isInstalling});
 
@@ -50,6 +50,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   List<PartData> selectedParts = [];
   TextEditingController lotNoController = TextEditingController();
   TextEditingController fromBin = TextEditingController();
+
 
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
@@ -457,7 +458,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                             companyId = scanResult[2];
                                             projectId = scanResult[5];
                                             wareHouse = scanResult.last;
-                                            if (projectId != widget.Project) {
+                                            if (widget.Project.isNotEmpty && projectId != widget.Project) {
                                               showDialog(
                                                   context: context,
                                                   builder: (context) {
@@ -481,7 +482,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                                       ],
                                                     );
                                                   });
-                                            } else if (wareHouse !=
+                                            } else if (widget.Warehouse.isNotEmpty &&
+                                                wareHouse !=
                                                 widget.Warehouse) {
                                               showDialog(
                                                   context: context,

@@ -1116,10 +1116,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   ? selectedElements
                                                   : [],
                                           isOffloading: false,
-                                          Warehouse:
-                                              fromWarehouseController.text != ''
-                                                  ? fromWarehouseController.text
-                                                  : null,
+                                          Warehouse: fromWarehouseController.text??'',
                                           AddElement: _addElement,
                                           Project: projectIdController.text,
                                           tenantConfig: tenantConfigP,
