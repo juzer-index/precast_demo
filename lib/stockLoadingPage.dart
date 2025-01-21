@@ -142,6 +142,7 @@ class _StockLoadingState extends State<StockLoading>
 
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
+   String ErrorMessage="";
   bool isPrinting = false;
   int pdfCount = 0;
   @override
@@ -195,9 +196,6 @@ class _StockLoadingState extends State<StockLoading>
 
   @override
   Widget build(BuildContext context) {
-    dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-    _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    loadTimeController.text = DateFormat('HH:mm').format(DateTime.now());
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
     return PopScope(
       canPop: false,
@@ -528,28 +526,18 @@ class _StockLoadingState extends State<StockLoading>
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: TextFormField(
-                                            enabled: !widget.isUpdate,
+                                            readOnly: true,  // Make the field read-only so it can still respond to taps
                                             controller: dateController,
                                             onTap: () async {
-                                              final DateTime? date =
-                                                  await showDatePicker(
-                                                builder: (BuildContext context,
-                                                    Widget? child) {
+                                              final DateTime? date = await showDatePicker(
+                                                builder: (BuildContext context, Widget? child) {
                                                   return Theme(
-                                                    data: ThemeData.light()
-                                                        .copyWith(
-                                                      colorScheme:
-                                                          ColorScheme.light(
-                                                        primary:
-                                                            Theme.of(context)
-                                                                .primaryColor,
-                                                        background:
-                                                            Colors.white,
-                                                        secondary:
-                                                            Theme.of(context)
-                                                                .primaryColor,
-                                                        outline:
-                                                            Colors.cyanAccent,
+                                                    data: ThemeData.light().copyWith(
+                                                      colorScheme: ColorScheme.light(
+                                                        primary: Theme.of(context).primaryColor,
+                                                        background: Colors.white,
+                                                        secondary: Theme.of(context).primaryColor,
+                                                        outline: Colors.cyanAccent,
                                                       ),
                                                     ),
                                                     child: child!,
@@ -562,17 +550,15 @@ class _StockLoadingState extends State<StockLoading>
                                               );
                                               if (date != null) {
                                                 setState(() {
-                                                  dateController.text =
-                                                      "${date.day}/${date.month}/${date.year}";
-                                                  _selectedDate =
-                                                      DateFormat('yyyy-MM-dd')
-                                                          .format(date);
+                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
                                                 });
                                               }
                                             },
                                             decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load Date"),
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date",
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -1383,7 +1369,10 @@ class _StockLoadingState extends State<StockLoading>
                                               tenantConfigP);
                                           childCount++;
                                         } on Exception catch (e) {
-                                          debugPrint(e.toString());
+                                          setState(() {
+                                            ErrorMessage=e.toString();
+                                          });
+
                                         }
                                       }
                                       for (int i = 0;
@@ -1394,7 +1383,9 @@ class _StockLoadingState extends State<StockLoading>
                                               deletedSavedElements[i],
                                               tenantConfigP);
                                         } catch (e) {
-                                          debugPrint(e.toString());
+                                          setState(() {
+                                            ErrorMessage=e.toString();
+                                          });
                                         }
                                       }
                                       for (var p = 0;
@@ -1418,6 +1409,7 @@ class _StockLoadingState extends State<StockLoading>
                                         }, tenantConfigP);
                                       }
                                       if (mounted) {
+                                        if(ErrorMessage.isEmpty){
                                         showDialog(
                                             context: context,
                                             builder: (BuildContext context) {
@@ -1439,7 +1431,33 @@ class _StockLoadingState extends State<StockLoading>
                                                   ),
                                                 ],
                                               );
-                                            });
+                                            });}
+                                        else{
+                                          showDialog(
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return AlertDialog(
+                                                  title: const Text('Error',style: TextStyle(
+                                                      color: Colors.red
+                                                  ),),
+                                                  content: Text(
+                                                      'error happened while updating the line '+ErrorMessage.toString()),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: Text('OK',
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                  context)
+                                                                  .canvasColor)),
+                                                    ),
+                                                  ],
+                                                );
+                                              });
+                                        }
                                       }
                                     },
                                     child: const Text(
@@ -1990,17 +2008,16 @@ class _StockLoadingState extends State<StockLoading>
             HttpHeaders.contentTypeHeader: 'application/json',
           },
           body: jsonEncode(UD104AData));
-      if (response.statusCode == 201) {
+      if (response.statusCode >=200 && response.statusCode<300) {
         debugPrint(response.body);
         setState(() {
           widget.addLoadData(currentLoad);
         });
       } else {
-        debugPrint(response.body);
-        debugPrint(response.statusCode.toString());
+        throw new Exception(response.body.toString());
       }
     } on Exception catch (e) {
-      debugPrint(e.toString());
+      throw new Exception(e);
     }
   }
 
