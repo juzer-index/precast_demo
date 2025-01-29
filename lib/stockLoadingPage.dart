@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'Models/EpicorError.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'elementTable.dart';
@@ -45,8 +46,8 @@ class StockLoading extends StatefulWidget {
 class _StockLoadingState extends State<StockLoading>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  TextEditingController dateController = TextEditingController();
-  TextEditingController loadTimeController = TextEditingController();
+  TextEditingController dateController =  TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+  TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
   TextEditingController truckController = TextEditingController();
   TextEditingController loadIDController = TextEditingController();
   String _selectedDate = '';
@@ -132,6 +133,7 @@ class _StockLoadingState extends State<StockLoading>
 
   bool isLoaded = false;
   List<dynamic> deletedSavedElements = [];
+  Map<String,dynamic> LineStatus = {};
 
   late int lastLoad = 50;
   late int lastCustShip = 0;
@@ -139,6 +141,8 @@ class _StockLoadingState extends State<StockLoading>
   late final int l1;
   late final int l2;
   late final String nextLoad;
+  late  bool CreateLoadLoading = false;
+  late bool SaveLinesLoading = false;
 
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
@@ -924,11 +928,18 @@ class _StockLoadingState extends State<StockLoading>
                                   if (!widget.isUpdate)
                                     ElevatedButton(
                                         onPressed: () async {
+                                          if(!CreateLoadLoading){
+                                            setState(() {
+                                              CreateLoadLoading = true;
+                                            });
                                           if (truckIdController.text.isEmpty ||
                                               resourceIdController
                                                   .text.isEmpty ||
                                               projectIdController
-                                                  .text.isEmpty) {
+                                                  .text.isEmpty ||
+                                          loadTimeController.text.isEmpty ||
+                                          dateController.text.isEmpty
+                                          ) {
                                             showDialog(
                                                 context: context,
                                                 builder:
@@ -1055,10 +1066,26 @@ class _StockLoadingState extends State<StockLoading>
                                               });
                                             }
                                           }
+                                          setState(() {
+                                            CreateLoadLoading = false;
+                                          });
+                                          }
                                         },
-                                        child: const Text(
-                                          'Create Load',
-                                        )),
+                                        child: CreateLoadLoading
+                                            ? Padding(
+                                              padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                              child: Container(
+                                                 height: 20,
+                                                 width: 20,
+                                                child: const CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<Color>(
+                                                            Colors.white),
+                                                  ),
+                                              ),
+                                            )
+
+                                            : const Text('Create Load')),
                                   const SizedBox(height: 20),
                                 ],
                               ),
@@ -1295,9 +1322,14 @@ class _StockLoadingState extends State<StockLoading>
                                   height: 20,
                                 ),
                                 ElevatedButton(
+
                                     onPressed: () async {
+                                      if(!SaveLinesLoading){
                                       debugPrint(
                                           selectedElements.length.toString());
+                                      setState(() {
+                                        SaveLinesLoading = true;
+                                      });
                                       for (var e = 0;
                                           e < selectedElements.length;
                                           e++) {
@@ -1368,9 +1400,12 @@ class _StockLoadingState extends State<StockLoading>
                                               selectedElements[e].elementId,
                                               tenantConfigP);
                                           childCount++;
-                                        } on Exception catch (e) {
+                                          LineStatus[selectedElements[e].elementId]='Success';
+
+                                        } on HttpException  catch (error) {
+
                                           setState(() {
-                                            ErrorMessage=e.toString();
+                                            LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
                                           });
 
                                         }
@@ -1382,9 +1417,10 @@ class _StockLoadingState extends State<StockLoading>
                                           await deleteUD104A(
                                               deletedSavedElements[i],
                                               tenantConfigP);
+                                          LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
                                         } catch (e) {
                                           setState(() {
-                                            ErrorMessage=e.toString();
+                                            LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
                                           });
                                         }
                                       }
@@ -1409,59 +1445,43 @@ class _StockLoadingState extends State<StockLoading>
                                         }, tenantConfigP);
                                       }
                                       if (mounted) {
-                                        if(ErrorMessage.isEmpty){
-                                        showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: const Text('Success'),
-                                                content: Text(
-                                                    'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                    child: Text('OK',
-                                                        style: TextStyle(
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .canvasColor)),
-                                                  ),
-                                                ],
-                                              );
-                                            });}
-                                        else{
-                                          showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error',style: TextStyle(
-                                                      color: Colors.red
-                                                  ),),
-                                                  content: Text(
-                                                      'error happened while updating the line '+ErrorMessage.toString()),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.of(context)
-                                                            .pop();
-                                                      },
-                                                      child: Text('OK',
-                                                          style: TextStyle(
-                                                              color: Theme.of(
-                                                                  context)
-                                                                  .canvasColor)),
-                                                    ),
-                                                  ],
-                                                );
-                                              });
-                                        }
-                                      }
+                                         String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+                                         showDialog(context: context, builder:
+                                         (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Result'),
+                                            content: Text(resultMessage),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          );
+                                         }
+                                         );
+                                      }}
+                                      setState(() {
+                                        SaveLinesLoading = false;
+                                      });
                                     },
-                                    child: const Text(
-                                      'Save Load',
+                                    child: SaveLinesLoading?
+                                        Padding(
+
+                                          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                          child: Container(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                  Theme.of(context).shadowColor),
+                                            ),
+                                          ),
+                                        )
+                                        :const Text(
+                                      'Load Lines',
                                     )),
                               ],
                             ),
@@ -2014,10 +2034,14 @@ class _StockLoadingState extends State<StockLoading>
           widget.addLoadData(currentLoad);
         });
       } else {
-        throw new Exception(response.body.toString());
+        Map<String, dynamic> body = json.decode(response.body);
+
+        throw new HttpException(body['ErrorMessage'] ?? "Error");
+
       }
-    } on Exception catch (e) {
-      throw new Exception(e);
+    } on HttpException catch (e) {
+      debugPrint(e.message);
+      throw new HttpException(e.message);
     }
   }
 
