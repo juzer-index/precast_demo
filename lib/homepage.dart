@@ -1,4 +1,5 @@
 import 'package:GoCastTrack/elementInstallationPg.dart';
+import 'package:GoCastTrack/map.dart';
 import 'package:GoCastTrack/stockOffloadingPage.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -376,6 +377,38 @@ class _HomePageState extends State<HomePage> {
                             SizedBox(height: 10),
                             Text(
                               'Element Installation',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Card(
+                      //
+                      elevation: 1,
+                      color: Theme.of(context).indicatorColor,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => map(
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_location_alt_sharp,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Load Tracking',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
