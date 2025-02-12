@@ -18,10 +18,12 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-
+import 'dart:math';
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
+import 'package:maps_toolkit/maps_toolkit.dart';
+import 'package:location/location.dart';
 
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
@@ -302,7 +304,7 @@ class _StockLoadingState extends State<StockLoading>
                                   builder: (context) => StockLoading(
                                         initialTabIndex: 0,
                                         isUpdate: true,
-                                        loadDataList: widget.addLoadData,
+                                        loadDataList: widget. addLoadData,
                                         addLoadData: widget.addLoadData,
                                       )));
                         },
@@ -547,6 +549,7 @@ class _StockLoadingState extends State<StockLoading>
                                                 initialDate: DateTime.now(),
                                                 firstDate: DateTime(2018),
                                                 lastDate: DateTime(2030),
+
                                               );
                                               if (date != null) {
                                                 setState(() {
@@ -1669,24 +1672,85 @@ class _StockLoadingState extends State<StockLoading>
         'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse(
-              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          });
+        Uri.parse(
+            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/Warehouse'
+        ),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+      );
+
       if (response.statusCode == 200) {
         setState(() {
           fetchedWarehouseData = json.decode(response.body);
           fetchedWarehouseValue = fetchedWarehouseData['value'];
         });
+
+        var mainWarehouse = fetchedWarehouseValue.firstWhere(
+              (warehouse) => warehouse['Warehse_WarehouseCode'] == 'Main',
+          orElse: () => null,
+        );
+
+        if (mainWarehouse != null) {
+          final double longitude = double.parse(mainWarehouse['Warehse_Longitude_c']);
+          final double latitude = double.parse(mainWarehouse['Warehse_Latitude_c']);
+          print('Longitude: $longitude, Latitude: $latitude');
+
+          Location location = new Location();
+
+          bool _serviceEnabled;
+          PermissionStatus _permissionGranted;
+          LocationData _locationData;
+
+          // Check if location service is enabled
+          _serviceEnabled = await location.serviceEnabled();
+          if (!_serviceEnabled) {
+            _serviceEnabled = await location.requestService();
+            if (!_serviceEnabled) {
+              print('Location service is not enabled');
+              return;
+            }
+          }
+
+          // Check for location permission
+          _permissionGranted = await location.hasPermission();
+          if (_permissionGranted == PermissionStatus.denied) {
+            _permissionGranted = await location.requestPermission();
+            if (_permissionGranted != PermissionStatus.granted) {
+              print('Location permission not granted');
+              return;
+            }
+          }
+
+          // Get the current location
+          _locationData = await location.getLocation();
+
+          final myLocation = LatLng(_locationData.latitude!, _locationData.longitude!);
+          final warehouseLocation = LatLng(latitude, longitude);
+          final distance = SphericalUtil.computeDistanceBetween(myLocation, warehouseLocation);
+          print("Your Location: $myLocation");
+          print('Distance between You and Warehouse is $distance meters.');
+          if (distance <= 100) {
+            print('You are in 100 meter range');
+          } else {
+            print('You are not in 100 meter range');
+          }
+        } else {
+          print('Warehouse not found');
+        }
+
+
+
+
       } else {
-        throw Exception('Failed to load album');
+        throw Exception('Failed to load data');
       }
-    } on Exception catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
     }
   }
+
 
   Future<void> getBinsFromWarehouse(
       dynamic tenantConfigP, String warehouse) async {
