@@ -252,25 +252,6 @@ class _loadTrackState extends State<loadTrack>
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
-                              controller: toWarehouseController,
-                              enabled: false,
-                              decoration: InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color:
-                                      Theme.of(context).canvasColor),
-                                ),
-                                label: Text('To Warehouse'),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
                               controller: fromWarehouseController,
                               enabled: false,
                               decoration: InputDecoration(
@@ -282,6 +263,25 @@ class _loadTrackState extends State<loadTrack>
                                       Theme.of(context).canvasColor),
                                 ),
                                 label: Text('From Warehouse'),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: TextFormField(
+                              controller: toWarehouseController,
+                              enabled: false,
+                              decoration: InputDecoration(
+                                fillColor: Colors.white,
+                                filled: true,
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color:
+                                      Theme.of(context).canvasColor),
+                                ),
+                                label: Text('To Warehouse'),
                               ),
                             ),
                           ),
