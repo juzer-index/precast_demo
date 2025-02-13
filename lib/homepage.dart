@@ -1,8 +1,7 @@
 import 'package:GoCastTrack/elementInstallationPg.dart';
-import 'package:GoCastTrack/map.dart';
 import 'package:GoCastTrack/stockOffloadingPage.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'loadTracker.dart';
 import 'stockLoadingPage.dart';
 import 'indexAppBar.dart';
 import 'sideBarMenu.dart';
@@ -10,7 +9,6 @@ import 'package:provider/provider.dart';
 import 'elementTracker.dart';
 import 'load_model.dart';
 import 'Providers/UserManagement.dart';
-import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
 
 class HomePage extends StatefulWidget {
@@ -393,7 +391,9 @@ class _HomePageState extends State<HomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => map(
+                              builder: (context) => loadTrack(
+                                tenantConfig: widget.tenantConfig,
+                                initialTabIndex: 0,
                               ),
                             ),
                           );
@@ -408,7 +408,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Load Tracking',
+                              'Load Tracker',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
