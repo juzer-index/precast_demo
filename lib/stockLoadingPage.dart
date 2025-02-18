@@ -685,7 +685,7 @@ class _StockLoadingState extends State<StockLoading>
                                             dropdownSearchDecoration:
                                                 InputDecoration(
                                               border: OutlineInputBorder(),
-                                              labelText: "To Warehouse",
+                                              labelText: "Ship to",
                                             ),
                                           ),
                                           items: fetchedWarehouseValue
