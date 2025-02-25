@@ -60,8 +60,10 @@ dependencies:
   location: ^7.0.1
   flutter_map: ^7.0.2
   google_maps_flutter: ^2.10.0
-
-
+  google_maps_directions: ^0.0.4
+  flutter_polyline_points: ^2.1.0
+  flutter_polyline_points_plus: ^3.0.0
+  dio: ^5.8.0+1
 
 dev_dependencies:
   flutter_test:

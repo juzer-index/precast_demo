@@ -3,6 +3,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points_plus/flutter_polyline_points_plus.dart';
+import 'package:google_maps_directions/google_maps_directions.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -13,7 +15,6 @@ class loadTrack extends StatefulWidget {
   final dynamic tenantConfig;
   const loadTrack(
       {super.key, required this.initialTabIndex, required this.tenantConfig});
-
   @override
   State<loadTrack> createState() => _loadTrackState();
 }
@@ -21,29 +22,101 @@ class loadTrack extends StatefulWidget {
 class _loadTrackState extends State<loadTrack>
     with SingleTickerProviderStateMixin {
 
+  Map<String, dynamic> fetchedWarehouseData = {};
+  List<dynamic> fetchedWarehouseValue = [];
   final Completer<GoogleMapController> _controller =
   Completer<GoogleMapController>();
   static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(30.044420, 31.235712),
-    zoom: 14.4746,
+    target: LatLng(30, 30),
+    zoom: 5,
   );
-  static const CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+
+  double? fromLatitude = 30;
+  double? fromLongtude = 30;
+  double? toLatitude = 29;
+  double? toLongtude = 31;
 
   TextEditingController loadIDController = TextEditingController();
   TextEditingController loadDateController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController fromWarehouseController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
-
   LoadData? loadInfo;
   bool isPrinting = false;
+  AddressPoint _destination = AddressPoint(lat: 30, lng: 30);
+  Directions? _directions;
+  String? _googleAPiKey;
+  AddressPoint _origin = AddressPoint(lat: 31, lng: 29);
+  List<Polyline>? _polylines;
+  Set<Marker> markers = {};
+
+  Future<void> _setupRoutes(AddressPoint p1, AddressPoint p2) async {
+    _polylines = [];
+
+    try {
+      Directions directions = await getDirections(
+        p1.lat,
+        p1.lng,
+        p2.lat,
+        p2.lng,
+        language: "fr_FR",
+        googleAPIKey: "AIzaSyA_ugbgaUJZV5BeR1weSqxwJGZ78GUXCcE"
+      );
+      _directions = directions;
+
+      List<LatLng> results = PolylinePoints().decodePolyline(
+        directions.shortestRoute.overviewPolyline.points,
+      ).map((PointLatLng point) {
+        return LatLng(point.latitude, point.longitude);
+      }).toList();
+      LatLng origin = LatLng(p1.lat, p1.lng);
+      LatLng destination = LatLng(p2.lat, p2.lng);
+      final MarkerId originMarkerId = MarkerId(origin.toString());
+      final MarkerId destinationMarkerId = MarkerId(destination.toString());
+
+      setState(() {
+       markers.add(
+          Marker(
+            markerId: originMarkerId,
+            position: origin,
+            infoWindow: InfoWindow(
+              title: 'Origin',
+              snippet: 'This is the origin',)
+          ),
+        );
+        markers.add(
+          Marker(
+            markerId: destinationMarkerId,
+            position: destination,
+            infoWindow: InfoWindow(
+              title: 'Destination',
+              snippet: 'This is the destination',
+            ),
+          ),
+        );
+      });
+
+      if (results.isNotEmpty) {
+        setState(() {
+          _polylines!.add(
+            Polyline(
+              width: 5,
+              polylineId: PolylineId("${p1.lat}-${p1.lng}_${p2.lat}-${p2.lng}"),
+              color: Colors.green,
+              points: results
+                  .map((point) => LatLng(point.latitude, point.longitude))
+                  .toList(),
+            ),
+          );
+
+        });
+      }
+    } catch (e) {
+     throw new Exception(e.toString());
+    }
+  }
 
   Future<void> fetchLoadDataFromURL() async {
     final loadURL = Uri.parse(
@@ -57,9 +130,7 @@ class _loadTrackState extends State<loadTrack>
     };
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
-
     Completer<void> completer = Completer<void>();
-
     try {
       final response = await http.post(loadURL,
           headers: {
@@ -67,15 +138,12 @@ class _loadTrackState extends State<loadTrack>
             HttpHeaders.contentTypeHeader: 'application/json',
           },
           body: jsonEncode(body));
-
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-
         setState(() {
           loadData = jsonResponse['returnObj'];
           loadValue = loadData['UD104'];
         });
-
         // Resolve the completer when the states are set
         completer.complete();
       } else {
@@ -84,9 +152,79 @@ class _loadTrackState extends State<loadTrack>
     } catch (e) {
       debugPrint(e.toString());
     }
-
     // Return the future associated with the completer
     return completer.future;
+  }
+
+  Future<void> getWarehouseList(dynamic tenantConfigP) async {
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/Warehouse'
+        ),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          fetchedWarehouseData = json.decode(response.body);
+          fetchedWarehouseValue = fetchedWarehouseData['value'];
+        });
+        var fromWarehouse = fetchedWarehouseValue.firstWhere(
+              (warehouse) => warehouse['Warehse_WarehouseCode'] == loadValue[0]['Character06'],
+          orElse: () => null,
+        );
+        var toWarehouse = fetchedWarehouseValue.firstWhere(
+              (warehouse) => warehouse['Warehse_WarehouseCode'] == loadValue[0]['Character07'],
+          orElse: () => null,
+        );
+
+        if (fromWarehouse != null) {
+          fromLongtude = double.parse(fromWarehouse['Warehse_Longitude_c']);
+          fromLatitude = double.parse(fromWarehouse['Warehse_Latitude_c']);
+        } else {
+          print('From Warehouse not found');
+        }
+        if (toWarehouse != null) {
+          toLongtude = double.parse(toWarehouse['Warehse_Longitude_c']);
+          toLatitude = double.parse(toWarehouse['Warehse_Latitude_c']);
+        } else {
+          print('From Warehouse not found');
+        }
+        setState(() {
+          markers.add(
+            Marker(
+              markerId: MarkerId('1'),
+              position: LatLng(fromLatitude!, fromLongtude!),
+              infoWindow: InfoWindow(
+                title: 'Cairo',
+                snippet: 'Cairo, Egypt',
+              ),
+            ));
+          markers.add(
+            Marker(
+              markerId: MarkerId('2'),
+              position: LatLng(toLatitude!, toLongtude!),
+              infoWindow: InfoWindow(
+                title: 'Cairo',
+                snippet: 'Cairo, Egypt',
+              ),
+            ));
+        });
+        _origin = AddressPoint(lat: fromLatitude!, lng: fromLongtude!);
+        _destination = AddressPoint(lat: toLatitude!, lng: toLongtude!);
+        _setupRoutes(_origin, _destination);
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   LoadData? getLoadObjectFromJson(String loadID) {
@@ -97,12 +235,10 @@ class _loadTrackState extends State<loadTrack>
     }
     return null;
   }
-
   @override
   void initState() {
     super.initState();
   }
-
   @override
   Widget build(BuildContext context) {
     double height= MediaQuery.of(context).size.height;
@@ -155,42 +291,12 @@ class _loadTrackState extends State<loadTrack>
                           IconButton(
                             onPressed: () async {
                               await fetchLoadDataFromURL();
-                              /*                                await fetchElementDataFromURL();
-                                  await fetchPartDataFromURL();*/
-                              /*await fetchElementANDPartsDataFromURL();*/
+                              await getWarehouseList(widget.tenantConfig);
                               String projectLoadID =
                                   loadIDController.text;
                               loadInfo =
                                   getLoadObjectFromJson(projectLoadID);
-                              /*                                getElementObjectFromJson(projectLoadID);
-                                  getPartObjectFromJson(projectLoadID);*/
                               if (loadInfo != null) {
-                                if (loadInfo!.loadStatus == 'Closed') {
-                                  if (mounted) {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: const Text('Warning'),
-                                          content: const Text(
-                                              'This Load has already been delivered'),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                              child: Text('Close',
-                                                  style: TextStyle(
-                                                      color: Theme.of(
-                                                          context)
-                                                          .canvasColor)),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  }
-                                }
                                 setState(() {
                                   loadDateController.text =
                                       loadInfo!.loadDate;
@@ -199,27 +305,10 @@ class _loadTrackState extends State<loadTrack>
                                   fromWarehouseController.text =
                                       loadInfo!.fromWarehouse;
                                 });
-                              } else {
-                                if (mounted) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: const Text('Error'),
-                                        content: const Text(
-                                            'Load ID not found'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            child: const Text('Close'),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }
+                                await _setupRoutes(
+                                  _origin,
+                                  _destination,
+                                );
                               }
                             },
                             icon: Icon(
@@ -308,16 +397,10 @@ class _loadTrackState extends State<loadTrack>
                           onMapCreated: (GoogleMapController controller) {
                             _controller.complete(controller);
                           },
-                          markers: {
-                            Marker(
-                              markerId: MarkerId('1'),
-                              position: LatLng(30.044420, 31.235712),
-                              infoWindow: InfoWindow(
-                                title: 'Cairo',
-                                snippet: 'Cairo, Egypt',
-                              ),
-                            ),
-                          },
+                          markers:markers,
+                          polylines: _polylines != null
+                              ? Set<Polyline>.from(_polylines!)
+                              : {},
                         ),
                       ),
                     ),
