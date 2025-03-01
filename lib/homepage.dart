@@ -11,7 +11,7 @@ import 'load_model.dart';
 import 'Providers/UserManagement.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
-
+import './Providers/ArchitectureProvider.dart';
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
   final dynamic tenantConfig;

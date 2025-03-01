@@ -23,7 +23,10 @@ import 'package:flutter/services.dart';
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
-
+import 'package:toggle_switch/toggle_switch.dart';
+import './Providers/ArchitectureProvider.dart';
+import './Widgets/SalesOrderSearch.dart';
+import 'Providers/APIProviderV2.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -100,6 +103,8 @@ class _StockLoadingState extends State<StockLoading>
   ResourceDetails? resourceDetails;
   TextEditingController foremanId = TextEditingController();
   TextEditingController foremanName = TextEditingController();
+  TextEditingController SalesOrderController = TextEditingController();
+  TextEditingController OrderLineController = TextEditingController();
   bool toBinLoading = false;
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
@@ -149,6 +154,7 @@ class _StockLoadingState extends State<StockLoading>
    String ErrorMessage="";
   bool isPrinting = false;
   int pdfCount = 0;
+  int archLabelIndex=0;
   @override
   void initState() {
     _tabController =
@@ -472,58 +478,79 @@ class _StockLoadingState extends State<StockLoading>
                                         icon: const Icon(Icons.search),
                                       ),
                                     ]),
+                                  Padding(padding: EdgeInsets.all(8.0),
+                                  child: ToggleSwitch(
+                                    minWidth: 150,
+                                    initialLabelIndex: archLabelIndex,
+                                    totalSwitches: 2,
+                                    labels: ['Stand-alone SO','Project based' ],
+                                    onToggle: (index) {
+                                      context.read<ArchitectureProvider>().toggleArchitecure();
+                                      setState(() {
+                                        archLabelIndex = index??0;
+                                      });
+                                    },
+                                  )
+                                  ),
+                                  context.watch<ArchitectureProvider>().architecure == 'Project'?
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: FutureBuilder(
                                       future: getProjectList(tenantConfigP),
                                       builder: (context, snapshot) {
-                                        return DropdownSearch(
-                                          selectedItem:
-                                              projectIdController.text,
-                                          enabled: !widget.isUpdate,
-                                          popupProps:
-                                              const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
+                                        return Column(
+                                          children: [
+                                            DropdownSearch(
+                                              selectedItem:
+                                                  projectIdController.text,
+                                              enabled: !widget.isUpdate,
+                                              popupProps:
+                                                  const PopupProps.modalBottomSheet(
+                                                showSearchBox: true,
+                                                searchFieldProps: TextFieldProps(
+                                                  decoration: InputDecoration(
+                                                    suffixIcon: Icon(Icons.search),
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "Search",
+                                                  ),
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode
-                                              .onUserInteraction,
-                                          dropdownDecoratorProps:
-                                              const DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Project ID",
-                                            ),
-                                          ),
-                                          items: fetchedProjectValue
-                                              .map((project) =>
-                                                  project['ProjectID'])
-                                              .toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              projectIdController.text =
-                                                  fetchedProjectValue
+                                              autoValidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              dropdownDecoratorProps:
+                                                  const DropDownDecoratorProps(
+                                                dropdownSearchDecoration:
+                                                    InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Project ID",
+                                                ),
+                                              ),
+                                              items: fetchedProjectValue
+                                                  .map((project) =>
+                                                      project['ProjectID'])
+                                                  .toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  projectIdController.text =
+                                                      fetchedProjectValue
+                                                          .firstWhere((project) =>
+                                                              project[
+                                                                  'ProjectID'] ==
+                                                              value)['ProjectID'];
+                                                  custNum = fetchedProjectValue
                                                       .firstWhere((project) =>
-                                                          project[
-                                                              'ProjectID'] ==
-                                                          value)['ProjectID'];
-                                              custNum = fetchedProjectValue
-                                                  .firstWhere((project) =>
-                                                      project['ProjectID'] ==
-                                                      value)['ConCustNum'];
-                                            });
-                                          },
+                                                          project['ProjectID'] ==
+                                                          value)['ConCustNum'];
+                                                });
+                                              },
+                                            ),
+
+                                            ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false)
+                                          ],
                                         );
                                       },
                                     ),
-                                  ),
+                                  ):SalesOrderSearch(),
                                   Row(
                                     children: [
                                       Expanded(
@@ -645,7 +672,7 @@ class _StockLoadingState extends State<StockLoading>
                                             items: fetchedWarehouseValue
                                                 //.where((warehouse) => warehouse['FinishGoods_c'] == true)
                                                 .map((warehouse) =>
-                                                    warehouse['Description'])
+                                                    warehouse['Warehse_Description'])
                                                 .toList(),
                                             onChanged: (value) {
                                               setState(() {
@@ -654,7 +681,7 @@ class _StockLoadingState extends State<StockLoading>
                                                         .firstWhere(
                                                             (warehouse) =>
                                                                 warehouse[
-                                                                    'Description'] ==
+                                                                    'Warehse_Description'] ==
                                                                 value)[
                                                     'WarehouseCode'];
                                               });
@@ -692,7 +719,7 @@ class _StockLoadingState extends State<StockLoading>
                                           ),
                                           items: fetchedWarehouseValue
                                               .map((warehouse) =>
-                                                  warehouse['Description'])
+                                                  warehouse['Warehse_Description'])
                                               .toList(),
                                           onChanged: (value) async {
                                             setState(() {
@@ -700,7 +727,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   fetchedWarehouseValue
                                                       .firstWhere((warehouse) =>
                                                           warehouse[
-                                                              'Description'] ==
+                                                              'Warehse_Description'] ==
                                                           value)['WarehouseCode'];
                                               toWarehouseNameController.text =
                                                   value.toString();

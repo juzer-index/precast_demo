@@ -79,6 +79,12 @@ final ThemeData myTheme = ThemeData(
       ),
     ),
   ),
-
+  iconButtonTheme: IconButtonThemeData(
+    style: ButtonStyle(
+      foregroundColor: MaterialStateProperty.all<Color>(
+        Color(0xFF5E9746),
+      ),
+    ),
+  ),
   // ... other theme properties
 );
