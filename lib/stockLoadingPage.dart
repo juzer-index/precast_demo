@@ -493,14 +493,14 @@ class _StockLoadingState extends State<StockLoading>
                                   )
                                   ),
                                   context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: FutureBuilder(
-                                      future: getProjectList(tenantConfigP),
-                                      builder: (context, snapshot) {
-                                        return Column(
-                                          children: [
-                                            DropdownSearch(
+                                  FutureBuilder(
+                                    future: getProjectList(tenantConfigP),
+                                    builder: (context, snapshot) {
+                                      return Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: DropdownSearch(
                                               selectedItem:
                                                   projectIdController.text,
                                               enabled: !widget.isUpdate,
@@ -544,12 +544,17 @@ class _StockLoadingState extends State<StockLoading>
                                                 });
                                               },
                                             ),
+                                          ),
 
-                                            ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false)
-                                          ],
-                                        );
-                                      },
-                                    ),
+                                          Row(
+                                            children: [
+                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false)),
+                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Order Lines", controller: SalesOrderController, dataMap: [], loading: false)),
+                                            ],
+                                          )
+                                        ],
+                                      );
+                                    },
                                   ):SalesOrderSearch(),
                                   Row(
                                     children: [

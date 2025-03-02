@@ -1,10 +1,14 @@
+
+
 import 'package:GoCastTrack/Providers/tenantConfig.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './SearchBar.dart';
 import '../Widgets/DropDown.dart';
 import '../Providers/APIProviderV2.dart';
 import 'package:provider/provider.dart';
+import './SalesOrderPop.dart';
 class SalesOrderSearch extends StatefulWidget {
 
 
@@ -16,6 +20,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   TextEditingController _controller = TextEditingController();
   @override
   Widget build(BuildContext context) {
+
     return
       Column(
         children: [
@@ -31,6 +36,11 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
             print(data);
           },
           advanceSearch: true,
+            onAdvanceSearch: (){
+             showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP()
+
+             );
+            },
 
               ),
           ReDropDown(
