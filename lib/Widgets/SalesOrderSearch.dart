@@ -27,13 +27,14 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
           IndexSearchBar(
           entity: "S.O",
           onSearch:  (String term) async {
-            var api = Provider.of<APIProvider>(context, listen: false);
-            var data = await api.getPaginatedResults("https://77.92.189.102/ppgprecastvertical/api/v2/odata/EPIC06/Erp.BO.SalesOrderSvc/SalesOrders",
+
+            var data = await APIProvider.getPaginatedResults("https://77.92.189.102/ppgprecastvertical/api/v2/odata/EPIC06/Erp.BO.SalesOrderSvc/SalesOrders",
                 1, 10,
                  {"username": context.read<tenantConfigProvider>().tenantConfig['userID'],
                    "password":context.read<tenantConfigProvider>().tenantConfig['password']}
                 , entity: "Sales Order");
             print(data);
+
           },
           advanceSearch: true,
             onAdvanceSearch: (){

@@ -8,19 +8,20 @@ import './tenantConfig.dart';
 
 class APIProvider extends ChangeNotifier {
   APIProvider();
-  String _apiKey = dotenv.env['APIKEY']??'' ;
+ static String _apiKey = dotenv.env['APIKEY']??'' ;
 
 
-  Future<List<dynamic>>getPaginatedResults(String url  ,int page , int pageSize,Map<String,String>auth,{bool hasVars=false,String entity=""}) async {
+  static Future<List<dynamic>>getPaginatedResults(String url  ,int page , int pageSize,Map<String,String>auth,{bool hasVars=false,String entity=""}) async {
     int top = pageSize;
     int skip = (page - 1) * pageSize;
     String query = "\$top=$top&\$skip=$skip";
     final basicAuth = 'Basic ' + base64Encode(utf8.encode('${auth['username']}:${auth['password']}'));
-    var response = await http.get(Uri.parse(hasVars ? "$url$query":"$url?$query"  ),
+    var response = await http.get(Uri.parse(hasVars ? "$url&$query":"$url?$query"  ),
         headers: {
 
           "accept": "application/json",
-          "x-api-key": "$_apiKey"
+          "x-api-key": "$_apiKey",
+          "Authorization": basicAuth
         }
     );
     if (response.statusCode >= 200 && response.statusCode < 300) {
