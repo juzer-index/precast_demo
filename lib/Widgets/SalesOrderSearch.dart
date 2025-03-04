@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './SearchBar.dart';
 import '../Widgets/DropDown.dart';
-import '../Providers/APIProviderV2.dart';
+import '../utils/APIProviderV2.dart';
 import 'package:provider/provider.dart';
 import './SalesOrderPop.dart';
+import "../Providers/ArchitectureProvider.dart";
 class SalesOrderSearch extends StatefulWidget {
 
 
@@ -28,7 +29,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
           entity: "S.O",
           onSearch:  (String term) async {
 
-            var data = await APIProvider.getPaginatedResults("https://77.92.189.102/ppgprecastvertical/api/v2/odata/EPIC06/Erp.BO.SalesOrderSvc/SalesOrders",
+            var data = await APIV2Helper.getPaginatedResults("https://77.92.189.102/ppgprecastvertical/api/v2/odata/EPIC06/Erp.BO.SalesOrderSvc/SalesOrders",
                 1, 10,
                  {"username": context.read<tenantConfigProvider>().tenantConfig['userID'],
                    "password":context.read<tenantConfigProvider>().tenantConfig['password']}
@@ -37,6 +38,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
           },
           advanceSearch: true,
+            value: context.watch<ArchitectureProvider>().SO.toString(),
             onAdvanceSearch: (){
              showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP()
 

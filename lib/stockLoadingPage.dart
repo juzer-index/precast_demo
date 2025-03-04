@@ -26,7 +26,7 @@ import 'Widgets/DropDown.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import './Providers/ArchitectureProvider.dart';
 import './Widgets/SalesOrderSearch.dart';
-import 'Providers/APIProviderV2.dart';
+import 'utils/APIProviderV2.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -160,7 +160,7 @@ class _StockLoadingState extends State<StockLoading>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-
+    context.read<ArchitectureProvider>().init();
     if (!widget.isUpdate) {
       dataLoaded =
           makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
@@ -502,7 +502,7 @@ class _StockLoadingState extends State<StockLoading>
                                             padding: const EdgeInsets.all(8.0),
                                             child: DropdownSearch(
                                               selectedItem:
-                                                  projectIdController.text,
+                                                 context.watch<ArchitectureProvider>().project,
                                               enabled: !widget.isUpdate,
                                               popupProps:
                                                   const PopupProps.modalBottomSheet(
@@ -531,7 +531,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   .toList(),
                                               onChanged: (value) {
                                                 setState(() {
-                                                  projectIdController.text =
+                                                  context.read<ArchitectureProvider>().Project =
                                                       fetchedProjectValue
                                                           .firstWhere((project) =>
                                                               project[
@@ -883,7 +883,7 @@ class _StockLoadingState extends State<StockLoading>
                                             Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: Text(
-                                                'Load Condition',
+                                                'Truck Type',
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 18,
@@ -1003,8 +1003,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   "${tenantConfigP['company']}",
                                               "ShortChar07":
                                                   plateNumberController.text,
-                                              "ShortChar05":
-                                                  projectIdController.text,
+                                              "ShortChar05":context.watch<ArchitectureProvider>().architecure,
                                               "ShortChar01": loadTypeValue,
                                               "ShortChar04": loadConditionValue,
                                               "ShortChar08":

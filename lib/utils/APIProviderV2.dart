@@ -4,10 +4,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Models/NotFoundException.dart';
-import './tenantConfig.dart';
+import '../Providers/tenantConfig.dart';
 
-class APIProvider extends ChangeNotifier {
-  APIProvider();
+class APIV2Helper extends ChangeNotifier {
+  APIV2Helper();
  static String _apiKey = dotenv.env['APIKEY']??'' ;
 
 
@@ -34,5 +34,6 @@ class APIProvider extends ChangeNotifier {
       throw new Exception("Failed to load data");
     }
   }
+
 
 }

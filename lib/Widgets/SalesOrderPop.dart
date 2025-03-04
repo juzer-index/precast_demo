@@ -2,10 +2,11 @@ import 'package:GoCastTrack/Providers/tenantConfig.dart';
 import 'package:flutter/material.dart';
 import './SearchBar.dart';
 import 'package:provider/provider.dart';
-import '../Providers/APIProviderV2.dart';
+import '../utils/APIProviderV2.dart';
 import '../Providers/tenantConfig.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import '../Providers/APIProviderV2.dart';
+import '../utils/APIProviderV2.dart';
+import '../Providers/ArchitectureProvider.dart';
 class SalesOrderPopUP extends StatefulWidget {
   const SalesOrderPopUP({Key? key}) : super(key: key);
 
@@ -14,7 +15,7 @@ class SalesOrderPopUP extends StatefulWidget {
 }
 class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
   bool isSearching = false;
-  List<String> SearchedItems = [];
+  List<Map<int,String>> SearchedItems = [];
   int page = 1;
   dynamic? _pagingController;
   String searchValue = "";
@@ -23,10 +24,10 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
   void initState(){
     super.initState();
      final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
-   _pagingController= PagingController<int,dynamic>(
+   _pagingController= PagingController<int,Map<String,dynamic>>(
         getNextPageKey: (state) => (state.keys?.last ?? 0) + 1,
         fetchPage: (pageKey) async {
-          final data= await APIProvider.getPaginatedResults(
+          final data= await APIV2Helper.getPaginatedResults(
               '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
                   '/v2/odata/${tenantConfig['company']}/'
                   'BaqSvc/IIT_SalesOrders_MS/Data${searchValue.isNotEmpty?'/?OrderNum=$searchValue':""}',
@@ -35,7 +36,12 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
             'password': tenantConfig['password']
           }, hasVars: searchValue.isNotEmpty, entity: "Sales Order");
 
-          return data.map((e) => e['OrderHed_OrderNum'].toString()).toList();
+
+          return data.map((e) =>{
+            'OrderNum':e['OrderHed_OrderNum']
+            ,'Customer':e['Customer_CustID']
+
+          }as Map<String,dynamic>).toList();
         }
     );
   }
@@ -52,41 +58,50 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
       content: SingleChildScrollView(
         reverse: true,
         child: Container(
-          height: 600,
+          height: Height*0.6,
           width:Width ,
-          child: Column(
-            children: [
-              IndexSearchBar(entity: "Sales Order", onSearch: (String term) async {
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.grey[200],
 
-                setState(() {
-                  searchValue = term;
-                  _pagingController!.refresh();
-                });
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                IndexSearchBar(entity: "Sales Order", onSearch: (String term) async {
 
-              },),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black),
-                  ),
+                  setState(() {
+                    searchValue = term;
+                    _pagingController!.refresh();
+                  });
+
+                },),
+                Expanded(
                   child: PagingListener(controller: _pagingController, builder: (context,state,fetchNextPage){
                     return PagedListView(state: state, fetchNextPage: fetchNextPage, builderDelegate: PagedChildBuilderDelegate(
                         itemBuilder: (context,item,index){
                           return ListTile(
-                            title: Text(item.toString()),
-                            onTap: (){
+                            selectedColor: Colors.green,
 
+                            title: Text(item?['OrderNum'].toString()??""),
+                            onTap: (){
+                              setState(() {
+                                context.read<ArchitectureProvider>().updateSO(int.parse(item.toString()));
+                              });
+
+                              Navigator.of(context).pop();
                             },
                           );
                         }
                     ));
                   }
+                                  ),
                 ),
-              ),
-              ),
 
 
-            ],
+              ],
+            ),
           ),
         ),
       ),

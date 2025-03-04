@@ -5,7 +5,8 @@ class IndexSearchBar extends StatefulWidget {
   Future Function(String) onSearch;
   bool advanceSearch;
   Function? onAdvanceSearch=(){};
-  IndexSearchBar({required this.entity,required this.onSearch,this.advanceSearch = false,this.onAdvanceSearch});
+  String value = "";
+  IndexSearchBar({required this.entity,required this.onSearch,this.advanceSearch = false,this.onAdvanceSearch, this.value=""});
   @override
   _IndexSearchBarState createState() => _IndexSearchBarState();
 }
@@ -13,8 +14,12 @@ class IndexSearchBar extends StatefulWidget {
 class _IndexSearchBarState extends State<IndexSearchBar> {
   final TextEditingController _controller = TextEditingController();
   bool isSearching = false;
+
   @override
   Widget build(BuildContext context) {
+    if(widget.value.isNotEmpty){
+      _controller.text = widget.value;
+    }
     return Container(
       padding: EdgeInsets.all(10),
       child: Row(

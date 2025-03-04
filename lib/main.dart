@@ -8,8 +8,6 @@ import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Providers/ArchitectureProvider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'Providers/APIProviderV2.dart';
-
 Future<void> main() async {
   HttpOverrides.global = MyHttpOverrides();
   final context = SecurityContext.defaultContext;
@@ -23,8 +21,7 @@ Future<void> main() async {
     ),
     ChangeNotifierProvider(create: (context)=>ArchitectureProvider(),
     ),
-    ChangeNotifierProvider(create: (context)=>APIProvider(),
-    ),
+
 
 
 
