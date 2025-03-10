@@ -7,6 +7,7 @@ class ArchitectureProvider extends ChangeNotifier {
     Project="";
     SO=0;
     Lines=null;
+    customerShipments=null;
     notifyListeners();
   }
   String _architecure='SO';
@@ -20,6 +21,8 @@ class ArchitectureProvider extends ChangeNotifier {
   int get so => SO;
  updateSO(int value) {
     SO = value;
+    Lines=null;
+
     notifyListeners();
   }
  dynamic Lines=null;
@@ -34,6 +37,12 @@ setLines(dynamic value) {
     Project="";
     SO=0;
     Lines=null;
+    notifyListeners();
+  }
+  dynamic customerShipments=null;
+  dynamic get shipments => customerShipments;
+  setShipments(dynamic value) {
+    customerShipments = value;
     notifyListeners();
   }
 }

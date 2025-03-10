@@ -9,7 +9,8 @@ import '../utils/APIProviderV2.dart';
 import '../Providers/ArchitectureProvider.dart';
 import '../Models/OrderLine.dart';
 class SalesOrderPopUP extends StatefulWidget {
-  const SalesOrderPopUP({Key? key}) : super(key: key);
+  Function(dynamic SO) onSalesOrderSelected;
+  SalesOrderPopUP({required this.onSalesOrderSelected});
 
   @override
   _SalesOrderPopUPState createState() => _SalesOrderPopUPState();
@@ -20,6 +21,7 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
   int page = 1;
   dynamic? _pagingController;
   String searchValue = "";
+
 
   @override
   void initState(){
@@ -88,26 +90,10 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
                             title: Text('${(item as Map<String,dynamic>)['OrderNum'].toString()} (${(item as Map<String,dynamic>)['Customer'].toString()})'),
 
                             onTap: ()async {
-                              setState(() {
-                                context.read<ArchitectureProvider>().updateSO(int.parse((item as Map<String,dynamic>)['OrderNum'].toString()));
-                              });
+                              widget.onSalesOrderSelected(item);
+
+
                               Navigator.of(context).pop();
-                             List<dynamic> LinesData= await APIV2Helper.getResults( '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                                  '/v2/odata/${tenantConfig['company']}/'
-                                  'Erp.BO.SalesOrderSvc/OrderDtls?\$filter OrderNum eq ${(item as Map<String,dynamic>)['OrderNum'].toString()} '
-
-                                 ' ',
-                                  {
-                                    'username': tenantConfig['userID'],
-                                    'password': tenantConfig['password']
-                                  }
-                              );
-                             LinesData=LinesData.map((e) => SalesOrderLine.fromJson(e)).toList();
-                              setState(() {
-
-                                context.read<ArchitectureProvider>().setLines(LinesData);
-                              });
-
 
                             },
                           );

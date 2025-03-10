@@ -545,11 +545,12 @@ class _StockLoadingState extends State<StockLoading>
                                               },
                                             ),
                                           ),
-
+                                          ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false),
                                           Row(
                                             children: [
-                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false)),
-                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Order Lines", controller: SalesOrderController, dataMap: [], loading: false)),
+
+                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "S.O Lines", controller: SalesOrderController, dataMap: [], loading: false)),
+                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Customer Shipments", controller: SalesOrderController, dataMap: [], loading: false)),
                                             ],
                                           )
                                         ],
