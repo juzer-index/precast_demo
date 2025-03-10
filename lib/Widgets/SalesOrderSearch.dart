@@ -10,6 +10,7 @@ import '../utils/APIProviderV2.dart';
 import 'package:provider/provider.dart';
 import './SalesOrderPop.dart';
 import "../Providers/ArchitectureProvider.dart";
+import '../Models/OrderLine.dart';
 class SalesOrderSearch extends StatefulWidget {
 
 
@@ -19,6 +20,7 @@ class SalesOrderSearch extends StatefulWidget {
 class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   bool SearchSuccess = false;
   TextEditingController _controller = TextEditingController();
+  dynamic SOLines = null;
   @override
   Widget build(BuildContext context) {
 
@@ -49,10 +51,10 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
           ReDropDown(
             controller: _controller,
             label: "S.O Lines",
-            data: [],
-            dataMap: [],
-            loading: false,
-            enabled: false,
+            data: context.watch<ArchitectureProvider>().lines?.map((e) => e['OrderLine']).toList()??[],
+            dataMap: context.watch<ArchitectureProvider>().lines?? [],
+            loading: context.watch<ArchitectureProvider>().lines==null &&context.watch<ArchitectureProvider>().SO!=0 ,
+            enabled:context.watch<ArchitectureProvider>().SO!=0,
 
           ),
         ],

@@ -34,6 +34,26 @@ class APIV2Helper extends ChangeNotifier {
       throw new Exception("Failed to load data");
     }
   }
+  static Future<List<dynamic>>getResults(String url ,Map<String,String>auth,{String entity=""}) async {
+    final basicAuth = 'Basic ' + base64Encode(utf8.encode('${auth['username']}:${auth['password']}'));
+    var response = await http.get(Uri.parse("$url"),
+        headers: {
+
+          "accept": "application/json",
+          "x-api-key": "$_apiKey",
+          "Authorization": basicAuth
+        }
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return json.decode(response.body)['value'] as List<dynamic>;
+    }
+    else if (response.statusCode == 404) {
+      throw new NotFoundException(entity: entity);
+    }
+    else {
+      throw new Exception("Failed to load data");
+    }
+  }
 
 
 }

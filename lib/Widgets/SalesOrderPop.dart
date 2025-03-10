@@ -7,6 +7,7 @@ import '../Providers/tenantConfig.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import '../utils/APIProviderV2.dart';
 import '../Providers/ArchitectureProvider.dart';
+import '../Models/OrderLine.dart';
 class SalesOrderPopUP extends StatefulWidget {
   const SalesOrderPopUP({Key? key}) : super(key: key);
 
@@ -49,7 +50,7 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
   Widget build(BuildContext context) {
     final Width=MediaQuery.of(context).size.width;
     final Height= MediaQuery.of(context).size.height;
-
+    final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
 
 
     return AlertDialog(
@@ -84,13 +85,30 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
                           return ListTile(
                             selectedColor: Colors.green,
 
-                            title: Text(item?['OrderNum'].toString()??""),
-                            onTap: (){
+                            title: Text('${(item as Map<String,dynamic>)['OrderNum'].toString()} (${(item as Map<String,dynamic>)['Customer'].toString()})'),
+
+                            onTap: ()async {
                               setState(() {
-                                context.read<ArchitectureProvider>().updateSO(int.parse(item.toString()));
+                                context.read<ArchitectureProvider>().updateSO(int.parse((item as Map<String,dynamic>)['OrderNum'].toString()));
+                              });
+                              Navigator.of(context).pop();
+                             List<dynamic> LinesData= await APIV2Helper.getResults( '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+                                  '/v2/odata/${tenantConfig['company']}/'
+                                  'Erp.BO.SalesOrderSvc/OrderDtls?\$filter OrderNum eq ${(item as Map<String,dynamic>)['OrderNum'].toString()} '
+
+                                 ' ',
+                                  {
+                                    'username': tenantConfig['userID'],
+                                    'password': tenantConfig['password']
+                                  }
+                              );
+                             LinesData=LinesData.map((e) => SalesOrderLine.fromJson(e)).toList();
+                              setState(() {
+
+                                context.read<ArchitectureProvider>().setLines(LinesData);
                               });
 
-                              Navigator.of(context).pop();
+
                             },
                           );
                         }
