@@ -12,6 +12,7 @@ import './SalesOrderPop.dart';
 import "../Providers/ArchitectureProvider.dart";
 import '../Models/OrderLine.dart';
 import '../utils/APIProviderV2.dart';
+import '../Models/NotFoundException.dart';
 class SalesOrderSearch extends StatefulWidget {
 
 
@@ -22,30 +23,55 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   bool SearchSuccess = false;
   TextEditingController _controller = TextEditingController();
   dynamic SOLines = null;
-  Future<List<dynamic>> getSalesOrderLines(int OrderNum) async {
+  Future<List<dynamic>?> getSalesOrderLines(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
-    var data = await APIV2Helper.getResults( '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-        '/v2/odata/${tenantConfig['company']}/'
-        'Erp.BO.SalesOrderSvc/OrderDtls?\$filter=OrderNum eq $OrderNum&\$select=OrderLine '
-        ' ',
-        {
-          'username': tenantConfig['userID'],
-          'password': tenantConfig['password']
-        }
-    );
-    return data;
+    try {
+      var data = await APIV2Helper.getResults(
+          '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+              '/v2/odata/${tenantConfig['company']}/'
+              'Erp.BO.SalesOrderSvc/OrderDtls?\$filter=OrderNum eq $OrderNum&\$select=OrderLine '
+              ' ',
+          {
+            'username': tenantConfig['userID'],
+            'password': tenantConfig['password']
+          }
+      );
+      return data;
+    }
+    on NotFoundException catch (e) {
+      return [];
+    }
+    catch (e) {
+      showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(e.toString()),
+      ));
+    }
   }
-  Future<List<dynamic>> getCustomerShipments(int OrderNum) async {
+  Future<List<dynamic>?> getCustomerShipments(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
-    var data = await APIV2Helper.getResults( '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/BaqSvc/IIT_Cust_ShipTo/Data'
-        '/?OrderNum=$OrderNum'
-        ' ',
-        {
-          'username': tenantConfig['userID'],
-          'password': tenantConfig['password']
-        }
-    );
-    return data;
+    try {
+      var data = await APIV2Helper.getResults(
+          '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+              '/v2/odata/${tenantConfig['company']}/'
+              'BaqSvc/IIT_Cust_ShipTo/Data/?OrderNum=$OrderNum',
+
+          {
+            'username': tenantConfig['userID'],
+            'password': tenantConfig['password']
+          }
+      );
+      return data;
+    } on NotFoundException catch (e) {
+      return [];
+    }
+    catch (e) {
+      showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(e.toString()),
+      ));
+    }
+
   }
   @override
   Widget build(BuildContext context) {
@@ -62,6 +88,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
     setState(() {
       context.read<ArchitectureProvider>().setLines(data[0]);
+      context.read<ArchitectureProvider>().setShipments(data[1]);
 
     });
   }
