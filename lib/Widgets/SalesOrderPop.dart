@@ -43,6 +43,7 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
           return data.map((e) =>{
             'OrderNum':e['OrderHed_OrderNum']
             ,'Customer':e['Customer_CustID']
+          , 'CustNum':e['Customer_CustNum']
 
           }as Map<String,dynamic>).toList();
         }

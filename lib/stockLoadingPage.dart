@@ -26,6 +26,7 @@ import 'Widgets/DropDown.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import './Providers/ArchitectureProvider.dart';
 import './Widgets/SalesOrderSearch.dart';
+import 'Widgets/ProjectSearch.dart';
 import 'utils/APIProviderV2.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
@@ -53,7 +54,7 @@ class _StockLoadingState extends State<StockLoading>
   TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
   TextEditingController truckController = TextEditingController();
   TextEditingController loadIDController = TextEditingController();
-  String _selectedDate = '';
+  String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String loadTypeValue = 'Issue Load';
   String loadConditionValue = 'Internal Truck';
   String inputTypeValue = 'Manual';
@@ -493,70 +494,7 @@ class _StockLoadingState extends State<StockLoading>
                                   )
                                   ),
                                   context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                  FutureBuilder(
-                                    future: getProjectList(tenantConfigP),
-                                    builder: (context, snapshot) {
-                                      return Column(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: DropdownSearch(
-                                              selectedItem:
-                                                 context.watch<ArchitectureProvider>().project,
-                                              enabled: !widget.isUpdate,
-                                              popupProps:
-                                                  const PopupProps.modalBottomSheet(
-                                                showSearchBox: true,
-                                                searchFieldProps: TextFieldProps(
-                                                  decoration: InputDecoration(
-                                                    suffixIcon: Icon(Icons.search),
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Search",
-                                                  ),
-                                                ),
-                                              ),
-                                              autoValidateMode: AutovalidateMode
-                                                  .onUserInteraction,
-                                              dropdownDecoratorProps:
-                                                  const DropDownDecoratorProps(
-                                                dropdownSearchDecoration:
-                                                    InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Project ID",
-                                                ),
-                                              ),
-                                              items: fetchedProjectValue
-                                                  .map((project) =>
-                                                      project['ProjectID'])
-                                                  .toList(),
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  context.read<ArchitectureProvider>().Project =
-                                                      fetchedProjectValue
-                                                          .firstWhere((project) =>
-                                                              project[
-                                                                  'ProjectID'] ==
-                                                              value)['ProjectID'];
-                                                  custNum = fetchedProjectValue
-                                                      .firstWhere((project) =>
-                                                          project['ProjectID'] ==
-                                                          value)['ConCustNum'];
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false),
-                                          Row(
-                                            children: [
-
-                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "S.O Lines", controller: SalesOrderController, dataMap: [], loading: false)),
-                                              Expanded(child: ReDropDown(enabled: false, data: [], label: "Customer Shipments", controller: SalesOrderController, dataMap: [], loading: false)),
-                                            ],
-                                          )
-                                        ],
-                                      );
-                                    },
-                                  ):SalesOrderSearch(),
+                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(),
                                   Row(
                                     children: [
                                       Expanded(
@@ -675,10 +613,8 @@ class _StockLoadingState extends State<StockLoading>
                                                 labelText: "From Warehouse",
                                               ),
                                             ),
-                                            items: fetchedWarehouseValue
-                                                //.where((warehouse) => warehouse['FinishGoods_c'] == true)
-                                                .map((warehouse) =>
-                                                    warehouse['Warehse_Description'])
+                                            items: fetchedWarehouseValue.map((warehouse) =>
+                                                    warehouse['Description'])
                                                 .toList(),
                                             onChanged: (value) {
                                               setState(() {
@@ -687,7 +623,7 @@ class _StockLoadingState extends State<StockLoading>
                                                         .firstWhere(
                                                             (warehouse) =>
                                                                 warehouse[
-                                                                    'Warehse_Description'] ==
+                                                                'Description'] ==
                                                                 value)[
                                                     'WarehouseCode'];
                                               });
@@ -695,110 +631,11 @@ class _StockLoadingState extends State<StockLoading>
                                           ),
                                         ),
                                       ),
-                                      Expanded(
-                                          child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem:
-                                              toWarehouseNameController.text,
-                                          enabled: true,
-                                          popupProps:
-                                              const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
-                                              ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode
-                                              .onUserInteraction,
-                                          dropdownDecoratorProps:
-                                              const DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Warehouse",
-                                            ),
-                                          ),
-                                          items: fetchedWarehouseValue
-                                              .map((warehouse) =>
-                                                  warehouse['Warehse_Description'])
-                                              .toList(),
-                                          onChanged: (value) async {
-                                            setState(() {
-                                              toWarehouseController.text =
-                                                  fetchedWarehouseValue
-                                                      .firstWhere((warehouse) =>
-                                                          warehouse[
-                                                              'Warehse_Description'] ==
-                                                          value)['WarehouseCode'];
-                                              toWarehouseNameController.text =
-                                                  value.toString();
-                                              fetchedBinValue = [];
-                                              toBinLoading = true;
-                                            });
-                                            await getBinsFromWarehouse(
-                                                tenantConfigP,
-                                                toWarehouseController.text);
-                                            setState(() {
-                                              toBinLoading = false;
-                                              toBinController.text =
-                                                  fetchedBinValue
-                                                      .first['BinNum'];
-                                            });
-                                          },
-                                        ),
-                                      )),
+
                                     ],
                                   ),
-                                  /* Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem: toBinController.text,
 
 
-                                          enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty,
-                                          popupProps: const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
-                                              ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode.onUserInteraction,
-                                          dropdownDecoratorProps: const DropDownDecoratorProps(
-                                            dropdownSearchDecoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Bin",
-                                            ),
-                                          ),
-                                          items: subfetchedBinValue.map((bin) => bin['Description']).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
-                                              toBinNameController.text = value.toString();
-                                            });
-                                            debugPrint(toBinController.text);
-                                            debugPrint(toBinNameController.text);
-                                          },
-                                        ),
-                                      ),*/
-                                  ReDropDown(
-                                    enabled: toWarehouseController.text != "",
-                                    data: fetchedBinValue
-                                        .map((bin) => bin['Description'])
-                                        .toList(),
-                                    label: "To Bin",
-                                    loading: toBinLoading,
-                                    controller: toBinController,
-                                    dataMap: fetchedBinValue,
-                                  ),
                                   if (loadConditionValue == 'External')
                                     Row(
                                       children: [
@@ -968,8 +805,7 @@ class _StockLoadingState extends State<StockLoading>
                                           if (truckIdController.text.isEmpty ||
                                               resourceIdController
                                                   .text.isEmpty ||
-                                              projectIdController
-                                                  .text.isEmpty ||
+
                                           loadTimeController.text.isEmpty ||
                                           dateController.text.isEmpty
                                           ) {
@@ -1004,7 +840,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   "${tenantConfigP['company']}",
                                               "ShortChar07":
                                                   plateNumberController.text,
-                                              "ShortChar05":context.watch<ArchitectureProvider>().architecure,
+                                              "ShortChar05":context.read<ArchitectureProvider>().architecure,
                                               "ShortChar01": loadTypeValue,
                                               "ShortChar04": loadConditionValue,
                                               "ShortChar08":
@@ -1016,6 +852,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   ? loadedController.text
                                                   : '0',
                                               "Number02": "0",
+                                              "Number03": context.read<ArchitectureProvider>().SO.toString(),
                                               "Number06": capacityController
                                                       .text.isNotEmpty
                                                   ? capacityController.text
@@ -1038,22 +875,18 @@ class _StockLoadingState extends State<StockLoading>
                                                   : '0',
                                               "Number11":
                                                   (lastCustShip + 1).toString(),
-                                              "Number12": custNum.toString(),
+                                              "Number12": context.read<ArchitectureProvider>().custNum.toString(),
                                               "Date01": loadDateFormat,
 
                                               "Character02":
                                                   driverNameController.text,
                                               "Character03":
                                                   driverNumberController.text,
-                                              "Character04":
-                                                  toWarehouseNameController
-                                                      .text,
-                                              "Character05":
-                                                  toBinController.text,
-                                              "Character07":
-                                                  toWarehouseController.text,
-                                              "Character08":
-                                                  toBinController.text,
+                                              "Character04": context.read<ArchitectureProvider>().CustomerId,
+
+                                              "Character07":context.read<ArchitectureProvider>().SO.toString(),
+                                              "Character08":context.read<ArchitectureProvider>().selectedShipment,
+
                                               "Character06":
                                                   fromWarehouseController.text,
                                               "Character09": resourceId,
@@ -1072,7 +905,7 @@ class _StockLoadingState extends State<StockLoading>
                                                         title: const Text(
                                                             'Success'),
                                                         content: Text(
-                                                            'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                                            'Stock Loading details saved successfully, LoadID: $newLoadId and CustShip: ${lastCustShip + 1}'),
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () {
@@ -1796,6 +1629,9 @@ class _StockLoadingState extends State<StockLoading>
           widget.addLoadData(load);
         });
         debugPrint(widget.loadDataList.toString());
+      }
+      else {
+        debugPrint(response.body);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());

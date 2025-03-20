@@ -21,7 +21,8 @@ class SalesOrderSearch extends StatefulWidget {
 }
 class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   bool SearchSuccess = false;
-  TextEditingController _controller = TextEditingController();
+  TextEditingController _lineController = TextEditingController();
+  TextEditingController _customerShipcontroller = TextEditingController();
   dynamic SOLines = null;
   Future<List<dynamic>?> getSalesOrderLines(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
@@ -82,6 +83,8 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
     setState(() {
       context.read<ArchitectureProvider>().updateSO(int.parse((item as Map<String,dynamic>)['OrderNum'].toString()));
+      context.read<ArchitectureProvider>().updateCust((item as Map<String,dynamic>)['CustNum']);
+      context.read<ArchitectureProvider>().updateCustId((item as Map<String,dynamic>)['Customer']);
     });
 
     dynamic data = await Future.wait([getSalesOrderLines(salesOrder),getCustomerShipments(salesOrder)]);
@@ -122,23 +125,32 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
               Expanded(
                 child: ReDropDown(
-                  controller: _controller,
+                  controller: _lineController,
                   label: "S.O Lines",
                   data: context.watch<ArchitectureProvider>().lines?.map((e) => e['OrderLine']).toList()??[],
                   dataMap: context.watch<ArchitectureProvider>().lines?? [],
                   loading: context.watch<ArchitectureProvider>().lines==null &&context.watch<ArchitectureProvider>().SO!=0 ,
                   enabled:!(context.watch<ArchitectureProvider>().lines==null &&context.watch<ArchitectureProvider>().SO!=0) ,
-
+                  onChnaged: (value){
+                    setState(() {
+                      context.read<ArchitectureProvider>().updateLine(int.parse(value));
+                    });
+                  },
                 ),
               ),Expanded(
                 child: ReDropDown(
-                  controller: _controller,
-                  label: "Customer Shipments ",
+                  controller: _customerShipcontroller,
+                  label: "Ship To ",
                   data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
                   dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
                   loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
                   enabled:!(context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0) ,
+                  onChnaged: (value){
+                    setState(() {
+                      context.read<ArchitectureProvider>().updateShipment(value);
 
+                    });
+                  },
                 ),
               ),
 

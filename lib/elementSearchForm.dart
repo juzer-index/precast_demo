@@ -82,8 +82,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
 
   Future<void> getAllParts(String PartNum) async {
     String URL = widget.isInstalling
-        ? '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_ElementFetch(${widget.tenantConfig['company']})?\$filter=PartLot_Project_c  eq  \'${widget.Project}\' and PartLot_PartNum eq \'$PartNum\' '
-        : '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&Project=${widget.Project}&WAREHSE=${widget.Warehouse}';
+        ? '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_ElementFetch(${widget.tenantConfig['company']})?\$filter=PartLot_PartNum eq \'$PartNum\' '
+        : '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/BaqSvc/IIT_GetAllParts3Return_M1_ES(${widget.tenantConfig['company']})/?Part=$PartNum&WAREHSE=${widget.Warehouse}';
 
     try {
       final String basicAuth =
