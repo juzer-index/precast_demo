@@ -50,7 +50,7 @@ class _StockLoadingState extends State<StockLoading>
   TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
   TextEditingController truckController = TextEditingController();
   TextEditingController loadIDController = TextEditingController();
-  String _selectedDate = '';
+  String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String loadTypeValue = 'Issue Load';
   String loadConditionValue = 'Internal Truck';
   String inputTypeValue = 'Manual';
@@ -662,63 +662,7 @@ class _StockLoadingState extends State<StockLoading>
                                           ),
                                         ),
                                       ),
-                                      Expanded(
-                                          child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem:
-                                              toWarehouseNameController.text,
-                                          enabled: true,
-                                          popupProps:
-                                              const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
-                                              ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode
-                                              .onUserInteraction,
-                                          dropdownDecoratorProps:
-                                              const DropDownDecoratorProps(
-                                            dropdownSearchDecoration:
-                                                InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Warehouse",
-                                            ),
-                                          ),
-                                          items: fetchedWarehouseValue
-                                              .map((warehouse) =>
-                                                  warehouse['Description'])
-                                              .toList(),
-                                          onChanged: (value) async {
-                                            setState(() {
-                                              toWarehouseController.text =
-                                                  fetchedWarehouseValue
-                                                      .firstWhere((warehouse) =>
-                                                          warehouse[
-                                                              'Description'] ==
-                                                          value)['WarehouseCode'];
-                                              toWarehouseNameController.text =
-                                                  value.toString();
-                                              fetchedBinValue = [];
-                                              toBinLoading = true;
-                                            });
-                                            await getBinsFromWarehouse(
-                                                tenantConfigP,
-                                                toWarehouseController.text);
-                                            setState(() {
-                                              toBinLoading = false;
-                                              toBinController.text =
-                                                  fetchedBinValue
-                                                      .first['BinNum'];
-                                            });
-                                          },
-                                        ),
-                                      )),
+
                                     ],
                                   ),
                                   /* Padding(
@@ -756,7 +700,7 @@ class _StockLoadingState extends State<StockLoading>
                                           },
                                         ),
                                       ),*/
-                                  ReDropDown(
+                               /*   ReDropDown(
                                     enabled: toWarehouseController.text != "",
                                     data: fetchedBinValue
                                         .map((bin) => bin['Description'])
@@ -765,7 +709,7 @@ class _StockLoadingState extends State<StockLoading>
                                     loading: toBinLoading,
                                     controller: toBinController,
                                     dataMap: fetchedBinValue,
-                                  ),
+                                  ),*/
                                   if (loadConditionValue == 'External')
                                     Row(
                                       children: [
@@ -1040,7 +984,7 @@ class _StockLoadingState extends State<StockLoading>
                                                         title: const Text(
                                                             'Success'),
                                                         content: Text(
-                                                            'Stock Loading details saved successfully, LoadID: $newLoadId'),
+                                                            'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () {
@@ -2320,7 +2264,7 @@ class _StockLoadingState extends State<StockLoading>
         ),
         const SizedBox(height: 20),
         ExpansionTile(
-          title: const Text('Truck Load'),
+          title: const Text('Truck Load '),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2329,7 +2273,7 @@ class _StockLoadingState extends State<StockLoading>
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      enabled: isEditable,
+                      enabled: false,
                       controller: capacityController,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
@@ -2344,7 +2288,7 @@ class _StockLoadingState extends State<StockLoading>
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
                       controller: loadedController,
-                      enabled: isEditable,
+                      enabled: false,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
@@ -2355,73 +2299,8 @@ class _StockLoadingState extends State<StockLoading>
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: lengthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Length"),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: widthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Width"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
-                    enabled: isEditable,
-                    controller: heightController,
-                    decoration: const InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(),
-                        labelText: "Height"),
-                  ),
-                )),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: volumeController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Volume"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
+
           ],
         ),
         const SizedBox(height: 20),
