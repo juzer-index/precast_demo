@@ -11,7 +11,7 @@ import 'load_model.dart';
 import 'Providers/UserManagement.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
-
+import './Providers/ArchitectureProvider.dart';
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
   final dynamic tenantConfig;
@@ -67,142 +67,138 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height * 0.12,
-                child: Card(
-                  elevation: 1,
-                  color: Theme.of(context).indicatorColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            // ClipRRect(
-                            //   borderRadius: BorderRadius.circular(10.0),
-                            //   child: Image.network(
-                            //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-                            //     height: 40,
-                            //     width: 40,
-                            //   ),
-                            // ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    'Department: Sales ',
-                                    style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.grey.shade800),
-                                  ),
-                                ],
-                              ),
+              Card(
+                elevation: 1,
+                color: Theme.of(context).indicatorColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          // ClipRRect(
+                          //   borderRadius: BorderRadius.circular(10.0),
+                          //   child: Image.network(
+                          //     'https://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                          //     height: 40,
+                          //     width: 40,
+                          //   ),
+                          // ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
+                                  style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  'Department: Sales ',
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey.shade800),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: IconButton(
-                                onPressed: () {
-                                  //display a popup with rounded borders and half screen size
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Dialog(
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        20.0)),
-                                            child: SizedBox(
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.3,
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.5,
-                                                child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            12.0),
-                                                    child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          const Text(
-                                                            'Profile Information',
-                                                            style: TextStyle(
-                                                                fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          Text(
-                                                            'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName} ${context.watch<UserManagementProvider>().userManagement?.lastName}',
-                                                            style: const TextStyle(
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          Text(
-                                                            'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
-                                                            style: const TextStyle(
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          Text(
-                                                            'tenant ID: ${context.watch<UserManagementProvider>().userManagement?.tenantId}',
-                                                            style: const TextStyle(
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                          Text(
-                                                            'Email: ${context.watch<UserManagementProvider>().userManagement?.userFileEMailAddress}',
-                                                            style: const TextStyle(
-                                                                fontSize: 18,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 10),
-                                                        ]))));
-                                      });
-                                },
-                                icon: const Icon(
-                                  Icons.info,
-                                  color: Colors.white,
-                                )))
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: IconButton(
+                              onPressed: () {
+                                //display a popup with rounded borders and half screen size
+                                showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      20.0)),
+                                          child: SizedBox(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                  0.3,
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.5,
+                                              child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(
+                                                          12.0),
+                                                  child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        const Text(
+                                                          'Profile Information',
+                                                          style: TextStyle(
+                                                              fontSize: 20,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Text(
+                                                          'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName} ${context.watch<UserManagementProvider>().userManagement?.lastName}',
+                                                          style: const TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Text(
+                                                          'ID: ${context.watch<UserManagementProvider>().userManagement?.id}',
+                                                          style: const TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Text(
+                                                          'tenant ID: ${context.watch<UserManagementProvider>().userManagement?.tenantId}',
+                                                          style: const TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                        Text(
+                                                          'Email: ${context.watch<UserManagementProvider>().userManagement?.userFileEMailAddress}',
+                                                          style: const TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                        ),
+                                                        const SizedBox(
+                                                            height: 10),
+                                                      ]))));
+                                    });
+                              },
+                              icon: const Icon(
+                                Icons.info,
+                                color: Colors.white,
+                              )))
+                    ],
                   ),
                 ),
               ),

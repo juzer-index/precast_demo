@@ -57,6 +57,9 @@ dependencies:
 
   flutter_launcher_icons: ^0.13.1
   fl_chart: ^0.68.0
+  toggle_switch: ^2.3.0
+  flutter_dotenv: ^5.2.1
+  infinite_scroll_pagination: ^5.0.0
 
 
 
@@ -91,6 +94,7 @@ flutter:
     - assets/data_parts.json
     - assets/gocast-logo.png
     - assets/app-logo.png
+    - android/app/profile/.env
 
   fonts:
     - family: Open-Sans
