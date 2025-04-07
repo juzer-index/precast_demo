@@ -6,9 +6,15 @@ import 'themeData.dart';
 import 'dart:io';
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
+
 import 'Providers/ArchitectureProvider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 Future<void> main() async {
+
+import './Models/LoadData.dart';
+import 'Providers/LoadProvider.dart';
+void main() {
+
   HttpOverrides.global = MyHttpOverrides();
   final context = SecurityContext.defaultContext;
   context.allowLegacyUnsafeRenegotiation = true;
@@ -19,13 +25,18 @@ Future<void> main() async {
    ),
     ChangeNotifierProvider(create: (context)=>tenantConfigProvider(),
     ),
+
     ChangeNotifierProvider(create: (context)=>ArchitectureProvider(),
     ),
 
 
 
 
-    
+
+    ChangeNotifierProvider(create: (context)=>LoadProvider(),
+    ),
+
+
   ], child:MyApp()));
 }
 

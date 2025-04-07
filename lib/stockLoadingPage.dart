@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:GoCastTrack/Providers/LoadProvider.dart';
+
 import 'Models/EpicorError.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -34,14 +36,19 @@ class StockLoading extends StatefulWidget {
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
   final String historyLoadID;
+  late bool LinesOriented;
 
-  const StockLoading(
+   StockLoading(
       {super.key,
       required this.initialTabIndex,
       required this.isUpdate,
       required this.loadDataList,
       required this.addLoadData,
-      this.historyLoadID = ''});
+      this.historyLoadID = '',
+      this.LinesOriented = false}
+
+       );
+
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -150,6 +157,7 @@ class _StockLoadingState extends State<StockLoading>
   late  bool CreateLoadLoading = false;
   late bool SaveLinesLoading = false;
 
+
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
    String ErrorMessage="";
@@ -158,13 +166,14 @@ class _StockLoadingState extends State<StockLoading>
   int archLabelIndex=0;
   @override
   void initState() {
+
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
     context.read<ArchitectureProvider>().init();
     if (!widget.isUpdate) {
-      dataLoaded =
-          makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
+      context.read<LoadProvider>().clearLoad();
+      dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
 
       entryPersonController?.text =
           context.read<UserManagementProvider>().userManagement!.firstName!;
