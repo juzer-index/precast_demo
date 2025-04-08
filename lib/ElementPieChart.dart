@@ -97,7 +97,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
 
             child: ExpansionTile(
               initiallyExpanded: true,
-              title: Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+              title: Text('Structure Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
               children:[ SizedBox(
                 width: 500 , height: 333,
                 child: Card(
