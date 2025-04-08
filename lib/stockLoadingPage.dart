@@ -645,6 +645,7 @@ class _StockLoadingState extends State<StockLoading>
                                   ),
 
 
+
                                   if (loadConditionValue == 'External')
                                     Row(
                                       children: [
@@ -914,7 +915,9 @@ class _StockLoadingState extends State<StockLoading>
                                                         title: const Text(
                                                             'Success'),
                                                         content: Text(
-                                                            'Stock Loading details saved successfully, LoadID: $newLoadId and CustShip: ${lastCustShip + 1}'),
+
+                                                            'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
+
                                                         actions: [
                                                           TextButton(
                                                             onPressed: () {
@@ -2197,7 +2200,7 @@ class _StockLoadingState extends State<StockLoading>
         ),
         const SizedBox(height: 20),
         ExpansionTile(
-          title: const Text('Truck Load'),
+          title: const Text('Truck Load '),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2206,7 +2209,7 @@ class _StockLoadingState extends State<StockLoading>
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      enabled: isEditable,
+                      enabled: false,
                       controller: capacityController,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
@@ -2221,7 +2224,7 @@ class _StockLoadingState extends State<StockLoading>
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
                       controller: loadedController,
-                      enabled: isEditable,
+                      enabled: false,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
@@ -2232,73 +2235,8 @@ class _StockLoadingState extends State<StockLoading>
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: lengthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Length"),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: widthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Width"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                    child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextFormField(
-                    enabled: isEditable,
-                    controller: heightController,
-                    decoration: const InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(),
-                        labelText: "Height"),
-                  ),
-                )),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: volumeController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Volume"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
+
           ],
         ),
         const SizedBox(height: 20),

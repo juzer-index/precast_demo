@@ -17,7 +17,7 @@ class _DetailsPageState extends State<DetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
-      appBar: IndexAppBar(title: 'Element Details',),
+      appBar: IndexAppBar(title: 'Structure Details',),
       body: Padding(
 
         padding: const EdgeInsets.all(8.0),
@@ -31,7 +31,7 @@ class _DetailsPageState extends State<DetailsPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text('Element ID: ${widget.elementId}',
+                  child: Text('Structure ID: ${widget.elementId}',
                     style:  TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -65,7 +65,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       child: TextFormField(
                         enabled: false,
                         decoration: const InputDecoration(
-                          labelText: 'Element ID',
+                          labelText: 'Structure ID',
                           fillColor: Colors.white,
                           filled: true,
                           border: OutlineInputBorder(
@@ -84,7 +84,7 @@ class _DetailsPageState extends State<DetailsPage> {
                       child: TextFormField(
                         enabled: false,
                         decoration: const InputDecoration(
-                          labelText: 'Element Desc',
+                          labelText: 'Structure Desc',
                           fillColor: Colors.white,
                           filled: true,
                           border: OutlineInputBorder(

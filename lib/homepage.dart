@@ -12,6 +12,7 @@ import 'Providers/UserManagement.dart';
 import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
 import './Providers/ArchitectureProvider.dart';
+import 'DIspatchSchedule.dart';
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
   final dynamic tenantConfig;
@@ -238,7 +239,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Element Tracker',
+                              'Structure Tracker',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
@@ -272,7 +273,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Stock Loading',
+                              'Loading',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
@@ -304,7 +305,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Stock Offloading',
+                              'Offloading',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
@@ -338,7 +339,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Edit Stock Load',
+                              'Edit Load',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
@@ -371,7 +372,38 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Element Installation',
+                              'Structure Installation',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Card(
+                      //
+                      elevation: 1,
+                      color: Theme.of(context).indicatorColor,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DispatchSchedule()
+                            ),
+                          );
+                        },
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 50,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              'Dispatch schedule',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
