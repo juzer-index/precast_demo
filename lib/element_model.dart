@@ -10,17 +10,24 @@ class ElementData {
   late final String volume;
   late final String quantity;
   late final String? selectedQty;
-
+  late final String? Warehouse;
   late final String fromBin;
-  // late final bool is
+  late final int SO;  // late final bool is
  late final String ChildKey1;
-  ElementData({required this.partId, required this.elementId, required this.elementDesc, required this.erectionSeq, required this.erectionDate, required this.UOM, required this.weight, required this.area, required this.volume, required this.quantity, this.selectedQty,
-    required this.ChildKey1,
+  ElementData({required this.partId, required this.elementId, required this.elementDesc,  this.erectionSeq=""
+    ,  this.erectionDate="", this.UOM="", this.weight="",
+    this.area="",
+    this.volume="",this.quantity=""
+    , this.selectedQty, this.ChildKey1="",
+    required this.Warehouse,
   required this.fromBin,
-});
+  this.SO=0
+  });
+
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(
+
       partId: json['Character01'],
       elementId: json['Character02'],
       elementDesc: json['Character02'],
@@ -32,8 +39,8 @@ class ElementData {
       volume: json['Number03'].toString(),
       quantity: json['Number04'].toString(),
       ChildKey1: json['ChildKey1'],
-
       fromBin: json['Character04'],
+      Warehouse: json['Character03'],
     );
   }
 

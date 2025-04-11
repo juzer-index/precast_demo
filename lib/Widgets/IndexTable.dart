@@ -6,13 +6,20 @@ class IndexTable extends StatelessWidget {
   final List<DataColumn> columns;
   final Function(int) onRowTap;
 
-  const IndexTable({super.key, required this.data, required this.columns, required this.onRowTap});
+   IndexTable({super.key, required this.data, required this.columns, required this.onRowTap});
 
   @override
   Widget build(BuildContext context) {
-    return DataTable(
-          columns: columns,
-      rows: data
+    return Container(
+      child: Column(
+        children: [
+          DataTable(
+                columns: columns,
+            rows: data
+          ),
+
+        ],
+      ),
     );
   }
 }

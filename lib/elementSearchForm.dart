@@ -9,6 +9,8 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'element_model.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+
 
 class ElementSearchForm extends StatefulWidget {
   final Function(List<ElementData>, List<PartData>) onElementsSelected;
@@ -881,6 +883,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   ? key.toString()
                                   : '${specifyMaxChildKey() + 1}',
                               fromBin: fromBin.text,
+                              Warehouse: widget.Warehouse,
                             ));
                           });
                         }
@@ -969,7 +972,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                           selectedElements.clear();
                         });
 
-                        widget.onElementsSelected(totalElements, selectedParts);
+                        widget.onElementsSelected(
+                            totalElements, selectedParts);
                       },
                 child: const Text('Select'),
                 style: !selectable

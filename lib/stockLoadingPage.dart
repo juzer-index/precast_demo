@@ -37,15 +37,19 @@ class StockLoading extends StatefulWidget {
   final dynamic addLoadData;
   final String historyLoadID;
   late bool LinesOriented;
+  late List<ElementData> passedElements;
+
+
 
    StockLoading(
       {super.key,
       required this.initialTabIndex,
-      required this.isUpdate,
-      required this.loadDataList,
-      required this.addLoadData,
+       this.isUpdate=false,
+       this.loadDataList=const [],
+       this.addLoadData=null,
       this.historyLoadID = '',
-      this.LinesOriented = false}
+      this.LinesOriented = false,
+      this.passedElements=const []}
 
        );
 
@@ -170,7 +174,11 @@ class _StockLoadingState extends State<StockLoading>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    context.read<ArchitectureProvider>().init();
+    context.read<ArchitectureProvider>().init(widget.LinesOriented){
+    fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
+    SalesOrderController.text = widget.passedElements[0].SO.toString();
+    context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
+    }
     if (!widget.isUpdate) {
       context.read<LoadProvider>().clearLoad();
       dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
@@ -185,6 +193,7 @@ class _StockLoadingState extends State<StockLoading>
       dataLoaded = fetchLoadDataFromURL(widget.historyLoadID,
               context.read<tenantConfigProvider>().tenantConfig)
           .then((value) => {
+
                 offloadData = getLoadObjectFromJson(widget.historyLoadID),
                 getElementObjectFromJson(widget.historyLoadID),
                 getPartObjectFromJson(widget.historyLoadID),
@@ -199,7 +208,9 @@ class _StockLoadingState extends State<StockLoading>
                   isLoaded = true;
                 }),
               });
-    } else {
+    }
+
+    else {
       dataLoaded = Future.value(true);
       setState(() {
         isLoaded = true;
@@ -970,7 +981,7 @@ class _StockLoadingState extends State<StockLoading>
                           ),
                         ),
                         //Tab 2 Content
-                        if (isLoaded)
+                        if (isLoaded ||widget.LinesOriented)
                           SingleChildScrollView(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -998,7 +1009,7 @@ class _StockLoadingState extends State<StockLoading>
                                       ),
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: ElementSearchForm(
+                                        child: !widget.LinesOriented? ElementSearchForm(
                                           onElementsSelected:
                                               updateElementInformation,
                                           arrivedElements:
@@ -1011,6 +1022,19 @@ class _StockLoadingState extends State<StockLoading>
                                           Project: projectIdController.text,
                                           tenantConfig: tenantConfigP,
                                           isInstalling: false,
+                                        ) : SizedBox(
+                                          height: 50,
+                                          child: Center(
+                                            child: Text('Lines Oriented',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .height *
+                                                          0.022,
+                                                )),
+                                          ),
+
                                         ),
                                       ),
                                     ),
@@ -1030,7 +1054,7 @@ class _StockLoadingState extends State<StockLoading>
                                       color: Theme.of(context).canvasColor),
                                 ),
                                 ElementTable(
-                                  selectedElements: selectedElements,
+                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
                                   DeletededSaveElements: widget.isUpdate
                                       ? deletedSavedElements
                                       : null,
@@ -1057,7 +1081,7 @@ class _StockLoadingState extends State<StockLoading>
                               ],
                             ),
                           ),
-                        if (!isLoaded)
+                        if (!isLoaded && !widget.LinesOriented)
                           const Center(
                             child: Text(
                                 'Please create a load first or Select a load to update'),
@@ -1183,7 +1207,7 @@ class _StockLoadingState extends State<StockLoading>
                                   ),
                                 ),
                                 ElementTable(
-                                    selectedElements: selectedElements),
+                                    selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(

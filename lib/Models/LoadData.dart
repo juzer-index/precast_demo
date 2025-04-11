@@ -1,5 +1,5 @@
 import 'dart:ffi';
-
+import './LoadLine.dart';
 class LoadData {
   String  Key1="";
   String Company="";
@@ -31,7 +31,7 @@ class LoadData {
   double Number09=0; // width
   double Number10=0; // length
   int Number11=0; // customer shipment
-
+  List<LoadLine> loadLines ;
   LoadData({
   this.Key1="",
      this.Company="",
@@ -63,6 +63,7 @@ class LoadData {
       this.Number09=0,
       this.Number10=0,
       this.Number11=0,
+      this.loadLines=const [],
 
   });
   toJson() {
