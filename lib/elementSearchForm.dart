@@ -662,20 +662,20 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                           ? element.UOM
                           : element['Part_IUM'].toString() ?? "";
                       erectionSeqController.text = widget.isOffloading
-                          ? element.erectionSeq
+                          ? element.erectionSeq.toString()
                           : element['PartLot_ErectionSequence_c'].toString() ??
                               "";
                       weightController.text = widget.isOffloading
-                          ? element.weight
+                          ? element.weight.toString()
                           : element['PartLot_Ton_c'].toString() ?? "";
                       areaController.text = widget.isOffloading
-                          ? element.area
+                          ? element.area.toString()
                           : element['PartLot_M2_c'].toString() ?? "";
                       volumeController.text = widget.isOffloading
-                          ? element.volume
+                          ? element.volume.toString()
                           : element['PartLot_M3_c'].toString() ?? "";
                       estErectionDateController.text = widget.isOffloading
-                          ? element.erectionDate
+                          ? element.erectionDate.toString()
                           : element['ErectionPlannedDate_c'] ?? '';
                       onHandQtyController.text = '1';
                       selectedQtyController.text = '1';
@@ -868,17 +868,19 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             lotNoController.text.isNotEmpty) {
                           setState(() {
                             selectedElements.add(ElementData(
+
+                              Company: widget.tenantConfig['company'],
                               partId: elementNumberController.text,
                               elementId: lotNoController.text,
                               elementDesc: elementDescriptionController.text,
-                              erectionSeq: erectionSeqController.text,
+                              erectionSeq: int.parse(erectionSeqController.text),
                               erectionDate: estErectionDateController.text,
                               UOM: uomController.text,
-                              weight: weightController.text,
-                              area: areaController.text,
-                              volume: volumeController.text,
-                              quantity: onHandQtyController.text,
-                              selectedQty: selectedQtyController.text,
+                              weight: double.parse(weightController.text),
+                              area: double.parse(areaController.text),
+                              volume: double.parse(volumeController.text),
+                              quantity: int.parse(onHandQtyController.text),
+                              selectedQty: int.parse(selectedQtyController.text),
                               ChildKey1: widget.isOffloading
                                   ? key.toString()
                                   : '${specifyMaxChildKey() + 1}',

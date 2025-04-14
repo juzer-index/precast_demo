@@ -30,7 +30,7 @@ class _ElementTableState extends State<ElementTable> {
               .map((row) => DataRow(cells: [
             DataCell(Text(row.elementId)),
             DataCell(Text(row.partId)),
-            DataCell(Text(row.erectionSeq)),
+            DataCell(Text(row.erectionSeq.toString())),
             DataCell(IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {

@@ -1,5 +1,3 @@
-
-
 import 'package:GoCastTrack/Providers/tenantConfig.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -87,11 +85,11 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
       context.read<ArchitectureProvider>().updateCustId((item as Map<String,dynamic>)['Customer']);
     });
 
-    dynamic data = await Future.wait([getSalesOrderLines(salesOrder),getCustomerShipments(salesOrder)]);
+    dynamic data = await Future.wait([getCustomerShipments(salesOrder)]);
 
     setState(() {
-      context.read<ArchitectureProvider>().setLines(data[0]);
-      context.read<ArchitectureProvider>().setShipments(data[1]);
+
+      context.read<ArchitectureProvider>().setShipments(data[0]);
 
     });
   }
@@ -101,14 +99,37 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
           IndexSearchBar(
           entity: "S.O",
           onSearch:  (String term) async {
+           try {
+             var data = await APIV2Helper.getResults(
+                 '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+                     '/v2/odata/${tenantConfig['company']}/'
+                     'BaqSvc/IIT_Cust_SO/Data?\$filter=OrderHed_OrderNum eq ${term}',
 
-            var data = await APIV2Helper.getPaginatedResults("https://77.92.189.102/ppgprecastvertical/api/v2/odata/EPIC06/Erp.BO.SalesOrderSvc/SalesOrders",
-                1, 10,
-                 {"username": context.read<tenantConfigProvider>().tenantConfig['userID'],
-                   "password":context.read<tenantConfigProvider>().tenantConfig['password']}
-                , entity: "Sales Order");
+                 {"username": context
+                     .read<tenantConfigProvider>()
+                     .tenantConfig['userID'],
+                   "password": context
+                       .read<tenantConfigProvider>()
+                       .tenantConfig['password']}
+                 , entity: "Sales Order");
+             if(data.isNotEmpty){
+               context.read<ArchitectureProvider>().updateSO(data[0]['OrderHed_OrderNum'].toInt());
+                context.read<ArchitectureProvider>().updateCust(data[0]['Customer_CustNum']);
+                context.read<ArchitectureProvider>().updateCustId(data[0]['Customer_CustID']);
+             }
+             dynamic Shipments = await Future.wait([getCustomerShipments(data[0]['OrderHed_OrderNum'].toInt())]);
 
+             setState(() {
 
+               context.read<ArchitectureProvider>().setShipments(Shipments[0]);
+
+             });
+           }on NotFoundException catch(e){
+             showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+               title: Text("Error"),
+               content: Text(e.toString()),
+             ));
+           };
           },
           advanceSearch: true,
             value: context.watch<ArchitectureProvider>().SO.toString(),
@@ -123,28 +144,14 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
             children: [
 
 
-              Expanded(
-                child: ReDropDown(
-                  controller: _lineController,
-                  label: "S.O Lines",
-                  data: context.watch<ArchitectureProvider>().lines?.map((e) => e['OrderLine']).toList()??[],
-                  dataMap: context.watch<ArchitectureProvider>().lines?? [],
-                  loading: context.watch<ArchitectureProvider>().lines==null &&context.watch<ArchitectureProvider>().SO!=0 ,
-                  enabled:!(context.watch<ArchitectureProvider>().lines==null &&context.watch<ArchitectureProvider>().SO!=0) ,
-                  onChnaged: (value){
-                    setState(() {
-                      context.read<ArchitectureProvider>().updateLine(int.parse(value));
-                    });
-                  },
-                ),
-              ),Expanded(
+           Expanded(
                 child: ReDropDown(
                   controller: _customerShipcontroller,
                   label: "Ship To ",
                   data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
                   dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
                   loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
-                  enabled:!(context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0) ,
+                  enabled:!(context.watch<ArchitectureProvider>().customerShipments==null || context.watch<ArchitectureProvider>().SO==0) ,
                   onChnaged: (value){
                     setState(() {
                       context.read<ArchitectureProvider>().updateShipment(value);

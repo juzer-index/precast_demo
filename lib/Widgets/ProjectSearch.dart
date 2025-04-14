@@ -1,3 +1,4 @@
+import 'package:GoCastTrack/Models/SalesOrder.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -7,6 +8,8 @@ import 'dart:convert';
 import 'dart:io';
 import '../Providers/tenantConfig.dart';
 import '../Widgets/DropDown.dart';
+import '../utils/APIProviderV2.dart';
+import '../Models/NotFoundException.dart';
 class ProjectSearch extends StatefulWidget {
   final bool isUpdate;
   ProjectSearch({required this.isUpdate});
@@ -21,6 +24,8 @@ class _ProjectSearchState extends State<ProjectSearch> {
   Map<String,dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
  TextEditingController SalesOrderController = TextEditingController();
+  TextEditingController _customerShipcontroller = TextEditingController();
+  List<dynamic> salesOrderList = [];
   Future<void> getProjectList(dynamic tenantConfigP) async {
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
@@ -43,6 +48,31 @@ class _ProjectSearchState extends State<ProjectSearch> {
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
+  }
+  Future<List<dynamic>?> getCustomerShipments(int OrderNum) async {
+    final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
+    try {
+      var data = await APIV2Helper.getResults(
+          '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+              '/v2/odata/${tenantConfig['company']}/'
+              'BaqSvc/IIT_Cust_ShipTo/Data/?OrderNum=$OrderNum',
+
+          {
+            'username': tenantConfig['userID'],
+            'password': tenantConfig['password']
+          }
+      );
+      return data;
+    } on NotFoundException catch (e) {
+      return [];
+    }
+    catch (e) {
+      showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(e.toString()),
+      ));
+    }
+
   }
   @override
   Widget build(BuildContext context) {
@@ -83,28 +113,90 @@ class _ProjectSearchState extends State<ProjectSearch> {
                     .map((project) =>
                 project['ProjectID'])
                     .toList(),
-                onChanged: (value) {
+                onChanged: (value) async {
                   setState(() {
-                    context.read<ArchitectureProvider>().Project =
-                    fetchedProjectValue
-                        .firstWhere((project) =>
-                    project[
-                    'ProjectID'] ==
-                        value)['ProjectID'];
-                    context.read<ArchitectureProvider>().updateCust(fetchedProjectValue
-                        .firstWhere((project) =>
-                    project['ProjectID'] ==
-                        value)['ConCustNum']);
+                      context.read<ArchitectureProvider>().Project =
+                      fetchedProjectValue
+                          .firstWhere((project) =>
+                      project[
+                      'ProjectID'] ==
+                      value)['ProjectID'];
+                      context.read<ArchitectureProvider>().updateCust(fetchedProjectValue
+                          .firstWhere((project) =>
+                      project['ProjectID'] ==
+                      value)['ConCustNum']);
                   });
+                      try {
+                        var data = await APIV2Helper.getResults(
+                            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api'
+                                '/v2/odata/${tenantConfigP['company']}/'
+                                'BaqSvc/IIT_Project_SO/Data/?Project=${value.toString()}',
+
+                            {"username": context
+                                .read<tenantConfigProvider>()
+                                .tenantConfig['userID'],
+                              "password": context
+                                  .read<tenantConfigProvider>()
+                                  .tenantConfig['password']}
+                            , entity: "Sales Order");
+                        setState(() {
+                          salesOrderList = data;
+                        });
+
+                        dynamic Shipments = await Future.wait([getCustomerShipments(data[0]['OrderHed_OrderNum'].toInt())]);
+
+                        setState(() {
+
+                          context.read<ArchitectureProvider>().setShipments(Shipments[0]);
+
+                        });
+                      }on NotFoundException catch(e){
+                        showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                          title: Text("Error"),
+                          content: Text(e.toString()),
+                        ));
+                      };
+
+
                 },
               ),
             ),
-            ReDropDown(enabled: false, data: [], label: "Sales Order", controller: SalesOrderController, dataMap: [], loading: false),
+            ReDropDown(enabled: context.watch<ArchitectureProvider>().Project!="" && salesOrderList.isNotEmpty,
+                 data: salesOrderList.map((x)=>x['OrderDtl_OrderNum']).toList(), label: "Sales Order",
+              controller: SalesOrderController,
+              dataMap: salesOrderList.map((x)=>x['OrderDtl_OrderNum']).toList(),
+             loading: context.watch<ArchitectureProvider>().Project!="" && salesOrderList.isEmpty,
+              onChnaged: (value) async{
+              final element = salesOrderList.firstWhere((element) => element['OrderDtl_OrderNum'] == value);
+                setState(() {
+                  context.read<ArchitectureProvider>().updateSO(element['OrderDtl_OrderNum'].toInt());
+                  context.read<ArchitectureProvider>().updateCust(element['OrderDtl_CustNum']);
+                  context.read<ArchitectureProvider>().updateCustId(element['Customer_CustID']);
+
+
+                });
+               final Shipments = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt())]);
+                context.read<ArchitectureProvider>().setShipments(Shipments[0]);
+              },
+            ),
             Row(
               children: [
 
-                Expanded(child: ReDropDown(enabled: false, data: [], label: "S.O Lines", controller: SalesOrderController, dataMap: [], loading: false)),
-                Expanded(child: ReDropDown(enabled: false, data: [], label: "Ship To", controller: SalesOrderController, dataMap: [], loading: false)),
+
+                Expanded(child: ReDropDown(
+                  controller: _customerShipcontroller,
+                  label: "Ship To ",
+                  data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
+                  dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
+                  loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
+                  enabled:!(context.watch<ArchitectureProvider>().customerShipments==null || context.watch<ArchitectureProvider>().SO==0) ,
+                  onChnaged: (value){
+                    setState(() {
+                      context.read<ArchitectureProvider>().updateShipment(value);
+
+                    });
+                  },
+                )),
               ],
             )
           ],

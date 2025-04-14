@@ -30,6 +30,7 @@ import './Providers/ArchitectureProvider.dart';
 import './Widgets/SalesOrderSearch.dart';
 import 'Widgets/ProjectSearch.dart';
 import 'utils/APIProviderV2.dart';
+import './element_model.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -174,7 +175,11 @@ class _StockLoadingState extends State<StockLoading>
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    context.read<ArchitectureProvider>().init(widget.LinesOriented){
+    setState(() {
+      context.read<ArchitectureProvider>().init();
+    });
+
+    if(widget.LinesOriented){
     fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
     SalesOrderController.text = widget.passedElements[0].SO.toString();
     context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
@@ -908,8 +913,7 @@ class _StockLoadingState extends State<StockLoading>
                                               "Character07":context.read<ArchitectureProvider>().SO.toString(),
                                               "Character08":context.read<ArchitectureProvider>().selectedShipment,
 
-                                              "Character06":
-                                                  fromWarehouseController.text,
+
                                               "Character09": resourceId,
                                               //  "Createdby_c": entryPersonController?.text.toString().trim(),
                                               //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
@@ -981,7 +985,7 @@ class _StockLoadingState extends State<StockLoading>
                           ),
                         ),
                         //Tab 2 Content
-                        if (isLoaded ||widget.LinesOriented)
+                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
                           SingleChildScrollView(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1081,7 +1085,7 @@ class _StockLoadingState extends State<StockLoading>
                               ],
                             ),
                           ),
-                        if (!isLoaded && !widget.LinesOriented)
+                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
                           const Center(
                             child: Text(
                                 'Please create a load first or Select a load to update'),
@@ -1237,9 +1241,10 @@ class _StockLoadingState extends State<StockLoading>
                                         debugPrint(
                                             selectedElements[e].toString());
                                         try {
-                                          await updateUD104A({
+                                          await updateUD104A(ElementData.fromJson({
                                             "Company":
                                                 "${tenantConfigP['company']}",
+
                                             "ChildKey1":
                                                 selectedElements[e].ChildKey1,
                                             "Key1": loadIDController.text,
@@ -1266,26 +1271,26 @@ class _StockLoadingState extends State<StockLoading>
                                                     .weight
                                                     .toString()
                                                     .isNotEmpty
-                                                ? selectedElements[e].weight
+                                                ? selectedElements[e].weight.toString()
                                                 : '0',
                                             "Number04": selectedElements[e]
                                                     .area
                                                     .toString()
                                                     .isNotEmpty
-                                                ? selectedElements[e].area
+                                                ? selectedElements[e].area.toString()
                                                 : '0',
                                             "Number05": selectedElements[e]
                                                     .volume
                                                     .toString()
                                                     .isNotEmpty
-                                                ? selectedElements[e].volume
+                                                ? selectedElements[e].volume.toString()
                                                 : '0',
                                             "Number06": selectedElements[e]
                                                     .erectionSeq
                                                     .toString()
                                                     .isNotEmpty
                                                 ? selectedElements[e]
-                                                    .erectionSeq
+                                                    .erectionSeq.toString()
                                                 : '0',
                                             "ShortChar07":
                                                 selectedElements[e].UOM,
@@ -1295,7 +1300,7 @@ class _StockLoadingState extends State<StockLoading>
                                             "CheckBox03": false,
                                             "CheckBox07": false,
                                             "CheckBox13": false,
-                                          }, tenantConfigP);
+                                          }), tenantConfigP);
                                           updateInTransit(
                                               selectedElements[e].partId,
                                               selectedElements[e].elementId,
@@ -1329,7 +1334,7 @@ class _StockLoadingState extends State<StockLoading>
                                           p < selectedParts.length;
                                           p++) {
                                         debugPrint(selectedParts[p].toString());
-                                        await updateUD104A({
+                                        await updateUD104A(ElementData.fromJson({
                                           "Company":
                                               "${tenantConfigP['company']}",
                                           "Key1": loadIDController.text,
@@ -1343,7 +1348,7 @@ class _StockLoadingState extends State<StockLoading>
                                           "Number01": selectedParts[p].qty,
                                           "ShortChar07": selectedParts[p].uom,
                                           "CheckBox13": true,
-                                        }, tenantConfigP);
+                                        }), tenantConfigP);
                                       }
                                       if (mounted) {
                                          String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
@@ -1776,7 +1781,7 @@ class _StockLoadingState extends State<StockLoading>
       if (response.statusCode == 200) {
         Map<String, dynamic> rp = json.decode(response.body);
         setState(() {
-          lastLoad = rp['value'][0]['Calculated_AutoGen'];
+          lastLoad = int.parse(rp['value'][0]['Calculated_AutoGen']);
         });
         debugPrint(lastLoad.toString());
       }
@@ -1919,11 +1924,11 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Future<void> updateUD104A(
-      Map<String, dynamic> UD104AData, dynamic tenantConfigP) async {
+      ElementData UD104AData, dynamic tenantConfigP) async {
     try {
       final basicAuth =
           'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
-
+      final dynamic body =UD104AData.toJson();
       final response = await http.post(
           Uri.parse(
               '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As'),
@@ -1931,7 +1936,7 @@ class _StockLoadingState extends State<StockLoading>
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode(UD104AData));
+          body: body );
       if (response.statusCode >=200 && response.statusCode<300) {
         debugPrint(response.body);
         setState(() {
