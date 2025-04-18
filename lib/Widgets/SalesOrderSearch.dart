@@ -73,6 +73,19 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
   }
   @override
+  @override
+  void initState() {
+    // TODO: implement initState
+    if(context.read<ArchitectureProvider>().SO!=0){
+      getCustomerShipments(context.read<ArchitectureProvider>().SO).then((value) {
+        setState(() {
+          context.read<ArchitectureProvider>().setShipments(value);
+        });
+      });
+    }
+    super.initState();
+  }
+  @override
   Widget build(BuildContext context) {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
 

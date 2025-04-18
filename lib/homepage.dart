@@ -372,6 +372,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 10),
                             Text(
+                              textAlign: TextAlign.center,
                               'Structure Installation',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),

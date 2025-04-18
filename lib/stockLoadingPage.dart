@@ -183,6 +183,8 @@ class _StockLoadingState extends State<StockLoading>
     fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
     SalesOrderController.text = widget.passedElements[0].SO.toString();
     context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
+    selectedElements = widget.passedElements;
+    selectedElements = widget.passedElements;
     }
     if (!widget.isUpdate) {
       context.read<LoadProvider>().clearLoad();
@@ -1246,7 +1248,7 @@ class _StockLoadingState extends State<StockLoading>
                                                 "${tenantConfigP['company']}",
 
                                             "ChildKey1":
-                                                selectedElements[e].ChildKey1,
+                                                selectedElements[e].ChildKey1??(e+1).toString(),
                                             "Key1": loadIDController.text,
                                             "Character01":
                                                 selectedElements[e].partId,
@@ -1648,8 +1650,7 @@ class _StockLoadingState extends State<StockLoading>
     });
   }
 
-  Future<void> createNewLoad(
-      Map<String, dynamic> loadItems, tenantConfigP) async {
+  Future<void> createNewLoad(Map<String, dynamic> loadItems, tenantConfigP) async {
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
@@ -1667,7 +1668,7 @@ class _StockLoadingState extends State<StockLoading>
         setState(() {
           isLoaded = true;
           currentLoad = load;
-          widget.addLoadData(load);
+
         });
         debugPrint(widget.loadDataList.toString());
       }
@@ -1939,9 +1940,7 @@ class _StockLoadingState extends State<StockLoading>
           body: body );
       if (response.statusCode >=200 && response.statusCode<300) {
         debugPrint(response.body);
-        setState(() {
-          widget.addLoadData(currentLoad);
-        });
+
       } else {
         Map<String, dynamic> body = json.decode(response.body);
 
