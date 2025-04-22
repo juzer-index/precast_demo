@@ -39,7 +39,7 @@ class StockLoading extends StatefulWidget {
   final String historyLoadID;
   late bool LinesOriented;
   late List<ElementData> passedElements;
-
+  late int custNum;
 
 
    StockLoading(
@@ -50,7 +50,10 @@ class StockLoading extends StatefulWidget {
        this.addLoadData=null,
       this.historyLoadID = '',
       this.LinesOriented = false,
-      this.passedElements=const []}
+      this.passedElements=const [],
+      this.custNum=0,
+
+      }
 
        );
 
@@ -184,7 +187,10 @@ class _StockLoadingState extends State<StockLoading>
     SalesOrderController.text = widget.passedElements[0].SO.toString();
     context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
     selectedElements = widget.passedElements;
-    selectedElements = widget.passedElements;
+    setState(() {
+      context.read<ArchitectureProvider>().custNum = widget.custNum;
+    });
+
     }
     if (!widget.isUpdate) {
       context.read<LoadProvider>().clearLoad();

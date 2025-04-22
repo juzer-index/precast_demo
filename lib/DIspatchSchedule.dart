@@ -89,6 +89,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
 
     void onSalesOrderSelected(dynamic salesOrder) {
       String value = salesOrder['OrderNum'].toString();
+
       setState(() {
         _salesOrderController.text = value;
       });
@@ -121,6 +122,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
               Warehouse: x['PartLot_Warehouse_c'].toString(),
               SO: int.parse(x['OrderDtl_OrderNum'].toString() ?? '0'),
             )).toList(),
+              custNum: int.parse(selectedItems[0]['OrderHed_CustNum'].toString()),
             ))
             );
           } else {
