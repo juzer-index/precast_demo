@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
 
 import 'Models/EpicorError.dart';
@@ -31,6 +32,7 @@ import './Widgets/SalesOrderSearch.dart';
 import 'Widgets/ProjectSearch.dart';
 import 'utils/APIProviderV2.dart';
 import './element_model.dart';
+import'./Models/CustomerShipment.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -1254,7 +1256,7 @@ class _StockLoadingState extends State<StockLoading>
                                                 "${tenantConfigP['company']}",
 
                                             "ChildKey1":
-                                                selectedElements[e].ChildKey1??(e+1).toString(),
+                                               (e+1).toString(),
                                             "Key1": loadIDController.text,
                                             "Character01":
                                                 selectedElements[e].partId,
@@ -1308,6 +1310,10 @@ class _StockLoadingState extends State<StockLoading>
                                             "CheckBox03": false,
                                             "CheckBox07": false,
                                             "CheckBox13": false,
+                                            "Character08":
+                                                selectedElements[e].Revision,
+                                            "Character09":
+                                                selectedElements[e].UOMClass
                                           }), tenantConfigP);
                                           updateInTransit(
                                               selectedElements[e].partId,
@@ -1343,6 +1349,8 @@ class _StockLoadingState extends State<StockLoading>
                                           p++) {
                                         debugPrint(selectedParts[p].toString());
                                         await updateUD104A(ElementData.fromJson({
+                                          "ChildKey1":
+                                              (p + 1).toString(),
                                           "Company":
                                               "${tenantConfigP['company']}",
                                           "Key1": loadIDController.text,
@@ -1933,6 +1941,25 @@ class _StockLoadingState extends State<StockLoading>
   Future<void> updateUD104A(
       ElementData UD104AData, dynamic tenantConfigP) async {
     try {
+      CustomerShipment customerShipment = new CustomerShipment(
+        PackNum: lastCustShip+1,
+
+        Company: UD104AData.Company,
+        CustNum: context.read<ArchitectureProvider>().custNum,
+        LineDesc: UD104AData.elementDesc,
+        OrderLine: int.parse(UD104AData.ChildKey1),
+        OrderNum: context.read<ArchitectureProvider>().SO,
+        OrderRelNum: 1,
+       RevisionNum: UD104AData.Revision,
+        BinNum: UD104AData.fromBin,
+        WarehouseCode: UD104AData.Warehouse,
+
+
+       partNum: UD104AData.partId,
+        jobLotNum: UD104AData.elementId
+
+
+      );
       final basicAuth =
           'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
       final dynamic body =UD104AData.toJson();
@@ -1944,7 +1971,14 @@ class _StockLoadingState extends State<StockLoading>
             HttpHeaders.contentTypeHeader: 'application/json',
           },
           body: body );
-      if (response.statusCode >=200 && response.statusCode<300) {
+      final customerShipmentURL =
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.CustShipSvc/ShipDtls';
+      final CustShipresponse = await APIV2Helper.Post(customerShipmentURL,
+      basicAuth,
+        customerShipment.toJson(),
+        entity: "CustomerShipment",
+      );
+      if ((response.statusCode >=200 && response.statusCode<300) && CustShipresponse.statusCode >= 200&& CustShipresponse.statusCode<300) {
         debugPrint(response.body);
 
       } else {

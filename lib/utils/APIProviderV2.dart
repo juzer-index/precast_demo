@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -55,5 +57,28 @@ class APIV2Helper extends ChangeNotifier {
     }
   }
 
+
+
+  static  Future<http.Response> Post(String url,String auth,Map<String,dynamic> data ,{String entity="entity"}) async {
+    String JsonBody = json.encode(data);
+    var response = await http.post(Uri.parse(url),
+        headers: {
+          "accept": "application/json",
+
+          "Authorization": auth,
+          "Content-Type": "application/json"
+        },
+        body: JsonBody
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response;
+    }
+    else if (response.statusCode == 404) {
+      throw new NotFoundException(entity: entity);
+    }
+    else {
+      throw new Exception("Failed to load data" + response.statusCode.toString() + " " + response.body.toString() + " " + url + " " + auth + " " + json.encode(data));
+    }
+  }
 
 }

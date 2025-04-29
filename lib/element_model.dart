@@ -31,6 +31,8 @@ class ElementData {
   late bool CheckBox11;
   late bool CheckBox12;
   late bool CheckBox13;
+  late final String UOMClass;
+  late final String Revision;
 
   ElementData({required this.partId, required this.elementId, required this.elementDesc,  this.erectionSeq=0
     ,  this.erectionDate="", this.UOM="", this.weight=0,
@@ -55,6 +57,8 @@ class ElementData {
     this.CheckBox13=false,
   required this.Company,
      this.Key1="",
+    required this.UOMClass,
+     required this.Revision,
   });
 
 
@@ -89,6 +93,8 @@ class ElementData {
       CheckBox11: json['CheckBox11'] ?? false,
       CheckBox12: json['CheckBox12'] ?? false,
       CheckBox13: json['CheckBox13'] ?? false,
+      UOMClass: json['Character09'] ?? '',
+      Revision: json['Character08'] ?? '',
     );
   }
 
@@ -104,7 +110,8 @@ class ElementData {
       'Character02': elementId,
       'Character03': Warehouse,
       'Character04': fromBin,
-
+       'Character08':Revision,
+        'Character09':UOMClass,
 
       'ShortChar07': UOM,
       'Number01': selectedQty.toString(),

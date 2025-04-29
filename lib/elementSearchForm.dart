@@ -886,6 +886,8 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                   : '${specifyMaxChildKey() + 1}',
                               fromBin: fromBin.text,
                               Warehouse: widget.Warehouse,
+                              Revision: "", /// to be done
+                              UOMClass: "",
                             ));
                           });
                         }
