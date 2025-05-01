@@ -1953,10 +1953,28 @@ class _StockLoadingState extends State<StockLoading>
        RevisionNum: UD104AData.Revision,
         BinNum: UD104AData.fromBin,
         WarehouseCode: UD104AData.Warehouse,
-
-
        partNum: UD104AData.partId,
-        jobLotNum: UD104AData.elementId
+        LotNum: UD104AData.elementId,
+
+        IUM: "EA",
+        LineType: "PART",
+        InventoryShipUOM: "EA",
+        ShipToNum: context.read<ArchitectureProvider>().selectedShipment,
+        JobShipUOM: "EA",
+        MFCustNum: context.read<ArchitectureProvider>().custNum,
+        MFShipToNum: context.read<ArchitectureProvider>().selectedShipment,
+        OurReqUM: "EA",
+        OurShippedUM: "EA",
+        PartNumIUM: "EA",
+        PartNumSalesUM: "EA",
+        PartNumTrackLots: true,
+        ShipCmpl: true,
+        SalesUM: "EA",
+        SellingReqUM: "EA",
+        SellingShipmentUM: "EA",
+        SellingShippedUM: "EA",
+
+
 
 
       );
