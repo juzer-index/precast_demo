@@ -103,7 +103,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
           if (selectedItems.isNotEmpty) {
             // Perform action with selected items
             Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context)=>StockLoading(initialTabIndex: 1, isUpdate: false, LinesOriented: true,
+            MaterialPageRoute(builder: (context)=>StockLoading(initialTabIndex: 0, isUpdate: false, LinesOriented: true,
             passedElements: selectedItems.map((x) => ElementData(
               Company: context.read<tenantConfigProvider>().tenantConfig['company'].toString(),
              partId: x['PartLot_PartNum'].toString(),
@@ -252,7 +252,9 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                       child: Column(
                                         children: [
                                           IndexTable(
-                                            data: dynamicStructures.map((x) => DataRow(cells: [
+                                            data: dynamicStructures.map((x) => DataRow(
+                                                color: x['Calculated_Status'].toString() == "Shipped" ? const MaterialStatePropertyAll<Color>(Colors.deepOrange) : null,
+                                                cells: [
                                               DataCell(Checkbox(
 
                                                 value: x['checked'] ?? false,
@@ -270,6 +272,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                               DataCell(Text(x['OrderDtl_OrderNum'].toString())),
                                               DataCell(Text(x['Customer_Name'].toString())),
                                               DataCell(Text(x['Calculated_Status'].toString())),
+                                              DataCell(Text(x['PartLot_ErectionSequence_c'].toString())),
                                             ])).toList().sublist((page-1)*10,min((page*10), dynamicStructures.length) ),
                                             columns: [
                                               DataColumn(label: Text('Checked')),
@@ -280,6 +283,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                               DataColumn(label: Text('Sales Order')),
                                               DataColumn(label: Text('Customer Name')),
                                               DataColumn(label: Text('Status')),
+                                              DataColumn(label: Text('Erection Sequence')),
                                             ],
                                             onRowTap: (index) {
 
