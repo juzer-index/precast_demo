@@ -8,7 +8,14 @@ class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return AppBar(
+
+      leading: width>600?SizedBox(
+        width: 0,
+        height: 0,
+
+      ):null,
       backgroundColor: Theme.of(context).primaryColor,
       title: Center(
         child: Row(
