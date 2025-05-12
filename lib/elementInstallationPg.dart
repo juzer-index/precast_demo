@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'load_model.dart';
+import 'sideBarMenu.dart';
 import 'package:GoCastTrack/partTable.dart';
 import 'package:GoCastTrack/part_model.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -116,8 +117,25 @@ class _ElementInstallationState extends State<ElementInstallation> {
     }
   }
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -159,6 +177,7 @@ class _ElementInstallationState extends State<ElementInstallation> {
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
+          drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
           backgroundColor: Color(0xffF0F0F0),
           appBar: AppBar(
             backgroundColor: Theme.of(context).primaryColor,
@@ -184,8 +203,16 @@ class _ElementInstallationState extends State<ElementInstallation> {
                   ],
                 );
               }
-              return Padding(
-                padding: const EdgeInsets.all(16.0),
+              return Row(
+                  children: [
+              width > 600
+              ? SizedBox(
+              width: MediaQuery.of(context).size.width * 0.2,
+                child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+                : const SizedBox(),
+                            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
                 child: SingleChildScrollView(
                   child: Center(
                     child: Column(
@@ -311,6 +338,9 @@ class _ElementInstallationState extends State<ElementInstallation> {
                     ),
                   ),
                 ),
+              ),
+                            ),
+                          ],
               );
             },
           ),

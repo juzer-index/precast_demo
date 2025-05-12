@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'sideBarMenu.dart';
 import 'dart:math';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +12,8 @@ import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'detailsPage.dart';
 import 'Providers/tenantConfig.dart';
+import 'load_model.dart';
+
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];
 
@@ -286,17 +288,43 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
+    final width = MediaQuery.of(context).size.width;
 
     return projects.length > 0
+
         ? Scaffold(
             backgroundColor: Theme.of(context).shadowColor,
             appBar: const IndexAppBar(title: 'Element Tracker'),
-            body: Padding(
+            drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+            body: Row(
+              children: [
+              width > 600
+              ? SizedBox(
+              width: MediaQuery.of(context).size.width * 0.2,
+              child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+              : const SizedBox(),
+            Expanded(
+            child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -550,7 +578,10 @@ class _ElementMasterState extends State<ElementMaster> {
                 },
               ),
             ),
-          )
+          ),
+          ],
+        ),
+        )
         : Scaffold(
             backgroundColor: Theme.of(context).shadowColor,
             body: const Center(

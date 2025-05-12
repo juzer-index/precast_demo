@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'sideBarMenu.dart';
 
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
 
@@ -38,6 +39,7 @@ class StockLoading extends StatefulWidget {
   final bool isUpdate;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
+  dynamic tenantConfig;
   final String historyLoadID;
   late bool LinesOriented;
   late List<ElementData> passedElements;
@@ -240,9 +242,26 @@ class _StockLoadingState extends State<StockLoading>
     super.dispose();
   }
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
+    final width = MediaQuery.of(context).size.width;
+
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -291,6 +310,7 @@ class _StockLoadingState extends State<StockLoading>
         length: 3,
         initialIndex: widget.initialTabIndex,
         child: Scaffold(
+          drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
           backgroundColor: Color(0xffF0F0F0),
           appBar: AppBar(
             backgroundColor: Theme.of(context).primaryColor,
@@ -417,8 +437,16 @@ class _StockLoadingState extends State<StockLoading>
                         ],
                       );
                     }
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
+                    return Row(
+                        children: [
+                    width > 600
+                    ? SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+                        : const SizedBox(),
+                    Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
                       child: TabBarView(controller: _tabController, children: widget.LinesOriented?[
                         if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
                           SingleChildScrollView(
@@ -2424,9 +2452,12 @@ class _StockLoadingState extends State<StockLoading>
                         ),
                       ]
 
-                      ),
-                    );
-                  }),
+                              ),
+                    ),
+                  ),
+              ]);
+                }
+              ),
         ),
       ),
     );

@@ -13,6 +13,7 @@ import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
 import './Providers/ArchitectureProvider.dart';
 import 'DIspatchSchedule.dart';
+
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
   final dynamic tenantConfig;

@@ -2,6 +2,9 @@ import 'load_model.dart';
 import 'package:flutter/material.dart';
 import 'indexAppBar.dart';
 import 'stockLoadingPage.dart';
+import 'sideBarMenu.dart';
+import 'package:provider/provider.dart';
+import 'load_model.dart';
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
 
@@ -83,15 +86,42 @@ class LoadTableSource extends DataTableSource{
 }
 class _LoadHistoryState extends State<LoadHistory> {
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
   _LoadHistoryState() ;
   final GlobalKey<PaginatedDataTableState> dataTableKey = GlobalKey();
+
   @override
   // TODO: implement widget
   Widget build(BuildContext context){
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
-      body: Padding(
+        drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+        body: Row(
+            children: [
+        width > 600
+        ? SizedBox(
+        width: MediaQuery.of(context).size.width * 0.2,
+        child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+        : const SizedBox(),
+        Expanded(
+        child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -142,6 +172,9 @@ class _LoadHistoryState extends State<LoadHistory> {
         ),
 
       ),
+    ),
+      ],
+    ),
     );
   }
 }
