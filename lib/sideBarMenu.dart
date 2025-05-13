@@ -8,6 +8,8 @@ import './elementTracker.dart';
 import './stockLoadingPage.dart';
 import './elementInstallationPg.dart';
 import 'stockOffloadingPage.dart';
+import './dispatchSchedule.dart';
+
 Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData, dynamic tenantConfig) {
  final width = MediaQuery.of(context).size.width;
   return Drawer(
@@ -222,6 +224,20 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
                       builder: (context) =>  ElementInstallation(
                         tenantConfig: tenantConfig,
                       ),
+                    ),
+                  );
+                }),
+            ListTile(
+                leading: Icon(
+                  Icons.timelapse,
+                  color: Theme.of(context).primaryColor,
+                ),
+                title: const Text('Dispatch Schedule'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>  DispatchSchedule(),
                     ),
                   );
                 }),
