@@ -9,6 +9,7 @@ import './stockLoadingPage.dart';
 import './elementInstallationPg.dart';
 import 'stockOffloadingPage.dart';
 import './dispatchSchedule.dart';
+import 'homepage.dart';
 
 Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData, dynamic tenantConfig) {
  final width = MediaQuery.of(context).size.width;
@@ -146,6 +147,22 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
         //     ),
         //   ],
         // ),
+        ListTile(
+            leading: Icon(
+              Icons.home,
+              color: Theme.of(context).primaryColor,
+            ),
+            title: const Text('Home Page'),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => HomePage(
+
+                        tenantConfig: tenantConfig,
+                      )));
+              // Navigator.push(context, route);
+            }),
         ListTile(
             leading: Icon(
               Icons.history,

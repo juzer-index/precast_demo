@@ -21,7 +21,7 @@ class _ElementTableState extends State<ElementTable> {
         scrollDirection: Axis.vertical,
         child: DataTable(
           columns: const [
-            DataColumn(label: Text('Element ID')),
+            DataColumn(label: Text('Structure ID')),
             DataColumn(label: Text('Part Number')),
             DataColumn(label: Text('Erection Seq')),
             DataColumn(label: Text('Actions')),

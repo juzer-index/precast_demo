@@ -20,6 +20,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'PdfViewer.dart';
 import './sideBarMenu.dart';
+
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
   final dynamic tenantConfig;
@@ -198,6 +199,21 @@ class _StockOffloadingState extends State<StockOffloading>
       return loadObject;
     }
     return null;
+  }
+
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
   }
 
   Future<dynamic> fetchPDFCounts() async {
@@ -406,6 +422,8 @@ class _StockOffloadingState extends State<StockOffloading>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
         backgroundColor: Theme.of(context).shadowColor,
         appBar: AppBar(
@@ -426,897 +444,919 @@ class _StockOffloadingState extends State<StockOffloading>
               ],
             ),
           ),
-          actions: const [],
-          bottom: TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(
-                text: 'Header',
+          actions: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 20, 0),
+              child: IconButton(
+                icon: const Icon(Icons.home, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                },
               ),
-              Tab(
-                text: 'Details',
-              ),
-              Tab(
-                text: 'Review',
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
         body: isPrinting
             ? const Center(
                 child: CircularProgressIndicator(),
               )
-            : Row(
-              children: [
-                MediaQuery.of(context).size.width > 600
-                    ? SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.2,
-                        child: SideBarMenu(
-                            context, [], updateElementInformation, widget.tenantConfig))
-                    : const SizedBox(),
-                Expanded(
-                  child: Padding(
-                      padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
-                      child: TabBarView(controller: _tabController, children: [
-                        //Tab 1 Content
-                        SingleChildScrollView(
-                          child: Form(
-                            key: _formKey,
-                            child: Center(
-                              child: Column(children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Load Details',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: loadIDController,
-                                          decoration: InputDecoration(
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color:
-                                                      Theme.of(context).canvasColor),
-                                            ),
-                                            label: Text('Load ID'),
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () async {
-                                          await fetchLoadDataFromURL();
-                                          /*                                await fetchElementDataFromURL();
-                                          await fetchPartDataFromURL();*/
-                                          /*await fetchElementANDPartsDataFromURL();*/
-                                          String projectLoadID =
-                                              loadIDController.text;
-                                          offloadData =
-                                              getLoadObjectFromJson(projectLoadID);
-                                          /*                                getElementObjectFromJson(projectLoadID);
-                                          getPartObjectFromJson(projectLoadID);*/
-                                          if (offloadData != null) {
-                                            if (offloadData!.loadStatus == 'Closed') {
-                                              offloaded = true;
-                                              if (mounted) {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return AlertDialog(
-                                                      title: const Text('Warning'),
-                                                      content: const Text(
-                                                          'This Load has already been delivered'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.pop(context);
-                                                          },
-                                                          child: Text('Close',
-                                                              style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .canvasColor)),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  },
-                                                );
-                                              }
-                                            }
-                                            setState(() {
-                                              projectIDController.text =
-                                                  offloadData!.projectId;
-                                              loadDateController.text =
-                                                  offloadData!.loadDate;
-                                              toWarehouseController.text =
-                                                  offloadData!.toWarehouse;
-                                              toBinController.text =
-                                                  offloadData!.toBin;
-                                              loadTypeValue = offloadData!.loadType;
-                                              loadConditionValue =
-                                                  offloadData!.loadCondition;
-                                            });
-                                          } else {
-                                            if (mounted) {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Error'),
-                                                    content: const Text(
-                                                        'Load ID not found'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(context);
-                                                        },
-                                                        child: const Text('Close'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            }
-                                          }
-                                        },
-                                        icon: Icon(
-                                          Icons.search,
-                                          color: Theme.of(context).canvasColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    controller: projectIDController,
-                                    enabled: false,
-                                    decoration: InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context).canvasColor),
-                                      ),
-                                      label: Text('Project ID'),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    controller: loadDateController,
-                                    enabled: false,
-                                    decoration: InputDecoration(
-                                      fillColor: Colors.white,
-                                      filled: true,
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Theme.of(context).canvasColor),
-                                      ),
-                                      label: Text('Load Date'),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    controller: offloadDateController,
-                                    onTap: () async {
-                                      final DateTime? date = await showDatePicker(
-                                        builder:
-                                            (BuildContext context, Widget? child) {
-                                          return Theme(
-                                            data: ThemeData.light().copyWith(
-                                              colorScheme: ColorScheme.light(
-                                                primary:
-                                                    Theme.of(context).primaryColor,
-                                                background: Colors.white,
-                                                secondary:
-                                                    Theme.of(context).primaryColor,
-                                                outline: Colors.cyanAccent,
-                                              ),
-                                            ),
-                                            child: child!,
-                                          );
-                                        },
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime(2018),
-                                        lastDate: DateTime(2030),
-                                      );
-                                      if (date != null) {
-                                        setState(() {
-                                          offloadDateController.text =
-                                              "${date.day}/${date.month}/${date.year}";
-                                          _selectedDate =
-                                              DateFormat('yyyy-MM-dd').format(date);
-                                        });
-                                      }
-                                    },
-                                    decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "OffLoad Date"),
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextFormField(
-                                          controller: toWarehouseController,
-                                          enabled: false,
-                                          decoration: InputDecoration(
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color:
-                                                      Theme.of(context).canvasColor),
-                                            ),
-                                            label: Text('To Warehouse'),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextFormField(
-                                          controller: toBinController,
-                                          enabled: false,
-                                          decoration: InputDecoration(
-                                            fillColor: Colors.white,
-                                            filled: true,
-                                            border: OutlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color:
-                                                      Theme.of(context).canvasColor),
-                                            ),
-                                            label: Text('To Bin'),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(children: [
-                                          Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Load Type',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                  color:
-                                                      Theme.of(context).canvasColor),
-                                            ),
-                                          ),
-                                          AbsorbPointer(
-                                            child: RadioListTile(
-                                              title: Text('Return Trip',
-                                                  style: TextStyle(
-                                                    fontSize: MediaQuery.of(context)
-                                                            .size
-                                                            .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Return',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue = value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          AbsorbPointer(
-                                            child: RadioListTile(
-                                              title: Text('Delivery Trip',
-                                                  style: TextStyle(
-                                                    fontSize: MediaQuery.of(context)
-                                                            .size
-                                                            .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Issue Load',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue = value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                        ]),
-                                      ),
-                                      Expanded(
-                                        child: Column(children: [
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Load Condition',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                  color:
-                                                      Theme.of(context).canvasColor),
-                                            ),
-                                          ),
-                                          AbsorbPointer(
-                                            child: RadioListTile(
-                                              title: Text('External',
-                                                  style: TextStyle(
-                                                    fontSize: MediaQuery.of(context)
-                                                            .size
-                                                            .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'External',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          AbsorbPointer(
-                                            child: RadioListTile(
-                                              title: Text('Internal',
-                                                  style: TextStyle(
-                                                    fontSize: MediaQuery.of(context)
-                                                            .size
-                                                            .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Internal Truck',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                          AbsorbPointer(
-                                            child: RadioListTile(
-                                              title: Text('Ex-Factory',
-                                                  style: TextStyle(
-                                                    fontSize: MediaQuery.of(context)
-                                                            .size
-                                                            .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Ex-Factory',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                          )
-                                        ]),
-                                      ),
-                                    ]),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Truck Details',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                TruckDetailsForm(
-                                  isEdit: false,
-                                  truckDetails: offloadData,
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _tabController.animateTo(1);
-                                    });
-                                  },
-                                  child: const Text('Next'),
-                                ),
-                              ]),
-                            ),
-                          ),
+            : Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (width > 600)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.2,
+                          child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
                         ),
-                        //Tab 2 Content
-                        SingleChildScrollView(
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Verify Elements',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).canvasColor),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).indicatorColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: ElementSearchForm(
-                                          onElementsSelected:
-                                              updateElementInformation,
-                                          arrivedElements: arrivedElements,
-                                          isOffloading: true,
-                                          AddElement: (ElementData) => {},
-                                          tenantConfig: widget.tenantConfig,
-                                          isInstalling: false,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Arrived Elements',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Container(
+                              color: Theme.of(context).primaryColor,
+                              child: TabBar(
+                                controller: _tabController,
+                                tabs: const [
+                                  Tab(
+                                    text: 'Header',
                                   ),
-                                ),
-                                ElementTable(selectedElements: selectedElements),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  'Arrived Parts',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                                PartTable(selectedParts: arrivedParts),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _tabController.animateTo(2);
-                                    });
-                                  },
-                                  child: const Text('Next'),
-                                )
-                              ]),
-                        ),
-                        //Tab 3 Content
-                        SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Review',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: loadIDController,
-                                  enabled: false,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                    label: Text('Load ID'),
+                                  Tab(
+                                    text: 'Details',
                                   ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: projectIDController,
-                                  enabled: false,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                    label: Text('Project ID'),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: loadDateController,
-                                  enabled: false,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                    label: Text('Load Date'),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: TextFormField(
-                                  controller: offloadDateController,
-                                  enabled: false,
-                                  decoration: InputDecoration(
-                                    fillColor: Colors.white,
-                                    filled: true,
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                    label: Text('Offload Date'),
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        controller: toWarehouseController,
-                                        enabled: false,
-                                        decoration: InputDecoration(
-                                          fillColor: Colors.white,
-                                          filled: true,
-                                          border: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Theme.of(context).canvasColor),
-                                          ),
-                                          label: Text('To Warehouse'),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        controller: toBinController,
-                                        enabled: false,
-                                        decoration: InputDecoration(
-                                          fillColor: Colors.white,
-                                          filled: true,
-                                          border: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Theme.of(context).canvasColor),
-                                          ),
-                                          label: Text('To Bin'),
-                                        ),
-                                      ),
-                                    ),
+                                  Tab(
+                                    text: 'Review',
                                   ),
                                 ],
                               ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Truck Details',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                              ),
-                              TruckDetailsForm(
-                                isEdit: false,
-                                truckDetails: offloadData,
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                'Arrived Elements',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Theme.of(context).canvasColor),
-                              ),
-                              ElementTable(selectedElements: selectedElements),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                'Arrived Parts',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Theme.of(context).canvasColor),
-                              ),
-                              PartTable(selectedParts: arrivedParts),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              offloaded
-                                  ? ElevatedButton(
-                                      onPressed: () async {
-                                        setState(() {
-                                          isPrinting = true;
-                                        });
-                                        fetchPDFCounts().then((count) {
-                                          if (count != null && count.isNotEmpty) {
-                                            setState(() {
-                                              pdfCount = count[0]['Calculated_Count']??0;
-                                            });
-                                          }
-                                          submitReport().then((value) async {
-                                            if (value != false) {
-                                              for (int i = 0; i < 3; i++) {
-                                                await Future.delayed(
-                                                    const Duration(seconds: 2));
-                                                var updatedCounts =
-                                                    await fetchPDFCounts();
-                                                if (updatedCounts != null &&
-                                                    updatedCounts[0]
-                                                            ['Calculated_Count'] >
-                                                        pdfCount) {
-                                                  setState(() {
-                                                    isPrinting = false;
-                                                  });
-                                                  if (mounted) {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) => PdfViewerPage(
-                                                                filePath:
-                                                                    'DeliveryNote${loadIDController.text}.pdf',
-                                                                generatePdf: deliveryNote(
-                                                                    updatedCounts[0][
-                                                                        'SysRptLst1_RptData']))));
-                                                  }
-                                                  break; // Exit the loop if condition is met
-                                                }
-                                                if (i == 2) {
-                                                  isPrinting = false;
-                                                  if (mounted) {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (context) {
-                                                        return AlertDialog(
-                                                          title: const Text('Error'),
-                                                          content: const Text(
-                                                              'Failed to Generate Delivery Note'),
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.pop(
-                                                                    context);
+                            ),
+                            Expanded(
+                              child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
+                                  child: TabBarView(controller: _tabController, children: [
+                                    //Tab 1 Content
+                                    SingleChildScrollView(
+                                      child: Form(
+                                        key: _formKey,
+                                        child: Center(
+                                          child: Column(children: [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Load Details',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context).canvasColor),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: TextFormField(
+                                                      controller: loadIDController,
+                                                      decoration: InputDecoration(
+                                                        fillColor: Colors.white,
+                                                        filled: true,
+                                                        border: OutlineInputBorder(
+                                                          borderSide: BorderSide(
+                                                              color:
+                                                                  Theme.of(context).canvasColor),
+                                                        ),
+                                                        label: Text('Load ID'),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  IconButton(
+                                                    onPressed: () async {
+                                                      await fetchLoadDataFromURL();
+                                                      /*                                await fetchElementDataFromURL();
+                                                      await fetchPartDataFromURL();*/
+                                                      /*await fetchElementANDPartsDataFromURL();*/
+                                                      String projectLoadID =
+                                                          loadIDController.text;
+                                                      offloadData =
+                                                          getLoadObjectFromJson(projectLoadID);
+                                                      /*                                getElementObjectFromJson(projectLoadID);
+                                                      getPartObjectFromJson(projectLoadID);*/
+                                                      if (offloadData != null) {
+                                                        if (offloadData!.loadStatus == 'Closed') {
+                                                          offloaded = true;
+                                                          if (mounted) {
+                                                            showDialog(
+                                                              context: context,
+                                                              builder: (context) {
+                                                                return AlertDialog(
+                                                                  title: const Text('Warning'),
+                                                                  content: const Text(
+                                                                      'This Load has already been delivered'),
+                                                                  actions: [
+                                                                    TextButton(
+                                                                      onPressed: () {
+                                                                        Navigator.pop(context);
+                                                                      },
+                                                                      child: Text('Close',
+                                                                          style: TextStyle(
+                                                                              color: Theme.of(
+                                                                                      context)
+                                                                                  .canvasColor)),
+                                                                    ),
+                                                                  ],
+                                                                );
                                                               },
-                                                              child: Text('Close',
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                              context)
-                                                                          .canvasColor)),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    );
+                                                            );
+                                                          }
+                                                        }
+                                                        setState(() {
+                                                          projectIDController.text =
+                                                              offloadData!.projectId;
+                                                          loadDateController.text =
+                                                              offloadData!.loadDate;
+                                                          toWarehouseController.text =
+                                                              offloadData!.toWarehouse;
+                                                          toBinController.text =
+                                                              offloadData!.toBin;
+                                                          loadTypeValue = offloadData!.loadType;
+                                                          loadConditionValue =
+                                                              offloadData!.loadCondition;
+                                                        });
+                                                      } else {
+                                                        if (mounted) {
+                                                          showDialog(
+                                                            context: context,
+                                                            builder: (context) {
+                                                              return AlertDialog(
+                                                                title: const Text('Error'),
+                                                                content: const Text(
+                                                                    'Load ID not found'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                    onPressed: () {
+                                                                      Navigator.pop(context);
+                                                                    },
+                                                                    child: const Text('Close'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        }
+                                                      }
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.search,
+                                                      color: Theme.of(context).canvasColor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: projectIDController,
+                                                enabled: false,
+                                                decoration: InputDecoration(
+                                                  fillColor: Colors.white,
+                                                  filled: true,
+                                                  border: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Theme.of(context).canvasColor),
+                                                  ),
+                                                  label: Text('Project ID'),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: loadDateController,
+                                                enabled: false,
+                                                decoration: InputDecoration(
+                                                  fillColor: Colors.white,
+                                                  filled: true,
+                                                  border: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                        color: Theme.of(context).canvasColor),
+                                                  ),
+                                                  label: Text('Load Date'),
+                                                ),
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: offloadDateController,
+                                                onTap: () async {
+                                                  final DateTime? date = await showDatePicker(
+                                                    builder:
+                                                        (BuildContext context, Widget? child) {
+                                                      return Theme(
+                                                        data: ThemeData.light().copyWith(
+                                                          colorScheme: ColorScheme.light(
+                                                            primary:
+                                                                Theme.of(context).primaryColor,
+                                                            background: Colors.white,
+                                                            secondary:
+                                                                Theme.of(context).primaryColor,
+                                                            outline: Colors.cyanAccent,
+                                                          ),
+                                                        ),
+                                                        child: child!,
+                                                      );
+                                                    },
+                                                    context: context,
+                                                    initialDate: DateTime.now(),
+                                                    firstDate: DateTime(2018),
+                                                    lastDate: DateTime(2030),
+                                                  );
+                                                  if (date != null) {
+                                                    setState(() {
+                                                      offloadDateController.text =
+                                                          "${date.day}/${date.month}/${date.year}";
+                                                      _selectedDate =
+                                                          DateFormat('yyyy-MM-dd').format(date);
+                                                    });
                                                   }
-                                                }
-                                              }
-                                            }
-                                          });
-                                        });
-                                      },
-                                      child: const Text('Generate Delivery Note'))
-                                  : ElevatedButton(
-                                      onPressed: () async {
-                                        if (offloadData!.loadStatus == 'Closed') {
-                                          null;
-                                        }
-                                        setState(() {
-                                          loadStatus = 'Closed';
-                                        });
-                                        if (offloadData!.loadStatus == 'Closed') {
-                                          if (mounted) {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text(
-                                                      'Load Already Offloaded'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Close',
+                                                },
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "OffLoad Date"),
+                                              ),
+                                            ),
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: TextFormField(
+                                                      controller: toWarehouseController,
+                                                      enabled: false,
+                                                      decoration: InputDecoration(
+                                                        fillColor: Colors.white,
+                                                        filled: true,
+                                                        border: OutlineInputBorder(
+                                                          borderSide: BorderSide(
+                                                              color:
+                                                                  Theme.of(context).canvasColor),
+                                                        ),
+                                                        label: Text('To Warehouse'),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: TextFormField(
+                                                      controller: toBinController,
+                                                      enabled: false,
+                                                      decoration: InputDecoration(
+                                                        fillColor: Colors.white,
+                                                        filled: true,
+                                                        border: OutlineInputBorder(
+                                                          borderSide: BorderSide(
+                                                              color:
+                                                                  Theme.of(context).canvasColor),
+                                                        ),
+                                                        label: Text('To Bin'),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Column(children: [
+                                                      Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text(
+                                                          'Load Type',
                                                           style: TextStyle(
-                                                              color: Theme.of(context)
-                                                                  .canvasColor)),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        } else {
-                                          final loadDateFormat =
-                                              DateFormat("yyyy-MM-dd'T'HH:mm:ss")
-                                                  .format(DateTime.now());
-                                          debugPrint(selectedElements.toString());
-                                          for (var v = 0;
-                                              v < selectedElements.length;
-                                              v++) {
-                                            await updateUD104A({
-                                              "CheckBox01": true,
-                                              "CheckBox02": true,
-                                              "CheckBox03": false,
-                                              "CheckBox05": false,
-                                              "Date02": loadDateFormat,
-                                            }, selectedElements[v].ChildKey1);
-                                            await updateStatusOnSite(
-                                                selectedElements[v].partId,
-                                                selectedElements[v].elementId);
-                                            debugPrint(selectedElements[v].elementId);
-                                          }
-                                          for (var v = 0;
-                                              v < arrivedParts.length;
-                                              v++) {
-                                            await updateUD104A({
-                                              "Key1": loadIDController.text,
-                                              "Character01": arrivedParts[v].partNum,
-                                              "Company":
-                                                  '${widget.tenantConfig['company']}',
-                                              "CheckBox01": true,
-                                              "CheckBox02": false,
-                                              "CheckBox03": false,
-                                              "CheckBox05": false,
-                                            }, "1");
-
-                                            debugPrint(arrivedParts[v].partNum);
-                                          }
-                                          await updateLoadStatus({
-                                            "Key1": loadIDController.text,
-                                            "Company": widget.tenantConfig['company'],
-                                            "ShortChar03": loadStatus,
-                                          });
-                                        }
-                                        if (loaded /*&& elementsAndPartsLoaded*/) {
-                                          if (mounted) {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('Success'),
-                                                  content:
-                                                      const Text('Load Offloaded'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: const Text('Close'),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        }
-                                        if (loaded && !elementsAndPartsLoaded) {
-                                          setState(() {
-                                            offloaded = true;
-                                          });
-                                          if (mounted) {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('warning'),
-                                                  content: const Text(
-                                                      'Some Elements and Parts could not be offloaded'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Close',
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                              color:
+                                                                  Theme.of(context).canvasColor),
+                                                        ),
+                                                      ),
+                                                      AbsorbPointer(
+                                                        child: RadioListTile(
+                                                          title: Text('Return Trip',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.022,
+                                                              )),
+                                                          value: 'Return',
+                                                          groupValue: loadTypeValue,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              loadTypeValue = value.toString();
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                      AbsorbPointer(
+                                                        child: RadioListTile(
+                                                          title: Text('Delivery Trip',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.022,
+                                                              )),
+                                                          value: 'Issue Load',
+                                                          groupValue: loadTypeValue,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              loadTypeValue = value.toString();
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ]),
+                                                  ),
+                                                  Expanded(
+                                                    child: Column(children: [
+                                                      Padding(
+                                                        padding: const EdgeInsets.all(8.0),
+                                                        child: Text(
+                                                          'Load Condition',
                                                           style: TextStyle(
-                                                              color: Theme.of(context)
-                                                                  .canvasColor)),
-                                                    ),
-                                                  ],
-                                                );
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                              color:
+                                                                  Theme.of(context).canvasColor),
+                                                        ),
+                                                      ),
+                                                      AbsorbPointer(
+                                                        child: RadioListTile(
+                                                          title: Text('External',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.022,
+                                                              )),
+                                                          value: 'External',
+                                                          groupValue: loadConditionValue,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              loadConditionValue =
+                                                                  value.toString();
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                      AbsorbPointer(
+                                                        child: RadioListTile(
+                                                          title: Text('Internal',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.022,
+                                                              )),
+                                                          value: 'Internal Truck',
+                                                          groupValue: loadConditionValue,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              loadConditionValue =
+                                                                  value.toString();
+                                                            });
+                                                          },
+                                                        ),
+                                                      ),
+                                                      AbsorbPointer(
+                                                        child: RadioListTile(
+                                                          title: Text('Ex-Factory',
+                                                              style: TextStyle(
+                                                                fontSize: MediaQuery.of(context)
+                                                                        .size
+                                                                        .height *
+                                                                    0.022,
+                                                              )),
+                                                          value: 'Ex-Factory',
+                                                          groupValue: loadConditionValue,
+                                                          onChanged: (value) {
+                                                            setState(() {
+                                                              loadConditionValue =
+                                                                  value.toString();
+                                                            });
+                                                          },
+                                                        ),
+                                                      )
+                                                    ]),
+                                                  ),
+                                                ]),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Truck Details',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context).canvasColor),
+                                              ),
+                                            ),
+                                            TruckDetailsForm(
+                                              isEdit: false,
+                                              truckDetails: offloadData,
+                                            ),
+                                            const SizedBox(
+                                              height: 20,
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _tabController.animateTo(1);
+                                                });
                                               },
-                                            );
-                                          }
-                                        }
-                                        if (!loaded /*&& !elementsAndPartsLoaded*/) {
-                                          if (mounted) {
-                                            showDialog(
-                                              context: context,
-                                              builder: (context) {
-                                                return AlertDialog(
-                                                  title: const Text('Error'),
-                                                  content: const Text(
-                                                      'Load could not be offloaded'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () {
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text('Close',
-                                                          style: TextStyle(
-                                                              color: Theme.of(context)
-                                                                  .canvasColor)),
-                                                    ),
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: const Text('Offload Items'),
+                                              child: const Text('Next'),
+                                            ),
+                                          ]),
+                                        ),
+                                      ),
                                     ),
-                            ],
-                          ),
+                                    //Tab 2 Content
+                                    SingleChildScrollView(
+                                      child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Column(
+                                              children: [
+                                                Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    'Verify Elements',
+                                                    style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 18,
+                                                        color: Theme.of(context).canvasColor),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 10,
+                                                ),
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Theme.of(context).indicatorColor,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(8.0),
+                                                    child: ElementSearchForm(
+                                                      onElementsSelected:
+                                                          updateElementInformation,
+                                                      arrivedElements: arrivedElements,
+                                                      isOffloading: true,
+                                                      AddElement: (ElementData) => {},
+                                                      tenantConfig: widget.tenantConfig,
+                                                      isInstalling: false,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                              ],
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Arrived Elements',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context).canvasColor),
+                                              ),
+                                            ),
+                                            ElementTable(selectedElements: selectedElements),
+                                            const SizedBox(
+                                              height: 20,
+                                            ),
+                                            Text(
+                                              'Arrived Consumables',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: Theme.of(context).canvasColor),
+                                            ),
+                                            PartTable(selectedParts: arrivedParts),
+                                            const SizedBox(
+                                              height: 20,
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _tabController.animateTo(2);
+                                                });
+                                              },
+                                              child: const Text('Next'),
+                                            )
+                                          ]),
+                                    ),
+                                    //Tab 3 Content
+                                    SingleChildScrollView(
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Review',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: Theme.of(context).canvasColor),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: loadIDController,
+                                              enabled: false,
+                                              decoration: InputDecoration(
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context).canvasColor),
+                                                ),
+                                                label: Text('Load ID'),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: projectIDController,
+                                              enabled: false,
+                                              decoration: InputDecoration(
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context).canvasColor),
+                                                ),
+                                                label: Text('Project ID'),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: loadDateController,
+                                              enabled: false,
+                                              decoration: InputDecoration(
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context).canvasColor),
+                                                ),
+                                                label: Text('Load Date'),
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: offloadDateController,
+                                              enabled: false,
+                                              decoration: InputDecoration(
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                                border: OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Theme.of(context).canvasColor),
+                                                ),
+                                                label: Text('Offload Date'),
+                                              ),
+                                            ),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: TextFormField(
+                                                    controller: toWarehouseController,
+                                                    enabled: false,
+                                                    decoration: InputDecoration(
+                                                      fillColor: Colors.white,
+                                                      filled: true,
+                                                      border: OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Theme.of(context).canvasColor),
+                                                      ),
+                                                      label: Text('To Warehouse'),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: TextFormField(
+                                                    controller: toBinController,
+                                                    enabled: false,
+                                                    decoration: InputDecoration(
+                                                      fillColor: Colors.white,
+                                                      filled: true,
+                                                      border: OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                            color: Theme.of(context).canvasColor),
+                                                      ),
+                                                      label: Text('To Bin'),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Truck Details',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: Theme.of(context).canvasColor),
+                                            ),
+                                          ),
+                                          TruckDetailsForm(
+                                            isEdit: false,
+                                            truckDetails: offloadData,
+                                          ),
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                          Text(
+                                            'Arrived Elements',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Theme.of(context).canvasColor),
+                                          ),
+                                          ElementTable(selectedElements: selectedElements),
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                          Text(
+                                            'Arrived Consumables',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18,
+                                                color: Theme.of(context).canvasColor),
+                                          ),
+                                          PartTable(selectedParts: arrivedParts),
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                          offloaded
+                                              ? ElevatedButton(
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      isPrinting = true;
+                                                    });
+                                                    fetchPDFCounts().then((count) {
+                                                      if (count != null && count.isNotEmpty) {
+                                                        setState(() {
+                                                          pdfCount = count[0]['Calculated_Count']??0;
+                                                        });
+                                                      }
+                                                      submitReport().then((value) async {
+                                                        if (value != false) {
+                                                          for (int i = 0; i < 3; i++) {
+                                                            await Future.delayed(
+                                                                const Duration(seconds: 2));
+                                                            var updatedCounts =
+                                                                await fetchPDFCounts();
+                                                            if (updatedCounts != null &&
+                                                                updatedCounts[0]
+                                                                        ['Calculated_Count'] >
+                                                                    pdfCount) {
+                                                              setState(() {
+                                                                isPrinting = false;
+                                                              });
+                                                              if (mounted) {
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder: (context) => PdfViewerPage(
+                                                                            filePath:
+                                                                                'DeliveryNote${loadIDController.text}.pdf',
+                                                                            generatePdf: deliveryNote(
+                                                                                updatedCounts[0][
+                                                                                    'SysRptLst1_RptData']))));
+                                                              }
+                                                              break; // Exit the loop if condition is met
+                                                            }
+                                                            if (i == 2) {
+                                                              isPrinting = false;
+                                                              if (mounted) {
+                                                                showDialog(
+                                                                  context: context,
+                                                                  builder: (context) {
+                                                                    return AlertDialog(
+                                                                      title: const Text('Error'),
+                                                                      content: const Text(
+                                                                          'Failed to Generate Delivery Note'),
+                                                                      actions: [
+                                                                        TextButton(
+                                                                          onPressed: () {
+                                                                            Navigator.pop(
+                                                                                context);
+                                                                          },
+                                                                          child: Text('Close',
+                                                                              style: TextStyle(
+                                                                                  color: Theme.of(
+                                                                                          context)
+                                                                                      .canvasColor)),
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      });
+                                                    });
+                                                  },
+                                                  child: const Text('Generate Delivery Note'))
+                                              : ElevatedButton(
+                                                  onPressed: () async {
+                                                    if (offloadData!.loadStatus == 'Closed') {
+                                                      null;
+                                                    }
+                                                    setState(() {
+                                                      loadStatus = 'Closed';
+                                                    });
+                                                    if (offloadData!.loadStatus == 'Closed') {
+                                                      if (mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Error'),
+                                                              content: const Text(
+                                                                  'Load Already Offloaded'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  child: Text('Close',
+                                                                      style: TextStyle(
+                                                                          color: Theme.of(context)
+                                                                              .canvasColor)),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    } else {
+                                                      final loadDateFormat =
+                                                          DateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                                                              .format(DateTime.now());
+                                                      debugPrint(selectedElements.toString());
+                                                      for (var v = 0;
+                                                          v < selectedElements.length;
+                                                          v++) {
+                                                        await updateUD104A({
+                                                          "CheckBox01": true,
+                                                          "CheckBox02": true,
+                                                          "CheckBox03": false,
+                                                          "CheckBox05": false,
+                                                          "Date02": loadDateFormat,
+                                                        }, selectedElements[v].ChildKey1);
+                                                        await updateStatusOnSite(
+                                                            selectedElements[v].partId,
+                                                            selectedElements[v].elementId);
+                                                        debugPrint(selectedElements[v].elementId);
+                                                      }
+                                                      for (var v = 0;
+                                                          v < arrivedParts.length;
+                                                          v++) {
+                                                        await updateUD104A({
+                                                          "Key1": loadIDController.text,
+                                                          "Character01": arrivedParts[v].partNum,
+                                                          "Company":
+                                                              '${widget.tenantConfig['company']}',
+                                                          "CheckBox01": true,
+                                                          "CheckBox02": false,
+                                                          "CheckBox03": false,
+                                                          "CheckBox05": false,
+                                                        }, "1");
+
+                                                        debugPrint(arrivedParts[v].partNum);
+                                                      }
+                                                      await updateLoadStatus({
+                                                        "Key1": loadIDController.text,
+                                                        "Company": widget.tenantConfig['company'],
+                                                        "ShortChar03": loadStatus,
+                                                      });
+                                                    }
+                                                    if (loaded /*&& elementsAndPartsLoaded*/) {
+                                                      if (mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Success'),
+                                                              content:
+                                                                  const Text('Load Offloaded'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  child: const Text('Close'),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
+                                                    if (loaded && !elementsAndPartsLoaded) {
+                                                      setState(() {
+                                                        offloaded = true;
+                                                      });
+                                                      if (mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('warning'),
+                                                              content: const Text(
+                                                                  'Some Elements and Parts could not be offloaded'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  child: Text('Close',
+                                                                      style: TextStyle(
+                                                                          color: Theme.of(context)
+                                                                              .canvasColor)),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
+                                                    if (!loaded /*&& !elementsAndPartsLoaded*/) {
+                                                      if (mounted) {
+                                                        showDialog(
+                                                          context: context,
+                                                          builder: (context) {
+                                                            return AlertDialog(
+                                                              title: const Text('Error'),
+                                                              content: const Text(
+                                                                  'Load could not be offloaded'),
+                                                              actions: [
+                                                                TextButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  child: Text('Close',
+                                                                      style: TextStyle(
+                                                                          color: Theme.of(context)
+                                                                              .canvasColor)),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      }
+                                                    }
+                                                  },
+                                                  child: const Text('Offload Items'),
+                                                ),
+                                        ],
+                                      ),
+                                    ),
+                                  ])),
+                            ),
+                          ],
                         ),
-                      ])),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ));
+            );
   }
 }

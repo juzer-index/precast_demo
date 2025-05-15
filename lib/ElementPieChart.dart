@@ -97,97 +97,121 @@ class _ElementPieChartState extends State<ElementPieChart>{
           Row(
  mainAxisAlignment:width>600? MainAxisAlignment.start: MainAxisAlignment.center,
             children: [Expanded(
-              child: ExpansionTile(
-                initiallyExpanded: true,
-                title: Text('Structure Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                children:[ Row(
-                  mainAxisAlignment:width>900? MainAxisAlignment.spaceAround:MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Card(
-                        elevation: 3,
-                        color:Theme.of(context).indicatorColor ,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+              child: Row(
+                mainAxisAlignment:width>900? MainAxisAlignment.spaceAround:MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Card(
+                      elevation: 3,
+                      color:Theme.of(context).indicatorColor ,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Text('Pie Chart',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
 
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(left: 20),
-                                    child: SizedBox(
-                                      height:150,
-                                      width: 150,
-                                      child:PieChart(
-                                        PieChartData(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  margin: EdgeInsets.only(left: 20),
+                                  child: SizedBox(
+                                    height:150,
+                                    width: 150,
+                                    child:PieChart(
+                                      PieChartData(
 
-                                            sections: status.map((section) =>
-                                                PieChartSectionData(
-                                                  color: widget.colorMap[section["PartLot_ElementStatus_c"]],
-                                                  value:  section['Calculated_NO'].toDouble(),
-                                                  title:"",
-                                                  radius: 20,
-                                                )
-                                            ).toList(
-                                            )),
-                                      ) ,
-                                    ),
-                                  ),
-                                  if(width>600)Container(
-                                    height: 200,
-                                    width: 400,
-                                    margin: EdgeInsets.only(left: 20),
-                                    child: BarChart(
-                                      BarChartData(
-
-                                        barGroups: status.asMap().entries.map((entry) {
-                                          int index = entry.key;
-                                          var section = entry.value;
-                                          return BarChartGroupData(
-                                            x: index,
-                                            barRods: [
-                                              BarChartRodData(
-                                                toY: section['Calculated_NO'].toDouble(),
+                                          sections: status.map((section) =>
+                                              PieChartSectionData(
                                                 color: widget.colorMap[section["PartLot_ElementStatus_c"]],
-                                                width: 20,
-                                                borderRadius: BorderRadius.circular(5),
-                                              ),
-                                            ],
-                                          );
-                                        }).toList(),
-                                        titlesData: FlTitlesData(
-                                          bottomTitles: AxisTitles(
-                                            sideTitles: SideTitles(
-                                              showTitles: true,
-                                              getTitlesWidget: (value, meta) {
-                                                final index = value.toInt();
-                                                if (index < status.length) {
-                                                  final label = status[index]['PartLot_ElementStatus_c'];
-                                                  return Text(label, style: TextStyle(fontSize: 10));
-                                                }
-                                                return const SizedBox.shrink();
-                                              },
-                                            ),
-                                          ),
-                                        ),
-
-                                      ),
-                                    ),
+                                                value:  section['Calculated_NO'].toDouble(),
+                                                title:"",
+                                                radius: 20,
+                                              )
+                                          ).toList(
+                                          )),
+                                    ) ,
                                   ),
-                                  Legend(),
-                                ],
-                              ),
-                            ],
-                          ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                                  child: Legend(),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),]
+
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Card(
+                      elevation: 3,
+                      color:Theme.of(context).indicatorColor ,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Text('Bar Chart',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if(width>600)Container(
+                                  height: 200,
+                                  width: 400,
+                                  margin: EdgeInsets.only(left: 20),
+                                  child: BarChart(
+                                    BarChartData(
+
+                                      barGroups: status.asMap().entries.map((entry) {
+                                        int index = entry.key;
+                                        var section = entry.value;
+                                        return BarChartGroupData(
+                                          x: index,
+                                          barRods: [
+                                            BarChartRodData(
+                                              toY: section['Calculated_NO'].toDouble(),
+                                              color: widget.colorMap[section["PartLot_ElementStatus_c"]],
+                                              width: 20,
+                                              borderRadius: BorderRadius.circular(5),
+                                            ),
+                                          ],
+                                        );
+                                      }).toList(),
+                                      titlesData: FlTitlesData(
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            getTitlesWidget: (value, meta) {
+                                              final index = value.toInt();
+                                              if (index < status.length) {
+                                                final label = status[index]['PartLot_ElementStatus_c'];
+                                                return Text(label, style: TextStyle(fontSize: 10));
+                                              }
+                                              return const SizedBox.shrink();
+                                            },
+                                          ),
+                                        ),
+                                      ),
+
+                                    ),
+                                  ),
+                                ),
+                                Legend(),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  ),
+
+                ],
               ),
             )],
           )

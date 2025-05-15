@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'indexAppBar.dart';
 import 'load_model.dart';
 import 'sideBarMenu.dart';
 import 'package:GoCastTrack/partTable.dart';
@@ -179,15 +180,9 @@ class _ElementInstallationState extends State<ElementInstallation> {
         child: Scaffold(
           drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
           backgroundColor: Color(0xffF0F0F0),
-          appBar: AppBar(
-            backgroundColor: Theme.of(context).primaryColor,
-            title: Center(
-              child: Text(
-                'Element Installation',
-                style: TextStyle(color: Colors.white),
+          appBar: IndexAppBar(
+            title: ('Element Installation'),
               ),
-            ),
-          ),
           body: FutureBuilder(
             future: dataLoaded,
             builder: (context, snapshot) {

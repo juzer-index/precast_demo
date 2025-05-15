@@ -13,8 +13,13 @@ import 'Models/NotFoundException.dart';
 import './Widgets/SearchBar.dart';
 import 'Widgets/SalesOrderPop.dart';
 import 'dart:math';
+import 'sideBarMenu.dart';
+import 'load_model.dart';
+import 'indexAppBar.dart';
+
 class DispatchSchedule extends StatefulWidget {
-  const DispatchSchedule({Key? key}) : super(key: key);
+  dynamic tenantConfig;
+
 
   @override
   _DispatchScheduleState createState() => _DispatchScheduleState();
@@ -75,6 +80,22 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
     }
   }
 
+
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -96,6 +117,9 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
       getData(value);
     }
     return Scaffold(
+      drawer: width > 600
+          ? null
+          : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Handle floating action button press
@@ -137,219 +161,231 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
          label: const Text('Create Load'),
 
       ),
-      appBar: AppBar(
-        title: const Text('Dispatch Schedule'),
+      appBar: IndexAppBar(
+        title: ('Dispatch Schedule'),
       ),
       body:
            Container(
         color: Theme.of(context).shadowColor,
-        child: SingleChildScrollView(
-          child: Column(
+        child: Row(
+          children: [
+            width > 600
+                ? SizedBox(
+                width: MediaQuery.of(context).size.width * 0.2,
+                child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+                : const SizedBox(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
 
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                  child: IndexSearchBar(
-                    entity: "S.O",
-                    onSearch:  (String term) async {
-                      setState(() {
-                        isLoading = true;
-                        _salesOrderController.text= term;
-                      });
-                      try {
-                        var data = await APIV2Helper.getResults(
-                            '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                                '/v2/odata/${tenantConfig['company']}/BaqSvc/IIT_DispatchSchedule/Data?OrderNum=${term}',
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                        child: IndexSearchBar(
+                          entity: "S.O",
+                          onSearch:  (String term) async {
+                            setState(() {
+                              isLoading = true;
+                              _salesOrderController.text= term;
+                            });
+                            try {
+                              var data = await APIV2Helper.getResults(
+                                  '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
+                                      '/v2/odata/${tenantConfig['company']}/BaqSvc/IIT_DispatchSchedule/Data?OrderNum=${term}',
 
-                            {"username": context
-                                .read<tenantConfigProvider>()
-                                .tenantConfig['userID'],
-                              "password": context
-                                  .read<tenantConfigProvider>()
-                                  .tenantConfig['password']}
-                            , entity: "Sales Order");
-                        if(data.isNotEmpty){
-                          setState(() {
-                            dynamicStructures = data;
-                            isLoading = false;
-                          });
-                        }else{
-                          setState(() {
-                            isLoading = false;
-                          });
-                          showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-                            title: const Text("Error"),
-                            content: const Text("No data found"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("OK"),
-                              ),],
-                          ),);
-                        }
+                                  {"username": context
+                                      .read<tenantConfigProvider>()
+                                      .tenantConfig['userID'],
+                                    "password": context
+                                        .read<tenantConfigProvider>()
+                                        .tenantConfig['password']}
+                                  , entity: "Sales Order");
+                              if(data.isNotEmpty){
+                                setState(() {
+                                  dynamicStructures = data;
+                                  isLoading = false;
+                                });
+                              }else{
+                                setState(() {
+                                  isLoading = false;
+                                });
+                                showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                                  title: const Text("Error"),
+                                  content: const Text("No data found"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text("OK"),
+                                    ),],
+                                ),);
+                              }
 
 
 
-                      }on NotFoundException catch(e){
-                        setState(() {
-                          isLoading = false;
-                        });
-                        showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-                          title: Text("Error"),
-                          content: Text(e.toString()),
-                        ));
-                      };
-                    },
-                    advanceSearch: true,
-                    value: _salesOrderController.text,
-                    onAdvanceSearch: (){
-                      showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
+                            }on NotFoundException catch(e){
+                              setState(() {
+                                isLoading = false;
+                              });
+                              showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                                title: Text("Error"),
+                                content: Text(e.toString()),
+                              ));
+                            };
+                          },
+                          advanceSearch: true,
+                          value: _salesOrderController.text,
+                          onAdvanceSearch: (){
+                            showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
 
-                      );
-                    },
+                            );
+                          },
 
-                  ),
-                                     )
+                        ),
+                                           )
 
-                ],
-              ),
-              GestureDetector(
-                child: SizedBox(
-                  height: height * 0.9,
-                  child: Column(
-                    children: [
-                      SingleChildScrollView(
-                        clipBehavior: Clip.hardEdge,
-                        scrollDirection: Axis.vertical,
+                      ],
+                    ),
+                    GestureDetector(
+                      child: SizedBox(
+                        height: height * 0.9,
+                        width: width * 0.78,
                         child: Column(
                           children: [
                             SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8.0),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).indicatorColor,
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    child:isLoading?SizedBox(
-                                        height: height*0.6,
-                                        width: width*0.95,
-                                        child: Center(child: CircularProgressIndicator())) : _salesOrderController.text.isEmpty? Center(
-                                      child: SizedBox(
-                                          height: height*0.6,
-                                          width: width*0.95,
-                                          child: Center(child: Text("Please select a sales order"))))
-                                        :Container(
-
-                                      child: Column(
-                                        children: [
-                                          IndexTable(
-                                            data: dynamicStructures.map((x) => DataRow(
-                                                color: x['Calculated_Status'].toString() == "Shipped" ? const MaterialStatePropertyAll<Color>(Colors.deepOrange) : null,
-                                                cells: [
-                                              DataCell(Checkbox(
-
-                                                value: x['checked'] ?? false,
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    x['checked'] = value;
-                                                  });
-                                                  // Handle checkbox change
-                                                },
-                                              )),
-                                              DataCell(Text(x['PartLot_PartNum'].toString())),
-                                              DataCell(Text(x["PartLot_LotNum"].toString())),
-                                              DataCell(Text(x['OrderDtl_RevisionNum'].toString())),
-                                              DataCell(Text(x['OrderDtl_RequestDate'].toString())),
-                                              DataCell(Text(x['OrderDtl_OrderNum'].toString())),
-                                              DataCell(Text(x['Customer_Name'].toString())),
-                                              DataCell(Text(x['Calculated_Status'].toString())),
-                                              DataCell(Text(x['PartLot_ErectionSequence_c'].toString())),
-                                            ])).toList().sublist((page-1)*10,min((page*10), dynamicStructures.length) ),
-                                            columns: [
-                                              DataColumn(label: Text('Checked')),
-                                              DataColumn(label: Text('Structure ID')),
-                                              DataColumn(label: Text('Structure Number')),
-                                              DataColumn(label: Text('Revision')),
-                                              DataColumn(label: Text('Ship By Date')),
-                                              DataColumn(label: Text('Sales Order')),
-                                              DataColumn(label: Text('Customer Name')),
-                                              DataColumn(label: Text('Status')),
-                                              DataColumn(label: Text('Erection Sequence')),
-                                            ],
-                                            onRowTap: (index) {
-
-                                            },
+                              clipBehavior: Clip.hardEdge,
+                              scrollDirection: Axis.vertical,
+                              child: Column(
+                                children: [
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).indicatorColor,
+                                            borderRadius: BorderRadius.circular(8.0),
                                           ),
-                                             ],
+                                          child:isLoading?SizedBox(
+                                              height: height*0.6,
+                                              width: width*0.95,
+                                              child: Center(child: CircularProgressIndicator())) : _salesOrderController.text.isEmpty? Center(
+                                            child: SizedBox(
+                                                height: height*0.6,
+                                                width: width*0.95,
+                                                child: Center(child: Text("Please select a sales order"))))
+                                              :Container(
+
+                                            child: Column(
+                                              children: [
+                                                IndexTable(
+                                                  data: dynamicStructures.map((x) => DataRow(
+                                                      color: x['Calculated_Status'].toString() == "Shipped" ? const MaterialStatePropertyAll<Color>(Colors.deepOrange) : null,
+                                                      cells: [
+                                                    DataCell(Checkbox(
+
+                                                      value: x['checked'] ?? false,
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          x['checked'] = value;
+                                                        });
+                                                        // Handle checkbox change
+                                                      },
+                                                    )),
+                                                    DataCell(Text(x['PartLot_PartNum'].toString())),
+                                                    DataCell(Text(x["PartLot_LotNum"].toString())),
+                                                    DataCell(Text(x['OrderDtl_RevisionNum'].toString())),
+                                                    DataCell(Text(x['OrderDtl_RequestDate'].toString())),
+                                                    DataCell(Text(x['OrderDtl_OrderNum'].toString())),
+                                                    DataCell(Text(x['Customer_Name'].toString())),
+                                                    DataCell(Text(x['Calculated_Status'].toString())),
+                                                    DataCell(Text(x['PartLot_ErectionSequence_c'].toString())),
+                                                  ])).toList().sublist((page-1)*10,min((page*10), dynamicStructures.length) ),
+                                                  columns: [
+                                                    DataColumn(label: Text('Checked')),
+                                                    DataColumn(label: Text('Structure ID')),
+                                                    DataColumn(label: Text('Structure Number')),
+                                                    DataColumn(label: Text('Revision')),
+                                                    DataColumn(label: Text('Ship By Date')),
+                                                    DataColumn(label: Text('Sales Order')),
+                                                    DataColumn(label: Text('Customer Name')),
+                                                    DataColumn(label: Text('Status')),
+                                                    DataColumn(label: Text('Erection Sequence')),
+                                                  ],
+                                                  onRowTap: (index) {
+
+                                                  },
+                                                ),
+                                                   ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [ Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [ Center(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(8.0),
+                                        decoration: BoxDecoration(
 
-                                    borderRadius: BorderRadius.circular(8.0),
+                                          borderRadius: BorderRadius.circular(8.0),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            IconButton(onPressed:(){
+                                              if(page>1){
+                                                setState(() {
+                                                  page--;
+                                                });
+                                              }
+
+
+                                            } , icon: const Icon(Icons.arrow_back_ios_new)),
+                                            Text(page.toString()),
+                                            IconButton(onPressed:()async{
+                                              if(page*10<dynamicStructures.length){
+                                                setState(() {
+                                                  page++;
+                                                });
+                                              }
+                                              else{
+                                                setState(() {
+                                                  isLoading=true;
+                                                });
+
+
+                                                await getData(_salesOrderController.text);
+
+
+                                              }
+                                            } , icon: const Icon(Icons.arrow_forward_ios)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
                                   ),
-                                  child: Row(
-                                    children: [
-                                      IconButton(onPressed:(){
-                                        if(page>1){
-                                          setState(() {
-                                            page--;
-                                          });
-                                        }
-
-
-                                      } , icon: const Icon(Icons.arrow_back_ios_new)),
-                                      Text(page.toString()),
-                                      IconButton(onPressed:()async{
-                                        if(page*10<dynamicStructures.length){
-                                          setState(() {
-                                            page++;
-                                          });
-                                        }
-                                        else{
-                                          setState(() {
-                                            isLoading=true;
-                                          });
-
-
-                                          await getData(_salesOrderController.text);
-
-
-                                        }
-                                      } , icon: const Icon(Icons.arrow_forward_ios)),
-                                    ],
-                                  ),
-                                ),
+                                ],
                               ),
-                          ],
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+
+                  ],
                 ),
               ),
-
-            ],
-          ),
+            ),
+          ],
         ),
 
       ),
