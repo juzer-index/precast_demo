@@ -178,13 +178,13 @@ class _StockLoadingState extends State<StockLoading>
   int archLabelIndex=0;
   @override
   void initState() {
-
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    setState(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ArchitectureProvider>().init();
     });
+
 
     if(widget.LinesOriented){
     fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
@@ -197,7 +197,9 @@ class _StockLoadingState extends State<StockLoading>
 
     }
     if (!widget.isUpdate) {
-      context.read<LoadProvider>().clearLoad();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<LoadProvider>().clearLoad();
+      });
       dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
 
       entryPersonController?.text =
