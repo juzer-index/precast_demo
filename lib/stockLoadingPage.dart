@@ -456,7 +456,9 @@ class _StockLoadingState extends State<StockLoading>
                                     ),
                                     Expanded(
                                       child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
+                                        padding: width > 600
+                                            ? const EdgeInsets.fromLTRB(100, 10, 100, 10)
+                                            : const EdgeInsets.all(8),
                                         child: TabBarView(
                                           controller: _tabController,
                                           children: widget.LinesOriented

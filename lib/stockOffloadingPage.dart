@@ -491,7 +491,9 @@ class _StockOffloadingState extends State<StockOffloading>
                             ),
                             Expanded(
                               child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(100, 10, 100, 10),
+                                  padding: width > 600
+                                      ? const EdgeInsets.fromLTRB(100, 10, 100, 10)
+                                      : const EdgeInsets.all(8),
                                   child: TabBarView(controller: _tabController, children: [
                                     //Tab 1 Content
                                     SingleChildScrollView(
