@@ -502,7 +502,7 @@ class _StockLoadingState extends State<StockLoading>
                                   height: 20,
                                 ),
                                 Text(
-                                  'Selected Parts',
+                                  'Selected Consumables',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
@@ -1237,7 +1237,7 @@ class _StockLoadingState extends State<StockLoading>
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Selected Parts',
+                                    'Selected Consumables',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -2090,7 +2090,7 @@ class _StockLoadingState extends State<StockLoading>
                                   height: 20,
                                 ),
                                 Text(
-                                  'Selected Parts',
+                                  'Selected Consumables',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
@@ -2238,7 +2238,7 @@ class _StockLoadingState extends State<StockLoading>
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Selected Parts',
+                                    'Selected Consumables',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
