@@ -45,6 +45,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(
@@ -206,6 +207,9 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               ElementPieChart(),
               const Divider(),
+              width>600
+                  ? const SizedBox()
+                  :
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GridView.count(
