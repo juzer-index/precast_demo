@@ -2327,7 +2327,7 @@ class _StockLoadingState extends State<StockLoading>
                                               selectedElements[e].Revision,
                                               "Character09":
                                               selectedElements[e].UOMClass
-                                            }), tenantConfigP);
+                                            }), tenantConfigP ,last: e==selectedElements.length-1);
                                             updateInTransit(
                                                 selectedElements[e].partId,
                                                 selectedElements[e].elementId,
@@ -2954,7 +2954,7 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Future<void> updateUD104A(
-      ElementData UD104AData, dynamic tenantConfigP) async {
+      ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
     try {
       CustomerShipment customerShipment = new CustomerShipment(
         PackNum: lastCustShip+1,
@@ -3013,26 +3013,29 @@ class _StockLoadingState extends State<StockLoading>
       );
       final customerShipmentHeadURL =
           '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.CustShipSvc/CustShips';
-      final CustShipHeadresponse = await APIV2Helper.Post(customerShipmentHeadURL,
-      basicAuth,
-        {
-          "Company": tenantConfigP['company'],
-          "PackNum": lastCustShip+1,
-          "ReadyToInvoice":true
-        },
-        entity: "Shipment head",
-      );
-      if ((response.statusCode >=200 && response.statusCode<300)
-          && CustShipresponse.statusCode >= 200&& CustShipresponse.statusCode<300
-          && CustShipHeadresponse.statusCode >= 200&& CustShipHeadresponse.statusCode<300
-      ) {
-        debugPrint(response.body);
+      if(last) {
+        final CustShipHeadresponse = await APIV2Helper.Post(
+          customerShipmentHeadURL,
+          basicAuth,
+          {
+            "Company": tenantConfigP['company'],
+            "PackNum": lastCustShip + 1,
+            "ReadyToInvoice": true
+          },
+          entity: "Shipment head",
+        );
+        if ((response.statusCode >= 200 && response.statusCode < 300)
+            && CustShipresponse.statusCode >= 200 &&
+            CustShipresponse.statusCode < 300
+            && CustShipHeadresponse.statusCode >= 200 &&
+            CustShipHeadresponse.statusCode < 300
+        ) {
+          debugPrint(response.body);
+        } else {
+          Map<String, dynamic> body = json.decode(response.body);
 
-      } else {
-        Map<String, dynamic> body = json.decode(response.body);
-
-        throw new HttpException(body['ErrorMessage'] ?? "Error");
-
+          throw new HttpException(body['ErrorMessage'] ?? "Error");
+        }
       }
     } on HttpException catch (e) {
       debugPrint(e.message);

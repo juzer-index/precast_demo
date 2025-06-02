@@ -1,4 +1,4 @@
-import 'dart:ffi';
+
 import './LoadLine.dart';
 class LoadData {
   String  Key1="";
