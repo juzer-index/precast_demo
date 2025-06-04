@@ -33,6 +33,7 @@ import 'Widgets/ProjectSearch.dart';
 import 'utils/APIProviderV2.dart';
 import './element_model.dart';
 import'./Models/CustomerShipment.dart';
+import '../Providers/LoadStateProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -231,6 +232,10 @@ class _StockLoadingState extends State<StockLoading>
         isLoaded = true;
       });
     }
+    setState(() {
+      context.read<loadStateProvider>().clearCurrentLoad();
+    });
+    context.read<loadStateProvider>().currentLoad= widget.historyLoadID;
     super.initState();
   }
 
@@ -247,7 +252,12 @@ class _StockLoadingState extends State<StockLoading>
       canPop: false,
       onPopInvoked: (didPop) {
         if (!didPop) {
-          if (_tabController.index > 0) {
+          if(context.read<loadStateProvider>().loadCreated) {
+            context.read<loadStateProvider>().clearCurrentLoad();
+            Navigator.pop(context);
+
+          }
+          if (_tabController.index > 0 ) {
             _tabController.animateTo(_tabController.index - 1);
           } else {
             showAlertDialog(BuildContext context) {
@@ -938,7 +948,7 @@ class _StockLoadingState extends State<StockLoading>
                                       truckDetails: offloadData,
                                     ),
                                   const SizedBox(height: 20),
-                                  if (widget.isUpdate)
+                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
                                     ElevatedButton(
                                       onPressed: () {
                                         setState(() {
@@ -947,7 +957,7 @@ class _StockLoadingState extends State<StockLoading>
                                       },
                                       child: const Text('Next'),
                                     ),
-                                  if (!widget.isUpdate)
+                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
                                     ElevatedButton(
                                         onPressed: () async {
                                           if(!CreateLoadLoading){
@@ -1066,7 +1076,8 @@ class _StockLoadingState extends State<StockLoading>
                                                                     context)
                                                                     .pop();
                                                                 _tabController
-                                                                    .animateTo(1);
+                                                                    .animateTo(
+                                                                        _tabController.index + 1);
                                                               },
                                                               child: Text('OK',
                                                                   style: TextStyle(
@@ -1326,7 +1337,7 @@ class _StockLoadingState extends State<StockLoading>
                                               selectedElements[e].Revision,
                                               "Character09":
                                               selectedElements[e].UOMClass
-                                            }), tenantConfigP);
+                                            }), tenantConfigP,last: e == selectedElements.length - 1);
                                             updateInTransit(
                                                 selectedElements[e].partId,
                                                 selectedElements[e].elementId,
@@ -1378,6 +1389,7 @@ class _StockLoadingState extends State<StockLoading>
                                             "CheckBox13": true,
                                           }), tenantConfigP);
                                         }
+                               
                                         if (mounted) {
                                           String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
                                           showDialog(context: context, builder:
@@ -1389,6 +1401,7 @@ class _StockLoadingState extends State<StockLoading>
                                                 TextButton(
                                                   onPressed: () {
                                                     Navigator.of(context).pop();
+                                                    context.read<loadStateProvider>().setLinesLoaded(true);
                                                   },
                                                   child: const Text('OK'),
                                                 ),
@@ -1835,7 +1848,7 @@ class _StockLoadingState extends State<StockLoading>
                                       truckDetails: offloadData,
                                     ),
                                   const SizedBox(height: 20),
-                                  if (widget.isUpdate)
+                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
                                     ElevatedButton(
                                       onPressed: () {
                                         setState(() {
@@ -1844,7 +1857,7 @@ class _StockLoadingState extends State<StockLoading>
                                       },
                                       child: const Text('Next'),
                                     ),
-                                  if (!widget.isUpdate)
+                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
                                     ElevatedButton(
                                         onPressed: () async {
                                           if(!CreateLoadLoading){
@@ -2249,6 +2262,7 @@ class _StockLoadingState extends State<StockLoading>
                                 const SizedBox(
                                   height: 20,
                                 ),
+                                 context.watch<loadStateProvider>().linesLoaded?
                                 ElevatedButton(
 
                                     onPressed: () async {
@@ -2400,6 +2414,7 @@ class _StockLoadingState extends State<StockLoading>
                                         }}
                                       setState(() {
                                         SaveLinesLoading = false;
+                                         context.read<loadStateProvider>().setLinesLoaded(true);
                                       });
                                     },
                                     child: SaveLinesLoading?
@@ -2417,7 +2432,7 @@ class _StockLoadingState extends State<StockLoading>
                                     )
                                         :const Text(
                                       'Load Lines',
-                                    )),
+                                    )):SizedBox(),
                               ],
                             ),
                           ),
@@ -2697,6 +2712,7 @@ class _StockLoadingState extends State<StockLoading>
         setState(() {
           isLoaded = true;
           currentLoad = load;
+          context.read<loadStateProvider>().setLoadCreated(true);
 
         });
         debugPrint(widget.loadDataList.toString());
@@ -3031,6 +3047,10 @@ class _StockLoadingState extends State<StockLoading>
             CustShipHeadresponse.statusCode < 300
         ) {
           debugPrint(response.body);
+          setState(() {
+            context.read<loadStateProvider>().setLinesLoaded(true);
+
+          });
         } else {
           Map<String, dynamic> body = json.decode(response.body);
 

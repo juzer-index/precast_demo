@@ -643,7 +643,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           ),
                           Row(
                             children: [
-                              Expanded(
+                             /* Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: TextFormField(
@@ -661,8 +661,8 @@ class _StockOffloadingState extends State<StockOffloading>
                                     ),
                                   ),
                                 ),
-                              ),
-                              Expanded(
+                              ),*/
+                             /* Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: TextFormField(
@@ -680,7 +680,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     ),
                                   ),
                                 ),
-                              ),
+                              ),*/
                             ],
                           ),
                           Row(
