@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'Providers/UserManagement.dart';
 import 'Models/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -23,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   String username = '' ;
   String password = '';
   String tenantId = '';
-
+  String APIUrl=dotenv.env['APIURL']??'';
   dynamic tenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
@@ -35,7 +36,7 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = true;
       });
 
-    var url = Uri.parse('https://77.92.189.106:83/Account/${tenantId}/Login');
+    var url = Uri.parse('${APIUrl}/Account/${tenantId}/Login');
       var response =  http.MultipartRequest('POST', url);
       response.fields['username'] = username;
       response.fields['password'] = password;
