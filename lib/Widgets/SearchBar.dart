@@ -29,8 +29,10 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
         children: [
           Expanded(
             child: TextFormField(
+
               controller: _controller,
               decoration: InputDecoration(
+                label: Text("Search ${widget.entity}"),
                 hintText: "Search ${widget.entity}",
                 border: OutlineInputBorder(),
               ),
@@ -89,7 +91,8 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
             },
           ): CircularProgressIndicator(),
           if(widget.advanceSearch) IconButton(
-            icon: Icon(Icons.filter_alt),
+            icon: Icon(Icons.manage_search, size: 30
+    ),
             onPressed: (){
               if(!isSearching){
                 widget.onAdvanceSearch!();
