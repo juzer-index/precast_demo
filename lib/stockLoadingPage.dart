@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'sideBarMenu.dart';
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
+
 import 'Models/EpicorError.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,7 @@ import 'Widgets/ProjectSearch.dart';
 import 'utils/APIProviderV2.dart';
 import './element_model.dart';
 import'./Models/CustomerShipment.dart';
-
+import '../Providers/LoadStateProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   final bool isUpdate;
@@ -149,17 +150,16 @@ class _StockLoadingState extends State<StockLoading>
   late bool SaveLinesLoading = false;
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
-  String ErrorMessage="";
+   String ErrorMessage="";
   bool isPrinting = false;
   int pdfCount = 0;
   int archLabelIndex=0;
-
   @override
   void initState() {
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    setState(() {
       context.read<ArchitectureProvider>().init();
     });
 
@@ -174,9 +174,7 @@ class _StockLoadingState extends State<StockLoading>
 
     }
     if (!widget.isUpdate) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<LoadProvider>().clearLoad();
-      });
+      context.read<LoadProvider>().clearLoad();
       dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
 
       entryPersonController?.text =
@@ -212,6 +210,10 @@ class _StockLoadingState extends State<StockLoading>
         isLoaded = true;
       });
     }
+    setState(() {
+      context.read<loadStateProvider>().clearCurrentLoad();
+    });
+    context.read<loadStateProvider>().currentLoad= widget.historyLoadID;
     super.initState();
   }
 
@@ -272,12 +274,14 @@ class _StockLoadingState extends State<StockLoading>
                 ],
               );
 
+              // Show the dialog
               showDialog(
                   context: context,
                   builder: (BuildContext context) {
                     return dialog;
                   });
             }
+
             showAlertDialog(context);
           }
         }
