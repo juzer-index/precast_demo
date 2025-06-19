@@ -27,7 +27,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
     try {
       var data = await APIV2Helper.getResults(
           '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v2/odata/${tenantConfig['company']}/'
+              '/v1/'
               'Erp.BO.SalesOrderSvc/OrderDtls?\$filter=OrderNum eq $OrderNum&\$select=OrderLine '
               ' ',
           {
@@ -47,13 +47,13 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
       ));
     }
   }
-  Future<List<dynamic>?> getCustomerShipments(int OrderNum) async {
+  Future<List<dynamic>?> getCustomerShipments(num OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
     try {
       var data = await APIV2Helper.getResults(
           '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v2/odata/${tenantConfig['company']}/'
-              'BaqSvc/IIT_Cust_ShipTo/Data/?OrderNum=$OrderNum',
+              '/v1/'
+              'BaqSvc/IIT_Cust_ShipTo/?OrderNum=$OrderNum',
 
           {
             'username': tenantConfig['userID'],
@@ -115,8 +115,8 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
            try {
              var data = await APIV2Helper.getResults(
                  '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                     '/v2/odata/${tenantConfig['company']}/'
-                     'BaqSvc/IIT_Cust_SO/Data?\$filter=OrderHed_OrderNum eq ${term}',
+                     '/v1/'
+                     'BaqSvc/IIT_Cust_SO/\$filter=OrderHed_OrderNum eq ${term}',
 
                  {"username": context
                      .read<tenantConfigProvider>()

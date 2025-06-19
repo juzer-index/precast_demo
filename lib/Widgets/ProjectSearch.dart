@@ -54,8 +54,8 @@ class _ProjectSearchState extends State<ProjectSearch> {
     try {
       var data = await APIV2Helper.getResults(
           '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v2/odata/${tenantConfig['company']}/'
-              'BaqSvc/IIT_Cust_ShipTo/Data/?OrderNum=$OrderNum',
+              '/v1/'
+              'BaqSvc/IIT_Cust_ShipTo/?OrderNum=$OrderNum',
 
           {
             'username': tenantConfig['userID'],
@@ -129,8 +129,8 @@ class _ProjectSearchState extends State<ProjectSearch> {
                       try {
                         var data = await APIV2Helper.getResults(
                             '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api'
-                                '/v2/odata/${tenantConfigP['company']}/'
-                                'BaqSvc/IIT_Project_SO/Data/?Project=${value.toString()}',
+                                '/v1/'
+                                'BaqSvc/IIT_Project_SO/?Project=${value.toString()}',
 
                             {"username": context
                                 .read<tenantConfigProvider>()
@@ -142,14 +142,19 @@ class _ProjectSearchState extends State<ProjectSearch> {
                         setState(() {
                           salesOrderList = data;
                         });
+                        if(data.isNotEmpty) {
+                          dynamic Shipments = await Future.wait(
+                              [getCustomerShipments(
+                                  data[0]['OrderHed_OrderNum'].toInt())
+                              ]);
 
-                        dynamic Shipments = await Future.wait([getCustomerShipments(data[0]['OrderHed_OrderNum'].toInt())]);
-
-                        setState(() {
-
-                          context.read<ArchitectureProvider>().setShipments(Shipments[0]);
-
-                        });
+                          setState(() {
+                            context.read<ArchitectureProvider>().setShipments(
+                                Shipments[0]);
+                          });
+                        }else{
+                          throw new NotFoundException(entity: "Sales Orders ");
+                        }
                       }on NotFoundException catch(e){
                         showDialog(context: context, builder: (BuildContext context) => AlertDialog(
                           title: Text("Error"),

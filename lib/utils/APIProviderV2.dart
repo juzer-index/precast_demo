@@ -10,7 +10,7 @@ import '../Providers/tenantConfig.dart';
 
 class APIV2Helper extends ChangeNotifier {
   APIV2Helper();
- static String _apiKey = dotenv.env['APIKEY']??'' ;
+
 
 
   static Future<List<dynamic>>getPaginatedResults(String url  ,int page , int pageSize,Map<String,String>auth,{bool hasVars=false,String entity=""}) async {
@@ -22,7 +22,7 @@ class APIV2Helper extends ChangeNotifier {
         headers: {
 
           "accept": "application/json",
-          "x-api-key": "$_apiKey",
+
           "Authorization": basicAuth
         }
     );
@@ -42,7 +42,7 @@ class APIV2Helper extends ChangeNotifier {
         headers: {
 
           "accept": "application/json",
-          "x-api-key": "$_apiKey",
+
           "Authorization": basicAuth
         }
     );

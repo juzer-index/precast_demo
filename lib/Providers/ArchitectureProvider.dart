@@ -21,8 +21,8 @@ class ArchitectureProvider extends ChangeNotifier {
     Project = value;
     notifyListeners();
   }
-  int SO=0;
-  int get so => SO;
+  num SO=0;
+  num get so => SO;
  updateSO(int value) {
     SO = value;
     Lines=null;

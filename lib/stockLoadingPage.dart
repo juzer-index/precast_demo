@@ -1274,7 +1274,7 @@ class _StockLoadingState extends State<StockLoading>
                                           debugPrint(
                                               selectedElements[e].toString());
                                           try {
-                                            await updateUD104A(ElementData.fromJson({
+                                           final  ElementData element=ElementData.fromJson({
                                               "Company":
                                               "${tenantConfigP['company']}",
 
@@ -1337,7 +1337,8 @@ class _StockLoadingState extends State<StockLoading>
                                               selectedElements[e].Revision,
                                               "Character09":
                                               selectedElements[e].UOMClass
-                                            }), tenantConfigP,last: e == selectedElements.length - 1);
+                                            });
+                                            await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
                                             updateInTransit(
                                                 selectedElements[e].partId,
                                                 selectedElements[e].elementId,

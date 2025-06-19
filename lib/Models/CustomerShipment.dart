@@ -2,7 +2,7 @@
 class CustomerShipment {
 String Company;
 int PackNum;
-int OrderNum;
+num OrderNum;
 int OrderLine;
 int OrderRelNum;
 int CustNum;

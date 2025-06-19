@@ -32,8 +32,7 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
         fetchPage: (pageKey) async {
           final data= await APIV2Helper.getPaginatedResults(
               '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                  '/v2/odata/${tenantConfig['company']}/'
-                  'BaqSvc/IIT_SalesOrders_MS/Data${searchValue.isNotEmpty?'/?OrderNum=$searchValue':""}',
+                  '/v1/BaqSvc/IIT_SalesOrders_MS/${searchValue.isNotEmpty?'?OrderNum=$searchValue':""}',
               pageKey, 20, {
             'username': tenantConfig['userID'],
             'password': tenantConfig['password']

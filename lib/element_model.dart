@@ -5,17 +5,17 @@ class ElementData {
   late final String partId;
   late final String elementId;
   late final String elementDesc;
-  late final int erectionSeq;
+  late final num erectionSeq;
   late final String erectionDate;
   late final String UOM;
   late final double weight;
   late final double area;
   late final double volume;
-  late final int quantity;
-  late final int selectedQty;
+  late final num quantity;
+  late final num selectedQty;
   late final String Warehouse;
   late final String fromBin;
-  late final int SO;  // late final bool is
+  late final num SO; // late final bool is
   late final String ChildKey1;
   late final String Key1;
   late bool CheckBox01;
@@ -34,33 +34,40 @@ class ElementData {
   late final String UOMClass;
   late final String Revision;
 
-  ElementData({required this.partId, required this.elementId, required this.elementDesc,  this.erectionSeq=0
-    ,  this.erectionDate="", this.UOM="", this.weight=0,
-    this.area=0,
-    this.volume=0,this.quantity=0
-    , this.selectedQty=0, this.ChildKey1="",
+  ElementData({
+    required this.partId,
+    required this.elementId,
+    required this.elementDesc,
+    this.erectionSeq = 0,
+    this.erectionDate = "",
+    this.UOM = "",
+    this.weight = 0,
+    this.area = 0,
+    this.volume = 0,
+    this.quantity = 0,
+    this.selectedQty = 0,
+    this.ChildKey1 = "",
     required this.Warehouse,
     required this.fromBin,
-    this.SO=0,
-    this.CheckBox01=false,
-    this.CheckBox02=false,
-    this.CheckBox03=false,
-    this.CheckBox04=false,
-    this.CheckBox05=false,
-    this.CheckBox06=false,
-    this.CheckBox07=false,
-    this.CheckBox08=false,
-    this.CheckBox09=false,
-    this.CheckBox10=false,
-    this.CheckBox11=false,
-    this.CheckBox12=false,
-    this.CheckBox13=false,
-  required this.Company,
-     this.Key1="",
+    this.SO = 0,
+    this.CheckBox01 = false,
+    this.CheckBox02 = false,
+    this.CheckBox03 = false,
+    this.CheckBox04 = false,
+    this.CheckBox05 = false,
+    this.CheckBox06 = false,
+    this.CheckBox07 = false,
+    this.CheckBox08 = false,
+    this.CheckBox09 = false,
+    this.CheckBox10 = false,
+    this.CheckBox11 = false,
+    this.CheckBox12 = false,
+    this.CheckBox13 = false,
+    required this.Company,
+    this.Key1 = "",
     required this.UOMClass,
-     required this.Revision,
+    required this.Revision,
   });
-
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
     return ElementData(
@@ -68,13 +75,23 @@ class ElementData {
       partId: json['Character01'] ?? '',
       elementId: json['Character02'] ?? '',
       elementDesc: json['Character02'] ?? '',
-      erectionSeq: json['Number06'] is int ? json['Number06'] : (json['Number06'] ?? 0).toInt(),
+      erectionSeq: json['Number06'] is num
+          ? json['Number06']
+          : int.parse(json['Number06'] ?? "0"),
       erectionDate: json['Date01'] ?? '',
       UOM: json['ShortChar07'] ?? '',
-      selectedQty: json['Number01'] is int ? json['Number01'] : (json['Number01'] ?? 0).toInt(),
-      weight: json['Number03'] is double ? json['Number03'] : (json['Number03'] ?? 0.0).toDouble(),
-      area: json['Number04'] is double ? json['Number04'] : (json['Number04'] ?? 0.0).toDouble(),
-      volume: json['Number05'] is double ? json['Number05'] : (json['Number05'] ?? 0.0).toDouble(),
+      selectedQty: json['Number01'] is num
+          ? json['Number01']
+          : int.parse(json['Number01'] ?? "0"),
+      weight: json['Number03'] is num
+          ? json['Number03']
+          : double.parse(json['Number03'] ?? "0.0"),
+      area: json['Number04'] is num
+          ? json['Number04']
+          : double.parse(json['Number04'] ?? "0.0"),
+      volume: json['Number05'] is num
+          ? json['Number05']
+          : double.parse(json['Number05'] ?? "0.0"),
       quantity: 1,
       ChildKey1: json['ChildKey1'] ?? '',
       fromBin: json['Character04'] ?? '',
@@ -102,6 +119,7 @@ class ElementData {
   String toString() {
     return 'ElementData{elementId: $elementId, elementDesc: $elementDesc, erectionSeq: $erectionSeq, erectionDate: $erectionDate, weight: $weight, area: $area, volume: $volume, quantity: $quantity}';
   }
+
   toJson() {
     return jsonEncode({
       'Company': Company,
@@ -110,9 +128,8 @@ class ElementData {
       'Character02': elementId,
       'Character03': Warehouse,
       'Character04': fromBin,
-       'Character08':Revision,
-        'Character09':UOMClass,
-
+      'Character08': Revision,
+      'Character09': UOMClass,
       'ShortChar07': UOM,
       'Number01': selectedQty.toString(),
       'Number03': weight.toString(),
@@ -133,9 +150,6 @@ class ElementData {
       'CheckBox11': CheckBox11,
       'CheckBox12': CheckBox12,
       'CheckBox13': CheckBox13,
-
-
-
     });
   }
 }

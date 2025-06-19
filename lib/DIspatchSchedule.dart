@@ -35,7 +35,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
       List<dynamic> data = await APIV2Helper.getPaginatedResults(
         hasVars: true,
           '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v2/odata/${tenantConfig['company']}/BaqSvc/IIT_DispatchSchedule/Data?OrderNum=${_salesOrderController.text}', page, 10, {
+              '/v1/BaqSvc/IIT_DispatchSchedule/?OrderNum=${_salesOrderController.text}', page, 10, {
         'username': tenantConfig['userID'],
         'password': tenantConfig['password'],
 
@@ -162,7 +162,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                       try {
                         var data = await APIV2Helper.getResults(
                             '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                                '/v2/odata/${tenantConfig['company']}/BaqSvc/IIT_DispatchSchedule/Data?OrderNum=${term}',
+                                '/v1/BaqSvc/IIT_DispatchSchedule/?OrderNum=${term}',
 
                             {"username": context
                                 .read<tenantConfigProvider>()
