@@ -50,9 +50,9 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
-      // appBar: const IndexAppBar(
-      //   title: 'Home Page',
-      // ),
+      appBar: const IndexAppBar(
+        title: 'Home Page',
+      ),
 
       drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       body: Row(
