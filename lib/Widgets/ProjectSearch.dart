@@ -10,7 +10,6 @@ import '../Providers/tenantConfig.dart';
 import '../Widgets/DropDown.dart';
 import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
-import '../Providers/StockLoadingProvider.dart';
 
 class ProjectSearch extends StatefulWidget {
   final bool isUpdate;
@@ -22,9 +21,46 @@ class ProjectSearch extends StatefulWidget {
 
 class _ProjectSearchState extends State<ProjectSearch> {
   bool isSearching = false;
+  bool isLoadingProjects = false; // <-- Add loading state
+  Map<String,dynamic> fetchedProjectData = {};
+  List<dynamic> fetchedProjectValue = [];
   TextEditingController SalesOrderController = TextEditingController();
   TextEditingController _customerShipcontroller = TextEditingController();
   List<dynamic> salesOrderList = [];
+
+  Future<void> getProjectList(dynamic tenantConfigP) async {
+    setState(() {
+      isLoadingProjects = true;
+    });
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final response = await http.get(
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.ProjectSvc/List/'),
+          headers: {
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
+      if (response.statusCode == 200) {
+        setState(() {
+          fetchedProjectData = json.decode(response.body);
+          fetchedProjectValue = fetchedProjectData['value'];
+          isLoadingProjects = false;
+        });
+      } else {
+        setState(() {
+          isLoadingProjects = false;
+        });
+        throw Exception('Failed to load Project');
+      }
+    } on Exception catch (e) {
+      setState(() {
+        isLoadingProjects = false;
+      });
+      debugPrint(e.toString());
+    }
+  }
 
   Future<List<dynamic>?> getCustomerShipments(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
@@ -49,25 +85,19 @@ class _ProjectSearchState extends State<ProjectSearch> {
         content: Text(e.toString()),
       ));
     }
+
   }
 
   @override
   void initState() {
     super.initState();
     final tenantConfigP = context.read<tenantConfigProvider>().tenantConfig;
-    // Fetch projects using provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StockLoadingProvider>().fetchProjects(tenantConfigP);
-    });
+    getProjectList(tenantConfigP);
   }
 
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
-    final projectProvider = context.watch<StockLoadingProvider>();
-    final fetchedProjectValue = projectProvider.projects;
-    final isLoadingProjects = projectProvider.isLoadingProjects;
-
     return Column(
       children: [
         Padding(
@@ -160,6 +190,8 @@ class _ProjectSearchState extends State<ProjectSearch> {
                   context.read<ArchitectureProvider>().updateSO(element['OrderDtl_OrderNum'].toInt());
                   context.read<ArchitectureProvider>().updateCust(element['OrderDtl_CustNum']);
                   context.read<ArchitectureProvider>().updateCustId(element['Customer_CustID']);
+
+
                 });
                final Shipments = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt())]);
                 context.read<ArchitectureProvider>().setShipments(Shipments[0]);
@@ -167,6 +199,8 @@ class _ProjectSearchState extends State<ProjectSearch> {
             ),
             Row(
               children: [
+
+
                 Expanded(child: ReDropDown(
                   controller: _customerShipcontroller,
                   label: "Ship To ",
@@ -177,6 +211,7 @@ class _ProjectSearchState extends State<ProjectSearch> {
                   onChnaged: (value){
                     setState(() {
                       context.read<ArchitectureProvider>().updateShipment(value);
+
                     });
                   },
                 )),
