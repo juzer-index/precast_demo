@@ -2,7 +2,6 @@ import 'package:GoCastTrack/elementInstallationPg.dart';
 import 'package:GoCastTrack/stockOffloadingPage.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'loadTracker.dart';
 import 'stockLoadingPage.dart';
 import 'indexAppBar.dart';
 import 'sideBarMenu.dart';
@@ -77,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-
+            
                         ),
                       ),
                     ),
@@ -218,11 +217,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 20),
                     ElementPieChart(),
-
+            
                     width>600
                         ? const SizedBox()
                         :
-
+            
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: GridView.count(
