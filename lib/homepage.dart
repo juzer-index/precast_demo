@@ -13,6 +13,7 @@ import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
 import './Providers/ArchitectureProvider.dart';
 import 'DIspatchSchedule.dart';
+import 'loadTracker.dart';
 
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
@@ -268,14 +269,44 @@ class _HomePageState extends State<HomePage> {
                             color: Theme.of(context).indicatorColor,
                             child: InkWell(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => StockLoading(
-                                        initialTabIndex: 0,
-                                        isUpdate: false,
-                                        loadDataList: loads,
-                                        addLoadData: addLoadData),
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Load Management'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => StockLoading(
+                                                initialTabIndex: 0,
+                                                isUpdate: false,
+                                                loadDataList: loads,
+                                                addLoadData: addLoadData,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Create Load'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => StockLoading(
+                                                initialTabIndex: 0,
+                                                isUpdate: true,
+                                                loadDataList: loads,
+                                                addLoadData: addLoadData,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: const Text('Edit Load'),
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
@@ -330,40 +361,6 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           Card(
-                            elevation: 1,
-                            color: Theme.of(context).indicatorColor,
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => StockLoading(
-                                        initialTabIndex: 0,
-                                        isUpdate: true,
-                                        loadDataList: loads,
-                                        addLoadData: addLoadData),
-                                  ),
-                                );
-                              },
-                              child: const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.assignment_late,
-                                    size: 50,
-                                    color: Colors.white,
-                                  ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    'Edit Load',
-                                    style: TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Card(
                             //
                             elevation: 1,
                             color: Theme.of(context).indicatorColor,
@@ -406,7 +403,7 @@ class _HomePageState extends State<HomePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => DispatchSchedule()
+                                    builder: (context) => DispatchSchedule(),
                                   ),
                                 );
                               },
@@ -421,6 +418,39 @@ class _HomePageState extends State<HomePage> {
                                   SizedBox(height: 10),
                                   Text(
                                     'Dispatch schedule',
+                                    style: TextStyle(
+                                        fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Card(
+                            //
+                            elevation: 1,
+                            color: Theme.of(context).indicatorColor,
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => loadTrack(
+                                      tenantConfig: widget.tenantConfig,
+                                    )
+                                  ),
+                                );
+                              },
+                              child: const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.fire_truck,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Load Tracker',
                                     style: TextStyle(
                                         fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
