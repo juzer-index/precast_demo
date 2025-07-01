@@ -217,7 +217,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    ElementPieChart(),
+                    width>600? ElementPieChart()
+                    : SizedBox(height: 1),
             
                     width>600
                         ? const SizedBox()

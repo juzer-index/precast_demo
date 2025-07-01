@@ -109,7 +109,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                            Text('Pie Chart',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
+                            Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
 
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
