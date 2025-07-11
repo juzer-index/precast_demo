@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
-
 import 'package:GoCastTrack/truckDetails.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'elementTable.dart';
 import 'partTable.dart';
-
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'elementSearchForm.dart';
 import 'load_model.dart';
@@ -70,8 +67,7 @@ class _StockOffloadingState extends State<StockOffloading>
   bool isPrinting = false;
   int pdfCount = 0;
 
-  Barcode? result;
-  QRViewController? controller;
+
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   Future<bool> submitReport() async {

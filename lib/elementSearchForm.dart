@@ -1,15 +1,11 @@
 import 'dart:convert';
-
 import 'dart:io';
-
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'part_model.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'element_model.dart';
-
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 
 class ElementSearchForm extends StatefulWidget {
@@ -68,9 +64,9 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   Map<String, dynamic> elementListData = {};
   List<ElementData> totalElements = [];
 
-  Barcode? elementResult;
+  // Barcode? elementResult;
   String elementResultCode = '';
-  QRViewController? controller;
+  // QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   bool isElement = false;
@@ -430,155 +426,155 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: QRView(
-                                      key: qrKey,
-                                      overlay: QrScannerOverlayShape(
-                                        borderColor: Colors.red,
-                                        borderRadius: 10,
-                                        borderLength: 30,
-                                        borderWidth: 10,
-                                        cutOutSize: 300,
-                                      ),
-                                      onQRViewCreated: (qrController) {
-                                        controller = qrController;
-                                        controller!.scannedDataStream
-                                            .listen((scanData) async {
-                                          String elementId = '';
-                                          String partNum = '';
-                                          String companyId = '';
-                                          String wareHouse = '';
-                                          String projectId = '';
-                                          controller!.pauseCamera();
-                                          Navigator.pop(context);
-                                          debugPrint(
-                                              'this is the code ${scanData.code}');
-                                          List<String> scanResult =
-                                              scanData.code!.split('  ');
-                                          if (scanResult.length >= 7) {
-                                            elementId = scanResult[4];
-                                            partNum = scanResult[3];
-                                            companyId = scanResult[2];
-                                            projectId = scanResult[5];
-                                            wareHouse = scanResult.last;
-                                            if (widget.Project.isNotEmpty && projectId != widget.Project) {
-                                              showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return AlertDialog(
-                                                      title: const Text(
-                                                          'Invalid Project'),
-                                                      content: const Text(
-                                                          'Please scan a valid QR code'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Text('OK',
-                                                              style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .canvasColor)),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  });
-                                            } else if (widget.Warehouse.isNotEmpty &&
-                                                wareHouse !=
-                                                widget.Warehouse) {
-                                              showDialog(
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return AlertDialog(
-                                                      title: const Text(
-                                                          'Invalid Warehouse'),
-                                                      content: const Text(
-                                                          'Please scan a valid QR code'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.pop(
-                                                                context);
-                                                          },
-                                                          child: Text('OK',
-                                                              style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .canvasColor)),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  });
-                                            } else {
-                                              await getScannedElement(partNum,
-                                                  elementId, companyId);
-                                              setState(() {
-                                                isElement = true;
-                                                elementNumberController.text =
-                                                    partNum;
-                                                elementDescriptionController
-                                                        .text =
-                                                    elementListData[
-                                                        'PartLotDescription'];
-                                                lotNoController.text =
-                                                    elementListData['LotNum'];
-                                                uomController.text =
-                                                    elementListData[
-                                                        'PartNumSalesUM'];
-                                                erectionSeqController
-                                                    .text = elementListData[
-                                                        'ErectionSequence_c']
-                                                    .toString();
-                                                weightController.text =
-                                                    elementListData['Ton_c'];
-                                                areaController.text =
-                                                    elementListData['M2_c'];
-
-                                                volumeController.text =
-                                                    elementListData['M3_c'];
-                                                estErectionDateController
-                                                    .text = elementListData[
-                                                        'ErectionPlannedDate_c'] ??
-                                                    '';
-                                                onHandQtyController.text = '1';
-                                                elementResult = scanData;
-                                                elementResultCode =
-                                                    elementResult?.code ??
-                                                        'Unknown';
-                                                elementNumberController.text =
-                                                    partNum;
-                                                selectable = true;
-                                              });
-                                            }
-                                          } else {
-                                            showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text(
-                                                        'Invalid QR Code'),
-                                                    content: const Text(
-                                                        'Please scan a valid QR code'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text('OK',
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .canvasColor)),
-                                                      ),
-                                                    ],
-                                                  );
-                                                });
-                                          }
-                                        });
-                                      },
-                                    ),
+                                    // child: QRView(
+                                    //   key: qrKey,
+                                    //   overlay: QrScannerOverlayShape(
+                                    //     borderColor: Colors.red,
+                                    //     borderRadius: 10,
+                                    //     borderLength: 30,
+                                    //     borderWidth: 10,
+                                    //     cutOutSize: 300,
+                                    //   ),
+                                    //   onQRViewCreated: (qrController) {
+                                    //     controller = qrController;
+                                    //     controller!.scannedDataStream
+                                    //         .listen((scanData) async {
+                                    //       String elementId = '';
+                                    //       String partNum = '';
+                                    //       String companyId = '';
+                                    //       String wareHouse = '';
+                                    //       String projectId = '';
+                                    //       controller!.pauseCamera();
+                                    //       Navigator.pop(context);
+                                    //       debugPrint(
+                                    //           'this is the code ${scanData.code}');
+                                    //       List<String> scanResult =
+                                    //           scanData.code!.split('  ');
+                                    //       if (scanResult.length >= 7) {
+                                    //         elementId = scanResult[4];
+                                    //         partNum = scanResult[3];
+                                    //         companyId = scanResult[2];
+                                    //         projectId = scanResult[5];
+                                    //         wareHouse = scanResult.last;
+                                    //         if (widget.Project.isNotEmpty && projectId != widget.Project) {
+                                    //           showDialog(
+                                    //               context: context,
+                                    //               builder: (context) {
+                                    //                 return AlertDialog(
+                                    //                   title: const Text(
+                                    //                       'Invalid Project'),
+                                    //                   content: const Text(
+                                    //                       'Please scan a valid QR code'),
+                                    //                   actions: [
+                                    //                     TextButton(
+                                    //                       onPressed: () {
+                                    //                         Navigator.pop(
+                                    //                             context);
+                                    //                       },
+                                    //                       child: Text('OK',
+                                    //                           style: TextStyle(
+                                    //                               color: Theme.of(
+                                    //                                       context)
+                                    //                                   .canvasColor)),
+                                    //                     ),
+                                    //                   ],
+                                    //                 );
+                                    //               });
+                                    //         } else if (widget.Warehouse.isNotEmpty &&
+                                    //             wareHouse !=
+                                    //             widget.Warehouse) {
+                                    //           showDialog(
+                                    //               context: context,
+                                    //               builder: (context) {
+                                    //                 return AlertDialog(
+                                    //                   title: const Text(
+                                    //                       'Invalid Warehouse'),
+                                    //                   content: const Text(
+                                    //                       'Please scan a valid QR code'),
+                                    //                   actions: [
+                                    //                     TextButton(
+                                    //                       onPressed: () {
+                                    //                         Navigator.pop(
+                                    //                             context);
+                                    //                       },
+                                    //                       child: Text('OK',
+                                    //                           style: TextStyle(
+                                    //                               color: Theme.of(
+                                    //                                       context)
+                                    //                                   .canvasColor)),
+                                    //                     ),
+                                    //                   ],
+                                    //                 );
+                                    //               });
+                                    //         } else {
+                                    //           await getScannedElement(partNum,
+                                    //               elementId, companyId);
+                                    //           setState(() {
+                                    //             isElement = true;
+                                    //             elementNumberController.text =
+                                    //                 partNum;
+                                    //             elementDescriptionController
+                                    //                     .text =
+                                    //                 elementListData[
+                                    //                     'PartLotDescription'];
+                                    //             lotNoController.text =
+                                    //                 elementListData['LotNum'];
+                                    //             uomController.text =
+                                    //                 elementListData[
+                                    //                     'PartNumSalesUM'];
+                                    //             erectionSeqController
+                                    //                 .text = elementListData[
+                                    //                     'ErectionSequence_c']
+                                    //                 .toString();
+                                    //             weightController.text =
+                                    //                 elementListData['Ton_c'];
+                                    //             areaController.text =
+                                    //                 elementListData['M2_c'];
+                                    //
+                                    //             volumeController.text =
+                                    //                 elementListData['M3_c'];
+                                    //             estErectionDateController
+                                    //                 .text = elementListData[
+                                    //                     'ErectionPlannedDate_c'] ??
+                                    //                 '';
+                                    //             onHandQtyController.text = '1';
+                                    //             elementResult = scanData;
+                                    //             elementResultCode =
+                                    //                 elementResult?.code ??
+                                    //                     'Unknown';
+                                    //             elementNumberController.text =
+                                    //                 partNum;
+                                    //             selectable = true;
+                                    //           });
+                                    //         }
+                                    //       } else {
+                                    //         showDialog(
+                                    //             context: context,
+                                    //             builder: (context) {
+                                    //               return AlertDialog(
+                                    //                 title: const Text(
+                                    //                     'Invalid QR Code'),
+                                    //                 content: const Text(
+                                    //                     'Please scan a valid QR code'),
+                                    //                 actions: [
+                                    //                   TextButton(
+                                    //                     onPressed: () {
+                                    //                       Navigator.pop(
+                                    //                           context);
+                                    //                     },
+                                    //                     child: Text('OK',
+                                    //                         style: TextStyle(
+                                    //                             color: Theme.of(
+                                    //                                     context)
+                                    //                                 .canvasColor)),
+                                    //                   ),
+                                    //                 ],
+                                    //               );
+                                    //             });
+                                    //       }
+                                    //     });
+                                    //   },
+                                    // ),
                                   ),
                                 ),
                                 SizedBox(

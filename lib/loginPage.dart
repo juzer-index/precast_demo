@@ -20,7 +20,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final ImagePath = 'assets/app-logo.png';
   late Image image;
-
+  bool hidePassword = true;
   String username = '' ;
   String password = '';
   String tenantId = '';
@@ -187,9 +187,14 @@ void didChangeDependencies() {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: TextFormField(
-                              obscureText: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
+                              obscureText: hidePassword,
+                              decoration: InputDecoration(
+                                suffixIcon: IconButton(onPressed: () {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                }, icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility)),
+                                  border: const OutlineInputBorder(),
                                   labelText: "Password"),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
