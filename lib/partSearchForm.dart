@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'part_model.dart';
 import 'dart:convert';
-
+/*Deprecated*/
 
 class PartSearchForm extends StatefulWidget {
   final Function(List<PartData>) onPartsSelected;
@@ -101,30 +101,7 @@ class _PartSearchFormState extends State<PartSearchForm> {
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    // child: QRView(
-                                    //   key: qrKey,
-                                    //   overlay: QrScannerOverlayShape(
-                                    //     borderColor: Colors.red,
-                                    //     borderRadius: 10,
-                                    //     borderLength: 30,
-                                    //     borderWidth: 10,
-                                    //     cutOutSize: 300,
-                                    //   ),
-                                    //   onQRViewCreated: (controller) {
-                                    //     setState(() {
-                                    //       this.controller = controller;
-                                    //     });
-                                    //     controller.scannedDataStream.listen((scanData) {
-                                    //       setState(() {
-                                    //         partResult = scanData;
-                                    //         partResultCode = partResult?.code ?? 'Unknown';
-                                    //         partNumberController.text = partResult?.code ?? 'Unknown';
-                                    //       });
-                                    //       setPartData();
-                                    //     });
-                                    //
-                                    //   },
-                                    // ),
+
                                   ),
                                 ),
                                 SizedBox(

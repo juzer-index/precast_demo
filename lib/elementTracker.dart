@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'detailsPage.dart';
 import 'Providers/tenantConfig.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];
 
@@ -412,42 +413,54 @@ class _ElementMasterState extends State<ElementMaster> {
                                           content: SizedBox(
                                             width: MediaQuery.of(context).size.width ,
                                             height: MediaQuery.of(context).size.height * 0.35,
-                                            // child: QRView(
-                                            //   key: qrKey,
-                                            //   onQRViewCreated: (QRViewController controller) {
-                                            //     this.controller = controller;
-                                            //     controller.scannedDataStream.listen((scanData) async {
-                                            //       String elementId = '';
-                                            //       String partNum = '';
-                                            //       String companyId = '';
-                                            //       controller.pauseCamera();
-                                            //       Navigator.pop(context);
-                                            //       debugPrint('this is the code ${scanData.code}');
-                                            //       List<String> scanResult = scanData.code!.split('  ');
-                                            //       if (scanResult.length >= 4) {
-                                            //         elementId = scanResult[4];
-                                            //         partNum = scanResult[3];
-                                            //         companyId = scanResult[2];
-                                            //         await getScannedElement(partNum, elementId, companyId);
-                                            //       } else {
-                                            //         showDialog(context: context, builder: (context) {
-                                            //           return AlertDialog(
-                                            //             title: const Text('Invalid QR Code'),
-                                            //             content: const Text('Please scan a valid QR code'),
-                                            //             actions: [
-                                            //               TextButton(
-                                            //                 onPressed: () {
-                                            //                   Navigator.pop(context);
-                                            //                 },
-                                            //                 child:Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
-                                            //               ),
-                                            //             ],
-                                            //           );
-                                            //         });
-                                            //       }
-                                            //     });
-                                            //   },
-                                            // ),
+                                            child: MobileScanner(
+                                              controller: MobileScannerController(
+                                                facing: CameraFacing.back,
+                                                torchEnabled: false,
+                                              ),
+                                              onDetect: (BarcodeCapture capture) async {
+                                                final List<Barcode> barcodes = capture.barcodes;
+                                                final Barcode barcode = barcodes.first;
+                                                final String? code = barcode.rawValue;
+
+                                                if (code != null) {
+                                                  String elementId = '';
+                                                  String partNum = '';
+                                                  String companyId = '';
+                                                  debugPrint('this is the code $code');
+
+                                                  List<String> scanResult = code.split('  ');
+                                                  if (scanResult.length >= 5) {
+                                                    elementId = scanResult[4];
+                                                    partNum = scanResult[3];
+                                                    companyId = scanResult[2];
+
+                                                    // Stop scanner before navigating
+                                                    Navigator.pop(context);
+
+                                                    await getScannedElement(partNum, elementId, companyId);
+                                                  } else {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return AlertDialog(
+                                                          title: const Text('Invalid QR Code'),
+                                                          content: const Text('Please scan a valid QR code'),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.pop(context);
+                                                              },
+                                                              child: Text('OK', style: TextStyle(color: Theme.of(context).canvasColor)),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                            )
                                           ),
                                         );
                                       },
