@@ -14,6 +14,8 @@ class LoadData {
   late final String plateNumber;
   late final String driverName;
   late final String driverNumber;
+  late final dynamic salesOrderNumber;
+  late final dynamic salesOrderLine;
   late final dynamic resourceCapacity;
   late final dynamic resourceLoaded;
   late final dynamic resourceLength;
@@ -25,6 +27,8 @@ class LoadData {
   late final dynamic comments;
   late final dynamic createdBy;
   late final dynamic DeviceID;
+  late final String projectOrSO;
+  late final dynamic shipTo;
 
   LoadData({
     required this.loadID,
@@ -41,6 +45,8 @@ class LoadData {
     required this.plateNumber,
     required this.driverName,
     required this.driverNumber,
+    this.salesOrderNumber,
+    this.salesOrderLine,
     required this.resourceCapacity,
     required this.resourceLoaded,
     required this.resourceLength,
@@ -52,12 +58,14 @@ class LoadData {
     required this.comments,
     this.createdBy,
     this.DeviceID,
+    required this.projectOrSO,
+    required this.shipTo,
   });
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
     return LoadData(
       loadID: json['Key1'],
-      projectId: json['ShortChar05'],
+      projectId: json['Character10'],
       loadDate: json['Date01'] ?? '',
       fromWarehouse: json['Character06'],
       toWarehouse: json['Character04'],
@@ -81,6 +89,9 @@ class LoadData {
       comments: json['Comments_c'],
       createdBy: json['CreatedBy_C'],
       DeviceID: json['Deviceid_c'],
+      salesOrderNumber: json['Character07'],
+      projectOrSO: json['ShortChar05'],
+      shipTo: json['Character08']// Assuming this is the project or SO identifier
     );
   }
 

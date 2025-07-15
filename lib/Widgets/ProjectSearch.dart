@@ -12,7 +12,7 @@ import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
 class ProjectSearch extends StatefulWidget {
   final bool isUpdate;
-  ProjectSearch({required this.isUpdate});
+  const ProjectSearch({super.key, required this.isUpdate});
 
   @override
   _ProjectSearchState createState() => _ProjectSearchState();
@@ -72,6 +72,7 @@ class _ProjectSearchState extends State<ProjectSearch> {
         content: Text(e.toString()),
       ));
     }
+    return null;
 
   }
   @override
@@ -141,11 +142,12 @@ class _ProjectSearchState extends State<ProjectSearch> {
                             , entity: "Sales Order");
                         setState(() {
                           salesOrderList = data;
+                          debugPrint("Sales Order List: $salesOrderList");
                         });
                         if(data.isNotEmpty) {
                           dynamic Shipments = await Future.wait(
                               [getCustomerShipments(
-                                  data[0]['OrderHed_OrderNum'].toInt())
+                                  data[0]['OrderDtl_OrderNum'].toInt())
                               ]);
 
                           setState(() {
@@ -166,42 +168,77 @@ class _ProjectSearchState extends State<ProjectSearch> {
                 },
               ),
             ),
-            ReDropDown(enabled: context.watch<ArchitectureProvider>().Project!="" && salesOrderList.isNotEmpty,
-                 data: salesOrderList.map((x)=>x['OrderDtl_OrderNum']).toList(), label: "Sales Order",
-              controller: SalesOrderController,
-              dataMap: salesOrderList.map((x)=>x['OrderDtl_OrderNum']).toList(),
-             loading: context.watch<ArchitectureProvider>().Project!="" && salesOrderList.isEmpty,
-              onChnaged: (value) async{
-              final element = salesOrderList.firstWhere((element) => element['OrderDtl_OrderNum'] == value);
-                setState(() {
-                  context.read<ArchitectureProvider>().updateSO(element['OrderDtl_OrderNum'].toInt());
-                  context.read<ArchitectureProvider>().updateCust(element['OrderDtl_CustNum']);
-                  context.read<ArchitectureProvider>().updateCustId(element['Customer_CustID']);
-
-
-                });
-               final Shipments = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt())]);
-                context.read<ArchitectureProvider>().setShipments(Shipments[0]);
-              },
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: DropdownSearch(
+                selectedItem: context.watch<ArchitectureProvider>().SO.toString(),
+                enabled: !widget.isUpdate,
+                popupProps: const PopupProps.modalBottomSheet(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                      labelText: "Sales Order",
+                    ),
+                  ),
+                ),
+                autoValidateMode: AutovalidateMode.onUserInteraction,
+                dropdownDecoratorProps: const DropDownDecoratorProps(
+                  dropdownSearchDecoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Sales Order",
+                  ),
+                ),
+                items: salesOrderList.map((x) => x['OrderDtl_OrderNum'].toString()).toList(),
+                onChanged: (value) async {
+                  final element = salesOrderList.firstWhere((element) => element['OrderDtl_OrderNum'].toString() == value);
+                  setState(() {
+                    context.read<ArchitectureProvider>().updateSO(element['OrderDtl_OrderNum'].toInt());
+                    context.read<ArchitectureProvider>().updateCust(element['OrderDtl_CustNum']);
+                    context.read<ArchitectureProvider>().updateCustId(element['Customer_CustID']);
+                    SalesOrderController.text = element['OrderDtl_OrderNum'].toString();
+                  });
+                  final Shipments = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt())]);
+                  context.read<ArchitectureProvider>().setShipments(Shipments[0]);
+                },
+              ),
             ),
             Row(
               children: [
-
-
-                Expanded(child: ReDropDown(
-                  controller: _customerShipcontroller,
-                  label: "Ship To ",
-                  data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
-                  dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
-                  loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
-                  enabled:!(context.watch<ArchitectureProvider>().customerShipments==null || context.watch<ArchitectureProvider>().SO==0) ,
-                  onChnaged: (value){
-                    setState(() {
-                      context.read<ArchitectureProvider>().updateShipment(value);
-
-                    });
-                  },
-                )),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownSearch(
+                      selectedItem: context.watch<ArchitectureProvider>().selectedShipment,
+                      enabled: !(context.watch<ArchitectureProvider>().customerShipments == null || context.watch<ArchitectureProvider>().SO == 0),
+                      popupProps: const PopupProps.modalBottomSheet(
+                        showSearchBox: true,
+                        searchFieldProps: TextFieldProps(
+                          decoration: InputDecoration(
+                            suffixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                            labelText: "Ship To",
+                          ),
+                        ),
+                      ),
+                      autoValidateMode: AutovalidateMode.onUserInteraction,
+                      dropdownDecoratorProps: const DropDownDecoratorProps(
+                        dropdownSearchDecoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Ship To",
+                        ),
+                      ),
+                      items: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList() ?? [],
+                      onChanged: (value) {
+                        setState(() {
+                          context.read<ArchitectureProvider>().updateShipment(value);
+                          _customerShipcontroller.text = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
               ],
             )
           ],

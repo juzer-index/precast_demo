@@ -36,7 +36,7 @@ import'./Models/CustomerShipment.dart';
 import '../Providers/LoadStateProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  final bool isUpdate;
+  late final bool isUpdate;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
   final String historyLoadID;
@@ -138,6 +138,7 @@ class _StockLoadingState extends State<StockLoading>
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
+  bool projectOrSO = true;
 
   //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
 
@@ -174,7 +175,7 @@ class _StockLoadingState extends State<StockLoading>
    String ErrorMessage="";
   bool isPrinting = false;
   int pdfCount = 0;
-  int archLabelIndex=0;
+  int archLabelIndex = 0;
   @override
   void initState() {
 
@@ -429,7 +430,7 @@ class _StockLoadingState extends State<StockLoading>
                     }
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: TabBarView(controller: _tabController, children: widget.LinesOriented?[
+                      child: TabBarView(controller: _tabController, children: widget.LinesOriented ? ([
                         if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
                           SingleChildScrollView(
                             child: Column(
@@ -641,21 +642,42 @@ class _StockLoadingState extends State<StockLoading>
                                       ),
                                     ]),
                                   Padding(padding: EdgeInsets.all(8.0),
-                                      child: ToggleSwitch(
-                                        minWidth: 150,
-                                        initialLabelIndex: archLabelIndex,
-                                        totalSwitches: 2,
-                                        labels: ['Stand-alone SO','Project based' ],
-                                        onToggle: (index) {
-                                          context.read<ArchitectureProvider>().toggleArchitecure();
+                                      child: ToggleButtons(
+                                        onPressed: (projectOrSO) {
                                           setState(() {
-                                            archLabelIndex = index??0;
+                                            this.projectOrSO = projectOrSO == 0;
+                                            context.read<ArchitectureProvider>().toggleArchitecure();
                                           });
                                         },
+                                          borderRadius: BorderRadius.circular(10),
+                                          fillColor: Theme.of(context).primaryColor,
+                                          color: Theme.of(context).canvasColor,
+                                          selectedColor: Colors.white,
+                                          constraints: const BoxConstraints(
+                                            minHeight: 40.0,
+                                            minWidth: 100.0,
+                                          ),
+                                          borderWidth: 1.0,
+                                          borderColor: Theme.of(context).primaryColor,
+                                          selectedBorderColor: Theme.of(context).primaryColor,
+                                          isSelected: [
+                                            projectOrSO,
+                                            !projectOrSO,
+                                          ],
+                                          children: const [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Project'),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Sales Order'),
+                                            ),
+                                          ],
                                       )
                                   ),
                                   context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(),
+                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(isUpdate: widget.isUpdate,),
                                   Row(
                                     children: [
                                       Expanded(
@@ -995,7 +1017,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   'I-${lastLoad + 1}';
                                               final loadDateFormat =
                                                   '${_selectedDate}T00:00:00';
-                                              debugPrint(toBinController.text);
+                                              debugPrint(projectIdController.text);
                                               await createNewLoad({
                                                 "Key1": newLoadId,
                                                 "Company":
@@ -1051,6 +1073,7 @@ class _StockLoadingState extends State<StockLoading>
 
 
                                                 "Character09": resourceId,
+                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
                                                 //  "Createdby_c": entryPersonController?.text.toString().trim(),
                                                 //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                               }, tenantConfigP);
@@ -1260,7 +1283,6 @@ class _StockLoadingState extends State<StockLoading>
                                   height: 20,
                                 ),
                                 ElevatedButton(
-
                                     onPressed: () async {
                                       if(!SaveLinesLoading){
                                         debugPrint(
@@ -1435,7 +1457,7 @@ class _StockLoadingState extends State<StockLoading>
                             ),
                           ),
                         ),
-                      ]:[
+                      ]) : [
                         //Tab 1 Content
                         SingleChildScrollView(
                           child: Form(
@@ -1444,7 +1466,7 @@ class _StockLoadingState extends State<StockLoading>
                               child: Column(
                                 children: [
                                   Padding(
-                                    padding: EdgeInsets.all(8.0),
+                                    padding: const EdgeInsets.all(8.0),
                                     child: Text(
                                       'Load Details',
                                       style: TextStyle(
@@ -1493,6 +1515,7 @@ class _StockLoadingState extends State<StockLoading>
                                               projectLoadID);
                                           getPartObjectFromJson(projectLoadID);
                                           if (offloadData != null) {
+                                            debugPrint(offloadData.toString());
                                             setState(() {
                                               projectIdController.text =
                                                   offloadData!.projectId;
@@ -1541,22 +1564,48 @@ class _StockLoadingState extends State<StockLoading>
                                         icon: const Icon(Icons.search),
                                       ),
                                     ]),
-                                  Padding(padding: EdgeInsets.all(8.0),
-                                      child: ToggleSwitch(
-                                        minWidth: 150,
-                                        initialLabelIndex: archLabelIndex,
-                                        totalSwitches: 2,
-                                        labels: ['Stand-alone SO','Project based' ],
-                                        onToggle: (index) {
-                                          context.read<ArchitectureProvider>().toggleArchitecure();
-                                          setState(() {
-                                            archLabelIndex = index??0;
-                                          });
-                                        },
-                                      )
+                                  ToggleButtons(
+                                    onPressed: (projectOrSO){
+                                      setState(() {
+                                        this.projectOrSO = projectOrSO == 0;
+                                        context.read<ArchitectureProvider>().toggleArchitecure();
+                                      });
+                                    },
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderColor: Theme.of(context).primaryColor,
+                                      fillColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                                      selectedBorderColor: Theme.of(context).primaryColor,
+                                      color: Theme.of(context).canvasColor,
+                                      selectedColor: Theme.of(context).primaryColor,
+                                      constraints: const BoxConstraints(
+                                        minHeight: 40.0,
+                                        minWidth: 100.0,
+                                      ),
+                                      direction: Axis.horizontal,
+                                      renderBorder: true,
+                                      textStyle: TextStyle(
+                                          fontSize:
+                                          MediaQuery.of(context).size.height *
+                                              0.0175),
+                                      isSelected: [
+                                        projectOrSO == true,
+                                        projectOrSO == false,
+                                      ],
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text('Stand-alone SO'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text('Project based'),
+                                        ),
+                                      ],
                                   ),
-                                  context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(),
+                                  if(projectOrSO)
+                                    SalesOrderSearch(isUpdate: widget.isUpdate)
+                                  else
+                                    ProjectSearch(isUpdate: widget.isUpdate),
                                   Row(
                                     children: [
                                       Expanded(
@@ -1603,7 +1652,6 @@ class _StockLoadingState extends State<StockLoading>
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: TextFormField(
-                                              enabled: !widget.isUpdate,
                                               onTap: () async {
                                                 final TimeOfDay? time =
                                                 await showTimePicker(
@@ -1952,6 +2000,7 @@ class _StockLoadingState extends State<StockLoading>
 
 
                                                 "Character09": resourceId,
+                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
                                                 //  "Createdby_c": entryPersonController?.text.toString().trim(),
                                                 //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                               }, tenantConfigP);
@@ -2058,7 +2107,7 @@ class _StockLoadingState extends State<StockLoading>
                                               ? selectedElements
                                               : [],
                                           isOffloading: false,
-                                          Warehouse: fromWarehouseController.text??'',
+                                          Warehouse: fromWarehouseController.text,
                                           AddElement: _addElement,
                                           Project: projectIdController.text,
                                           tenantConfig: tenantConfigP,
@@ -3106,6 +3155,17 @@ class _StockLoadingState extends State<StockLoading>
       loadConditionValue = offloadData!.loadCondition;
       fromWarehouseController.text = offloadData!.fromWarehouse;
       isLoaded = true;
+      if(offloadData?.projectOrSO == 'Project'){
+        projectOrSO = false;
+        context.read<ArchitectureProvider>().Project = offloadData!.projectId;
+        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
+      } else {
+        projectOrSO = true;
+      }
+      debugPrint(context.read<ArchitectureProvider>().Project);
+      debugPrint(context.read<ArchitectureProvider>().SO.toString());
+      debugPrint(context.read<ArchitectureProvider>().selectedShipment.toString());
     });
     await getWarehouseList(tenantConfigP);
     await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);

@@ -10,8 +10,8 @@ class ReDropDown extends StatefulWidget {
   List<dynamic> dataMap;
   bool loading = false;
   Function? onChnaged;
-  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap,required this.loading
-  , this.onChnaged= null});
+  String value = '';
+  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap,required this.loading, this.onChnaged= null});
 
   @override
   State<StatefulWidget> createState() {
@@ -47,7 +47,7 @@ class _DropDownState extends State<ReDropDown> {
       child: Stack(
         children: [
           DropdownSearch<dynamic>(
-            selectedItem: widget.controller.text ,
+            selectedItem: widget.controller.text,
             enabled: widget.enabled,
             popupProps: const PopupProps.modalBottomSheet(
               showSearchBox: true,

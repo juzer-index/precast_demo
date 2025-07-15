@@ -12,7 +12,8 @@ import '../Models/OrderLine.dart';
 import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
 class SalesOrderSearch extends StatefulWidget {
-
+  final bool isUpdate;
+  const SalesOrderSearch({super.key, required this.isUpdate});
 
   @override
   _SalesOrderSearchState createState() => _SalesOrderSearchState();
@@ -116,7 +117,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
              var data = await APIV2Helper.getResults(
                  '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
                      '/v1/'
-                     'BaqSvc/IIT_Cust_SO/\$filter=OrderHed_OrderNum eq ${term}',
+                     'BaqSvc/IIT_Cust_SO/\$filter=OrderHed_OrderNum eq $term',
 
                  {"username": context
                      .read<tenantConfigProvider>()
@@ -168,7 +169,6 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
                   onChnaged: (value){
                     setState(() {
                       context.read<ArchitectureProvider>().updateShipment(value);
-
                     });
                   },
                 ),
