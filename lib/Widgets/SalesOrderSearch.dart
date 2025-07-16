@@ -1,4 +1,5 @@
 import 'package:GoCastTrack/Providers/tenantConfig.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -94,9 +95,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
     int salesOrder= int.parse((item as Map<String,dynamic>)['OrderNum'].toString());
 
     setState(() {
-      context.read<ArchitectureProvider>().updateSO(int.parse((item as Map<String,dynamic>)['OrderNum'].toString()));
-      context.read<ArchitectureProvider>().updateCust((item as Map<String,dynamic>)['CustNum']);
-      context.read<ArchitectureProvider>().updateCustId((item as Map<String,dynamic>)['Customer']);
+      context.read<ArchitectureProvider>().updateSO(int.parse((item)['OrderNum'].toString()));
+      context.read<ArchitectureProvider>().updateCust((item)['CustNum']);
+      context.read<ArchitectureProvider>().updateCustId((item)['Customer']);
     });
 
     dynamic data = await Future.wait([getCustomerShipments(salesOrder)]);
@@ -159,19 +160,50 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
 
            Expanded(
-                child: ReDropDown(
-                  controller: _customerShipcontroller,
-                  label: "Ship To ",
-                  data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
-                  dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
-                  loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
-                  enabled:!(context.watch<ArchitectureProvider>().customerShipments==null || context.watch<ArchitectureProvider>().SO==0) ,
-                  onChnaged: (value){
-                    setState(() {
-                      context.read<ArchitectureProvider>().updateShipment(value);
-                    });
-                  },
-                ),
+             child: Padding(
+               padding: const EdgeInsets.all(8.0),
+               child: DropdownSearch(
+                 selectedItem: context.watch<ArchitectureProvider>().selectedShipment,
+                 enabled: !(context.watch<ArchitectureProvider>().customerShipments == null || context.watch<ArchitectureProvider>().SO == 0),
+                 popupProps: const PopupProps.modalBottomSheet(
+                   showSearchBox: true,
+                   searchFieldProps: TextFieldProps(
+                     decoration: InputDecoration(
+                       suffixIcon: Icon(Icons.search),
+                       border: OutlineInputBorder(),
+                       labelText: "Ship To",
+                     ),
+                   ),
+                 ),
+                 autoValidateMode: AutovalidateMode.onUserInteraction,
+                 dropdownDecoratorProps: const DropDownDecoratorProps(
+                   dropdownSearchDecoration: InputDecoration(
+                     border: OutlineInputBorder(),
+                     labelText: "Ship To",
+                   ),
+                 ),
+                 items: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList() ?? [],
+                 onChanged: (value) {
+                   setState(() {
+                     context.read<ArchitectureProvider>().updateShipment(value);
+                     _customerShipcontroller.text = value;
+                   });
+                 },
+               ),
+             ),
+             //    child: ReDropDown(
+             //      controller: _customerShipcontroller,
+             //      label: "Ship To ",
+             //      data: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList()??[],
+             //      dataMap: context.watch<ArchitectureProvider>().customerShipments?? [],
+             //      loading: context.watch<ArchitectureProvider>().customerShipments==null &&context.watch<ArchitectureProvider>().SO!=0 ,
+             //      enabled:!(context.watch<ArchitectureProvider>().customerShipments==null || context.watch<ArchitectureProvider>().SO==0) ,
+             //      onChnaged: (value){
+             //        setState(() {
+             //          context.read<ArchitectureProvider>().updateShipment(value);
+             //        });
+             //      },
+             //    ),
               ),
 
 

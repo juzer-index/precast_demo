@@ -1999,13 +1999,14 @@ class _StockLoadingState extends State<StockLoading>
                                                 "Character08":context.read<ArchitectureProvider>().selectedShipment,
 
 
-                                                "Character09": resourceId,
+                                                "Character09": resourceIdController.text,
                                                 "Character10": context.read<ArchitectureProvider>().Project.toString(),
+                                                "Character06": fromWarehouseController.text,
                                                 //  "Createdby_c": entryPersonController?.text.toString().trim(),
                                                 //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
                                               }, tenantConfigP);
                                               debugPrint(
-                                                  toWarehouseNameController.text);
+                                                 resourceIdController.text);
                                               if (isLoaded) {
                                                 if (mounted) {
                                                   showDialog(
@@ -2312,9 +2313,8 @@ class _StockLoadingState extends State<StockLoading>
                                 const SizedBox(
                                   height: 20,
                                 ),
-                                 context.watch<loadStateProvider>().linesLoaded?
+                                 // context.watch<loadStateProvider>().linesLoaded ?
                                 ElevatedButton(
-
                                     onPressed: () async {
                                       if(!SaveLinesLoading){
                                         debugPrint(
@@ -2482,7 +2482,8 @@ class _StockLoadingState extends State<StockLoading>
                                     )
                                         :const Text(
                                       'Load Lines',
-                                    )):SizedBox(),
+                                    ))
+                                    // :SizedBox(),
                               ],
                             ),
                           ),
@@ -3155,6 +3156,7 @@ class _StockLoadingState extends State<StockLoading>
       loadConditionValue = offloadData!.loadCondition;
       fromWarehouseController.text = offloadData!.fromWarehouse;
       isLoaded = true;
+      resourceIdController.text = offloadData!.resourceId;
       if(offloadData?.projectOrSO == 'Project'){
         projectOrSO = false;
         context.read<ArchitectureProvider>().Project = offloadData!.projectId;
@@ -3162,10 +3164,10 @@ class _StockLoadingState extends State<StockLoading>
         context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
       } else {
         projectOrSO = true;
+        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
       }
-      debugPrint(context.read<ArchitectureProvider>().Project);
-      debugPrint(context.read<ArchitectureProvider>().SO.toString());
-      debugPrint(context.read<ArchitectureProvider>().selectedShipment.toString());
+      debugPrint("${offloadData?.fromWarehouse.toString()}");
     });
     await getWarehouseList(tenantConfigP);
     await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);

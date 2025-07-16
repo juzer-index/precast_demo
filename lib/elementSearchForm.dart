@@ -91,7 +91,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
         HttpHeaders.authorizationHeader: basicAuth,
         HttpHeaders.contentTypeHeader: 'application/json',
       });
-      debugPrint(response.toString());
+      debugPrint(widget.Warehouse.toString());
       if (response.statusCode == 200) {
         partData = jsonDecode(response.body);
         if (partData['value'].isEmpty) {
