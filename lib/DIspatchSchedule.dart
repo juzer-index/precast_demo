@@ -27,10 +27,11 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
   bool hasError = false;
   final TextEditingController _salesOrderController = TextEditingController();
   // Track error state
-  int page = 1;
+  int page =0;
   Future<void> getData(String SalesOrder) async  {
     try {
       isLoading = true; // Set loading to true when fetching data
+      page=0;
       final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
       List<dynamic> data = await APIV2Helper.getPaginatedResults(
         hasVars: true,
@@ -273,7 +274,9 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                               DataCell(Text(x['Customer_Name'].toString())),
                                               DataCell(Text(x['Calculated_Status'].toString())),
                                               DataCell(Text(x['PartLot_ErectionSequence_c'].toString())),
-                                            ])).toList().sublist((page-1)*10,min((page*10), dynamicStructures.length) ),
+                                            ])).toList().sublist((page-1)*10,min((page*10),
+
+                                                (dynamicStructures.length)) ),
                                             columns: [
                                               DataColumn(label: Text('Checked')),
                                               DataColumn(label: Text('Structure ID')),
@@ -316,7 +319,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
 
 
                                       } , icon: const Icon(Icons.arrow_back_ios_new)),
-                                      Text(page.toString()),
+                                      Text((page+1).toString()),
                                       IconButton(onPressed:()async{
                                         if(page*10<dynamicStructures.length){
                                           setState(() {

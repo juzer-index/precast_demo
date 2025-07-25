@@ -28,7 +28,7 @@ class _SalesOrderPopUPState extends State<SalesOrderPopUP> {
     super.initState();
      final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
    _pagingController= PagingController<int,Map<String,dynamic>>(
-        getNextPageKey: (state) => (state.keys?.last ?? 0) + 1,
+        getNextPageKey: (state) => state.lastPageIsEmpty ? null : state.nextIntPageKey,
         fetchPage: (pageKey) async {
           final data= await APIV2Helper.getPaginatedResults(
               '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
