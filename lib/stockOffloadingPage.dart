@@ -1244,8 +1244,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                         v < checkedElements.length;
                                         v++) {
                                       await updateUD104A({
-                                        "Key1": loadIDController.text,
-                                        "childKey1": checkedElements[v].ChildKey1,
+
                                         "CheckBox01": true,
                                         "CheckBox02": true,
                                         "CheckBox03": false,
@@ -1265,10 +1264,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                         v < checkedParts.length;
                                         v++) {
                                       await updateUD104A({
-                                        "Key1": loadIDController.text,
-                                        "Character01": checkedParts[v].partNum,
-                                        "Company":
-                                            '${widget.tenantConfig['company']}',
+
                                         "CheckBox01": true,
                                         "CheckBox02": false,
                                         "CheckBox03": false,
