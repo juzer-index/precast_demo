@@ -29,6 +29,10 @@ class LoadData {
   late final dynamic DeviceID;
   late final String projectOrSO;
   late final dynamic shipTo;
+  String SO ="0";
+  String CustomerId = "";
+  String CustNum="0";
+
 
   LoadData({
     required this.loadID,
@@ -60,6 +64,10 @@ class LoadData {
     this.DeviceID,
     required this.projectOrSO,
     required this.shipTo,
+    this.SO = "0",
+    this.CustomerId = "",
+    this.CustNum = "0",
+
   });
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
@@ -91,7 +99,10 @@ class LoadData {
       DeviceID: json['Deviceid_c'],
       salesOrderNumber: json['Character07'],
       projectOrSO: json['ShortChar05'],
-      shipTo: json['Character08']// Assuming this is the project or SO identifier
+      shipTo: json['Character08'],
+      SO: json['Character07'],
+      CustomerId: json['Character04'],
+      CustNum: json['Number12'] is String ? json['Number12'] : json['Number12'].toString()// Assuming this is the project or SO identifier
     );
   }
 

@@ -12,7 +12,11 @@ import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
 class ProjectSearch extends StatefulWidget {
   final bool isUpdate;
-  const ProjectSearch({super.key, required this.isUpdate});
+  final bool enabled ;
+  const ProjectSearch({super.key,
+    required this.isUpdate
+  , this.enabled = true
+  });
 
   @override
   _ProjectSearchState createState() => _ProjectSearchState();
@@ -88,7 +92,7 @@ class _ProjectSearchState extends State<ProjectSearch> {
               child: DropdownSearch(
                 selectedItem:
                 context.watch<ArchitectureProvider>().project,
-                enabled: !widget.isUpdate,
+                enabled: widget.enabled&&!widget.isUpdate,
                 popupProps:
                 const PopupProps.modalBottomSheet(
                   showSearchBox: true,
@@ -172,7 +176,7 @@ class _ProjectSearchState extends State<ProjectSearch> {
               padding: const EdgeInsets.all(8.0),
               child: DropdownSearch(
                 selectedItem: context.watch<ArchitectureProvider>().SO.toString(),
-                enabled: !widget.isUpdate,
+                enabled: widget.enabled&&!widget.isUpdate,
                 popupProps: const PopupProps.modalBottomSheet(
                   showSearchBox: true,
                   searchFieldProps: TextFieldProps(
@@ -211,7 +215,7 @@ class _ProjectSearchState extends State<ProjectSearch> {
                     padding: const EdgeInsets.all(8.0),
                     child: DropdownSearch(
                       selectedItem: context.watch<ArchitectureProvider>().selectedShipment,
-                      enabled: !(context.watch<ArchitectureProvider>().customerShipments == null || context.watch<ArchitectureProvider>().SO == 0),
+                      enabled: widget.enabled&&!(context.watch<ArchitectureProvider>().customerShipments == null || context.watch<ArchitectureProvider>().SO == 0),
                       popupProps: const PopupProps.modalBottomSheet(
                         showSearchBox: true,
                         searchFieldProps: TextFieldProps(

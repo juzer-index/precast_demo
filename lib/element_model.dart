@@ -33,6 +33,7 @@ class ElementData {
   late bool CheckBox13;
   late final String UOMClass;
   late final String Revision;
+  late bool isRecieved = false;
 
   ElementData({
     required this.partId,
@@ -67,6 +68,8 @@ class ElementData {
     this.Key1 = "",
     required this.UOMClass,
     required this.Revision,
+    isRecieved = false,
+
   });
 
   factory ElementData.fromJson(Map<String, dynamic> json) {
@@ -112,6 +115,7 @@ class ElementData {
       CheckBox13: json['CheckBox13'] ?? false,
       UOMClass: json['Character09'] ?? '',
       Revision: json['Character08'] ?? '',
+      isRecieved: json['CheckBox01'] ?? false,
     );
   }
 

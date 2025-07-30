@@ -184,6 +184,7 @@ class _StockLoadingState extends State<StockLoading>
     _tabController.index = widget.initialTabIndex;
     setState(() {
       context.read<ArchitectureProvider>().init();
+      context.read<ArchitectureProvider>().setArchitecure('SO');
     });
 
     if(widget.LinesOriented){
@@ -661,8 +662,8 @@ class _StockLoadingState extends State<StockLoading>
                                           borderColor: Theme.of(context).primaryColor,
                                           selectedBorderColor: Theme.of(context).primaryColor,
                                           isSelected: [
-                                            projectOrSO,
-                                            !projectOrSO,
+                                            context.watch<ArchitectureProvider>().architecure=='Project',
+                                            context.watch<ArchitectureProvider>().architecure=='SO',
                                           ],
                                           children: const [
                                             Padding(

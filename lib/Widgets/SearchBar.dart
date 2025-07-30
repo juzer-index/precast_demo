@@ -6,7 +6,10 @@ class IndexSearchBar extends StatefulWidget {
   bool advanceSearch;
   Function? onAdvanceSearch=(){};
   String value = "";
-  IndexSearchBar({required this.entity,required this.onSearch,this.advanceSearch = false,this.onAdvanceSearch, this.value=""});
+  bool enabled = true;
+  IndexSearchBar({required this.entity,required this.onSearch,this.advanceSearch = false,this.onAdvanceSearch, this.value="",
+  this.enabled = true
+  });
   @override
   _IndexSearchBarState createState() => _IndexSearchBarState();
 }
@@ -26,7 +29,7 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
         children: [
           Expanded(
             child: TextFormField(
-
+              enabled: widget.enabled,
               controller: _controller,
               decoration: InputDecoration(
                 label: Text("Search ${widget.entity}"),
@@ -38,7 +41,11 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
 
           !isSearching? IconButton(
             icon: Icon(Icons.search),
+            color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey,
             onPressed: ()  async{
+              if(!widget.enabled || isSearching){
+                return;
+              }
               try {
                 if(_controller.text.isEmpty){
                   throw new Exception("Please enter a search term");
@@ -88,10 +95,11 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
             },
           ): CircularProgressIndicator(),
           if(widget.advanceSearch) IconButton(
+            color: widget.enabled ? Theme.of(context).primaryColor : Colors.grey,
             icon: Icon(Icons.manage_search, size: 30
     ),
             onPressed: (){
-              if(!isSearching){
+              if(widget.enabled&&!isSearching){
                 widget.onAdvanceSearch!();
               }
             },

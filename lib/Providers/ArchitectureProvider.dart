@@ -3,7 +3,7 @@ import 'Package:provider/provider.dart';
 class ArchitectureProvider extends ChangeNotifier {
   ArchitectureProvider();
   init(){
-    _architecure='SO';
+    _architecure='Project';
     Project="";
     SO=0;
     Lines=null;
@@ -14,9 +14,14 @@ class ArchitectureProvider extends ChangeNotifier {
     CustomerId="";
     notifyListeners();
   }
-  String _architecure='SO';
+  String _architecure='Project';
   String Project="";
   String get project => Project;
+  setArchitecure(String value) {
+    _architecure = value;
+
+    notifyListeners();
+  }
   set project(String value) {
     Project = value;
     notifyListeners();

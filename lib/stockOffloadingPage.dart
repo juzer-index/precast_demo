@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'elementTable.dart';
 import 'partTable.dart';
 import 'package:http/http.dart' as http;
@@ -16,7 +17,10 @@ import 'element_model.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'PdfViewer.dart';
-
+import '../widgets/ProjectSearch.dart';
+import '../widgets/SalesOrderSearch.dart';
+import '../Providers/ArchitectureProvider.dart';
+import 'package:provider/provider.dart';
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
   final dynamic tenantConfig;
@@ -169,7 +173,7 @@ class _StockOffloadingState extends State<StockOffloading>
           partValue = loadData['UD104A']
               ?.where((part) => part['CheckBox13'] == true)
               .toList();
-          arrivedElements =
+          selectedElements =
               elementValue.map((e) => ElementData.fromJson(e)).toList();
           arrivedParts = partValue.map((e) => PartData.fromJson(e)).toList();
         });
@@ -397,6 +401,7 @@ class _StockOffloadingState extends State<StockOffloading>
     _tabController.index = widget.initialTabIndex;
     /* fetchLoadDataFromURL();
     fetchElementDataFromURL();*/
+    context.read<ArchitectureProvider>().init();
     super.initState();
   }
 
@@ -483,6 +488,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 IconButton(
                                   onPressed: () async {
                                     await fetchLoadDataFromURL();
+                                    context.read<ArchitectureProvider>().init();
                                     /*                                await fetchElementDataFromURL();
                                     await fetchPartDataFromURL();*/
                                     /*await fetchElementANDPartsDataFromURL();*/
@@ -532,6 +538,13 @@ class _StockOffloadingState extends State<StockOffloading>
                                         loadTypeValue = offloadData!.loadType;
                                         loadConditionValue =
                                             offloadData!.loadCondition;
+                                       context.read<ArchitectureProvider>().setArchitecure(offloadData!.projectOrSO);
+                                       context.read<ArchitectureProvider>().project = offloadData!.projectId;
+                                        context.read<ArchitectureProvider>().updateSO(int.parse(offloadData!.SO));
+                                        context.read<ArchitectureProvider>().updateShipment(offloadData!.shipTo);
+                                        context.read<ArchitectureProvider>().updateCust(int.parse(offloadData!.CustNum));
+
+                                        loadStatus = offloadData!.loadStatus;
                                       });
                                     } else {
                                       if (mounted) {
@@ -564,22 +577,50 @@ class _StockOffloadingState extends State<StockOffloading>
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              controller: projectIDController,
-                              enabled: false,
-                              decoration: InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                                label: Text('Project ID'),
-                              ),
+                          ToggleButtons(
+                            onPressed: (projectOrSO){
+
+                            },
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderColor: Theme.of(context).primaryColor,
+                            fillColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                            selectedBorderColor: Theme.of(context).primaryColor,
+                            color: Theme.of(context).canvasColor,
+                            selectedColor: Theme.of(context).primaryColor,
+                            constraints: const BoxConstraints(
+                              minHeight: 40.0,
+                              minWidth: 100.0,
                             ),
+                            direction: Axis.horizontal,
+                            renderBorder: true,
+                            textStyle: TextStyle(
+                                fontSize:
+                                MediaQuery.of(context).size.height *
+                                    0.0175),
+                            isSelected: [
+                               context.watch<ArchitectureProvider>().architecure == 'SO',
+                                context.watch<ArchitectureProvider>().architecure == 'Project'
+                            ],
+                            children: const [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text('Stand-alone SO'),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text('Project based'),
+                              ),
+                            ],
                           ),
+                          context.watch<ArchitectureProvider>().architecure == 'Project'
+                              ? ProjectSearch(
+                                  isUpdate: false,
+                                   enabled: false,
+                                )
+                              : SalesOrderSearch(
+                                     isUpdate: false,
+                                     enabled: false,
+                                ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
@@ -842,6 +883,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         children: [
                           Column(
                             children: [
+                              /*
                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
@@ -852,6 +894,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                       color: Theme.of(context).canvasColor),
                                 ),
                               ),
+
                               const SizedBox(
                                 height: 10,
                               ),
@@ -873,6 +916,8 @@ class _StockOffloadingState extends State<StockOffloading>
                                   ),
                                 ),
                               ),
+                              */
+
                               const SizedBox(
                                 height: 20,
                               ),
@@ -888,7 +933,14 @@ class _StockOffloadingState extends State<StockOffloading>
                                   color: Theme.of(context).canvasColor),
                             ),
                           ),
-                          ElementTable(selectedElements: selectedElements),
+                          ElementTable(selectedElements: selectedElements,
+                            isOffloading: true,
+                            onElementsChanged: (List<ElementData> passedElements)=>{
+                              setState(() {
+                                selectedElements = passedElements;
+                              })
+                            },
+                          ),
                           const SizedBox(
                             height: 20,
                           ),
@@ -899,7 +951,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                 fontSize: 18,
                                 color: Theme.of(context).canvasColor),
                           ),
-                          PartTable(selectedParts: arrivedParts),
+                          PartTable(selectedParts: arrivedParts, isOffloading: true,),
                           const SizedBox(
                             height: 20,
                           ),
@@ -1058,7 +1110,7 @@ class _StockOffloadingState extends State<StockOffloading>
                               fontSize: 18,
                               color: Theme.of(context).canvasColor),
                         ),
-                        ElementTable(selectedElements: selectedElements),
+                        ElementTable(selectedElements: selectedElements.where((element) => element.isRecieved).toList()),
                         const SizedBox(
                           height: 20,
                         ),
@@ -1183,27 +1235,38 @@ class _StockOffloadingState extends State<StockOffloading>
                                         DateFormat("yyyy-MM-dd'T'HH:mm:ss")
                                             .format(DateTime.now());
                                     debugPrint(selectedElements.toString());
+                                    List<ElementData> checkedElements =
+                                        selectedElements
+                                            .where((element) =>
+                                                element.isRecieved )
+                                            .toList();
                                     for (var v = 0;
-                                        v < selectedElements.length;
+                                        v < checkedElements.length;
                                         v++) {
                                       await updateUD104A({
+                                        "Key1": loadIDController.text,
+                                        "childKey1": checkedElements[v].ChildKey1,
                                         "CheckBox01": true,
                                         "CheckBox02": true,
                                         "CheckBox03": false,
                                         "CheckBox05": false,
                                         "Date02": loadDateFormat,
-                                      }, selectedElements[v].ChildKey1);
+                                      }, checkedElements[v].ChildKey1);
                                       await updateStatusOnSite(
-                                          selectedElements[v].partId,
-                                          selectedElements[v].elementId);
-                                      debugPrint(selectedElements[v].elementId);
+                                          checkedElements[v].partId,
+                                          checkedElements[v].elementId);
+                                      debugPrint(checkedElements[v].elementId);
                                     }
+                                    List<PartData> checkedParts =
+                                        arrivedParts
+                                            .where((part) => part.isRecieved)
+                                            .toList();
                                     for (var v = 0;
-                                        v < arrivedParts.length;
+                                        v < checkedParts.length;
                                         v++) {
                                       await updateUD104A({
                                         "Key1": loadIDController.text,
-                                        "Character01": arrivedParts[v].partNum,
+                                        "Character01": checkedParts[v].partNum,
                                         "Company":
                                             '${widget.tenantConfig['company']}',
                                         "CheckBox01": true,
@@ -1212,7 +1275,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                         "CheckBox05": false,
                                       }, "1");
 
-                                      debugPrint(arrivedParts[v].partNum);
+                                      debugPrint(checkedParts[v].partNum);
                                     }
                                     await updateLoadStatus({
                                       "Key1": loadIDController.text,
