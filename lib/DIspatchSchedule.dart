@@ -176,6 +176,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                           setState(() {
                             dynamicStructures = data;
                             isLoading = false;
+                            page=1;
                           });
                         }else{
                           setState(() {
@@ -253,7 +254,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                       child: Column(
                                         children: [
                                           IndexTable(
-                                            data: dynamicStructures.map((x) => DataRow(
+                                            data: dynamicStructures.length>0?dynamicStructures.map((x) => DataRow(
                                                 color: x['Calculated_Status'].toString() == "Shipped" ? const MaterialStatePropertyAll<Color>(Colors.deepOrange) : null,
                                                 cells: [
                                               DataCell(Checkbox(
@@ -276,7 +277,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                               DataCell(Text(x['PartLot_ErectionSequence_c'].toString())),
                                             ])).toList().sublist((page-1)*10,min((page*10),
 
-                                                (dynamicStructures.length)) ),
+                                                (dynamicStructures.length)) ):[],
                                             columns: [
                                               DataColumn(label: Text('Checked')),
                                               DataColumn(label: Text('Structure ID')),

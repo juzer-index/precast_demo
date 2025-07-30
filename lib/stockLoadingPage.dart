@@ -1604,9 +1604,9 @@ class _StockLoadingState extends State<StockLoading>
                                       ],
                                   ),
                                   if(projectOrSO)
-                                    SalesOrderSearch(isUpdate: widget.isUpdate)
+                                    SalesOrderSearch(isUpdate: widget.isUpdate,enabled: false,)
                                   else
-                                    ProjectSearch(isUpdate: widget.isUpdate),
+                                    ProjectSearch(isUpdate: widget.isUpdate,enabled:false),
                                   Row(
                                     children: [
                                       Expanded(
