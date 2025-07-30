@@ -995,22 +995,7 @@ class _StockOffloadingState extends State<StockOffloading>
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: projectIDController,
-                            enabled: false,
-                            decoration: InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: Theme.of(context).canvasColor),
-                              ),
-                              label: Text('Project ID'),
-                            ),
-                          ),
-                        ),
+
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
