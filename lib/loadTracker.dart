@@ -8,7 +8,9 @@ import 'package:google_maps_directions/google_maps_directions.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'load_model.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class loadTrack extends StatefulWidget {
   final dynamic tenantConfig;
@@ -21,6 +23,10 @@ class loadTrack extends StatefulWidget {
 class _loadTrackState extends State<loadTrack>
     with SingleTickerProviderStateMixin {
 
+  Map<PolylineId, Polyline> polylines = {};
+  List<LatLng> polylineCoordinates = [];
+  PolylinePoints polylinePoints = PolylinePoints();
+
   Map<String, dynamic> fetchedWarehouseData = {};
   List<dynamic> fetchedWarehouseValue = [];
   final Completer<GoogleMapController> _controller =
@@ -30,10 +36,10 @@ class _loadTrackState extends State<loadTrack>
     zoom: 5,
   );
 
-  double? fromLatitude = 30;
-  double? fromLongtude = 30;
-  double? toLatitude = 29;
-  double? toLongtude = 31;
+  double? fromLatitude = 30.027756;
+  double? fromLongtude = 31.403733;
+  double? toLatitude = 30.050059;
+  double? toLongtude = 31.387759;
 
   TextEditingController loadIDController = TextEditingController();
   TextEditingController loadDateController = TextEditingController();
@@ -44,10 +50,9 @@ class _loadTrackState extends State<loadTrack>
   List<dynamic> loadValue = [];
   LoadData? loadInfo;
   bool isPrinting = false;
-  AddressPoint _destination = AddressPoint(lat: 30, lng: 30);
+  AddressPoint _destination = AddressPoint(lat: 30.050059, lng: 31.387759);
   Directions? _directions;
-  String? _googleAPiKey;
-  AddressPoint _origin = AddressPoint(lat: 31, lng: 29);
+  AddressPoint _origin = AddressPoint(lat: 30.027756, lng: 31.403733);
   List<Polyline>? _polylines;
   Set<Marker> markers = {};
 
@@ -183,18 +188,18 @@ class _loadTrackState extends State<loadTrack>
           orElse: () => null,
         );
 
-        if (fromWarehouse != null) {
-          fromLongtude = double.parse(fromWarehouse['Warehse_Longitude_c']);
-          fromLatitude = double.parse(fromWarehouse['Warehse_Latitude_c']);
-        } else {
-          print('From Warehouse not found');
-        }
-        if (toWarehouse != null) {
-          toLongtude = double.parse(toWarehouse['Warehse_Longitude_c']);
-          toLatitude = double.parse(toWarehouse['Warehse_Latitude_c']);
-        } else {
-          print('From Warehouse not found');
-        }
+        // if (fromWarehouse != null) {
+        //   fromLongtude = double.parse(fromWarehouse['Warehse_Longitude_c']);
+        //   fromLatitude = double.parse(fromWarehouse['Warehse_Latitude_c']);
+        // } else {
+        //   print('From Warehouse not found');
+        // }
+        // if (toWarehouse != null) {
+        //   toLongtude = double.parse(toWarehouse['Warehse_Longitude_c']);
+        //   toLatitude = double.parse(toWarehouse['Warehse_Latitude_c']);
+        // } else {
+        //   print('From Warehouse not found');
+        // }
         setState(() {
           markers.add(
               Marker(
@@ -234,6 +239,18 @@ class _loadTrackState extends State<loadTrack>
     }
     return null;
   }
+
+  Future<void> _openGoogleMapsDirections() async {
+    final url = 'https://www.google.com/maps/dir/?api=1'
+        '&origin=$fromLatitude,$fromLongtude'
+        '&destination=$toLatitude,$toLongtude'
+        '&travelmode=driving';
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
   @override
   void initState() {
     super.initState();
@@ -258,16 +275,15 @@ class _loadTrackState extends State<loadTrack>
           actions: const [],
         ),
         body: isPrinting
-            ? const Center(
-          child: CircularProgressIndicator(),
-        )
+            ? const Center(child: CircularProgressIndicator())
             : Padding(
             padding: const EdgeInsets.all(8.0),
             child: SingleChildScrollView(
               child: Form(
                 key: _formKey,
                 child: Center(
-                  child: Column(children: [
+                  child: Column(
+                      children: [
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
@@ -376,33 +392,48 @@ class _loadTrackState extends State<loadTrack>
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Container(
-                        height: height * 0.5, // Provide a bounded height
-                        width: width * 0.9, // Provide a bounded width
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).shadowColor,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Theme.of(context).canvasColor,
-                            width: 2,
-                          ),
-                        ),
-                        child: GoogleMap(
-                          mapType: MapType.normal,
-                          initialCameraPosition: _kGooglePlex,
-                          onMapCreated: (GoogleMapController controller) {
-                            _controller.complete(controller);
-                          },
-                          markers:markers,
-                          polylines: _polylines != null
-                              ? Set<Polyline>.from(_polylines!)
-                              : {},
+                // ... your form widgets ...
+                Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Container(
+                      height: height * 0.5,
+                      width: width * 0.9,
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).shadowColor,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context).canvasColor,
+                          width: 2,
                         ),
                       ),
-                    ),
+                      child: Stack(
+                        children: [
+                        GoogleMap(
+                        mapType: MapType.normal,
+                        initialCameraPosition: _kGooglePlex,
+                        onMapCreated: (GoogleMapController controller) {
+                          _controller.complete(controller);
+                        },
+                        markers: markers,
+                        polylines: _polylines != null
+                            ? Set<Polyline>.from(_polylines!)
+                            : {},
+                      ),
+                          Positioned(
+                            bottom: 16,
+                            right: 16,
+                            child: FloatingActionButton(
+                              onPressed: () {
+                                _openGoogleMapsDirections();
+                              },
+                              child: Icon(Icons.directions),
+                              backgroundColor: Theme.of(context).primaryColor,
+                            ),
+                          )
+                    ]),
+                  ),
+                ),
                   ]),
                 ),
               ),

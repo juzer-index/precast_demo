@@ -63,9 +63,10 @@ class _ElementPieChartState extends State<ElementPieChart>{
       try {
         var url = Uri.parse(
             "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_ProjectChart(${tenantConfigP['company']})");
-        final basicAuth = 'Basic ${base64Encode(
+        final basicAuth = 'Basic ${
+          base64Encode(
             utf8.encode(
-                '${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+              '${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
         final response = await http.get(
             url,
@@ -73,6 +74,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
               HttpHeaders.authorizationHeader: basicAuth,
               HttpHeaders.contentTypeHeader: 'application/json',
             });
+
         if (response.statusCode == 200) {
           final List<dynamic> data = json.decode(response.body)['value'];
           setState(() {
@@ -81,22 +83,22 @@ class _ElementPieChartState extends State<ElementPieChart>{
         } else {
           throw Exception('Failed to load data');
         }
-      } catch (e) {
-        print(e);
-      }
+      } catch (e) {}
     }
     else return;
   }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
+
     return FutureBuilder(
       future: fetchElements(Provider.of<tenantConfigProvider>(context).tenantConfig),
-      builder:(context,snapshot)=> (
-      status.length>0)?
-          Row(
- mainAxisAlignment:width>600? MainAxisAlignment.start: MainAxisAlignment.center,
-            children: [Expanded(
+      builder:(context,snapshot)=> (status.length>0)?
+        Row(
+          mainAxisAlignment:width>600? MainAxisAlignment.start: MainAxisAlignment.center,
+          children: [
+            Expanded(
               child: Row(
                 mainAxisAlignment:width>900? MainAxisAlignment.spaceAround:MainAxisAlignment.center,
                 children: [
@@ -109,8 +111,7 @@ class _ElementPieChartState extends State<ElementPieChart>{
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
                           children: [
-                            Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-
+                            Text('Element Status',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold)),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -121,16 +122,16 @@ class _ElementPieChartState extends State<ElementPieChart>{
                                     width: 140,
                                     child:PieChart(
                                       PieChartData(
-
-                                          sections: status.map((section) =>
-                                              PieChartSectionData(
-                                                color: widget.colorMap[section["PartLot_ElementStatus_c"]],
-                                                value:  section['Calculated_NO'].toDouble(),
-                                                title:"",
-                                                radius: 20,
-                                              )
-                                          ).toList(
-                                          )),
+                                        sections: status.map(
+                                          (section) => PieChartSectionData(
+                                            color: widget.colorMap[section["PartLot_ElementStatus_c"]],
+                                            value:  section['Calculated_NO'].toDouble(),
+                                            title:"",
+                                            radius: 20,
+                                          )
+                                        ).toList(
+                                        )
+                                      ),
                                     ) ,
                                   ),
                                 ),
@@ -144,82 +145,20 @@ class _ElementPieChartState extends State<ElementPieChart>{
                         ),
                       ),
                     ),
-
                   ),
-                  // Padding(
-                  //   padding: const EdgeInsets.all(16.0),
-                  //   child: Card(
-                  //     elevation: 3,
-                  //     color:Theme.of(context).indicatorColor ,
-                  //     child: Padding(
-                  //       padding: const EdgeInsets.all(8.0),
-                  //       child: Column(
-                  //         children: [
-                  //           Text('Bar Chart',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                  //
-                  //           Row(
-                  //             mainAxisAlignment: MainAxisAlignment.center,
-                  //             children: [
-                  //               if(width>600)Container(
-                  //                 height: 200,
-                  //                 width: 400,
-                  //                 margin: EdgeInsets.only(left: 20),
-                  //                 child: BarChart(
-                  //                   BarChartData(
-                  //
-                  //                     barGroups: status.asMap().entries.map((entry) {
-                  //                       int index = entry.key;
-                  //                       var section = entry.value;
-                  //                       return BarChartGroupData(
-                  //                         x: index,
-                  //                         barRods: [
-                  //                           BarChartRodData(
-                  //                             toY: section['Calculated_NO'].toDouble(),
-                  //                             color: widget.colorMap[section["PartLot_ElementStatus_c"]],
-                  //                             width: 20,
-                  //                             borderRadius: BorderRadius.circular(5),
-                  //                           ),
-                  //                         ],
-                  //                       );
-                  //                     }).toList(),
-                  //                     titlesData: FlTitlesData(
-                  //                       bottomTitles: AxisTitles(
-                  //                         sideTitles: SideTitles(
-                  //                           showTitles: true,
-                  //                           getTitlesWidget: (value, meta) {
-                  //                             final index = value.toInt();
-                  //                             if (index < status.length) {
-                  //                               final label = status[index]['PartLot_ElementStatus_c'];
-                  //                               return Text(label, style: TextStyle(fontSize: 10));
-                  //                             }
-                  //                             return const SizedBox.shrink();
-                  //                           },
-                  //                         ),
-                  //                       ),
-                  //                     ),
-                  //
-                  //                   ),
-                  //                 ),
-                  //               ),
-                  //               Legend(),
-                  //             ],
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   ),
-                  //
-                  // ),
-
                 ],
               ),
-            )],
-          )
-          :Center(child: SizedBox(height: 350,width: 500,child: Card(
-        elevation: 3,
-        color:Theme.of(context).indicatorColor ,
-        child:Center(child: CircularProgressIndicator(),),
-      ),)
+          )],
+        )
+      :Center(
+        child: SizedBox(
+          height: 350,width: 500,
+          child: Card(
+          elevation: 3,
+          color:Theme.of(context).indicatorColor ,
+          child:Center(child: CircularProgressIndicator(),),
+          ),
+        )
       ),
     );
   }
@@ -228,13 +167,10 @@ class _ElementPieChartState extends State<ElementPieChart>{
   @override
   Widget build(BuildContext context) {
     return Container(
-
-
       margin: EdgeInsets.only(left: 40),
       alignment: Alignment.topRight,
       width: 80,
       height: 280,
-
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -244,7 +180,6 @@ class _ElementPieChartState extends State<ElementPieChart>{
                 height: 25,
                 width: 100,
                 child: Row(
-
                   children: [
                     Container(
                       margin: EdgeInsets.only(right: 5),
