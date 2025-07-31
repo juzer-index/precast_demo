@@ -21,6 +21,7 @@ import '../widgets/ProjectSearch.dart';
 import '../widgets/SalesOrderSearch.dart';
 import '../Providers/ArchitectureProvider.dart';
 import 'package:provider/provider.dart';
+import '../Providers/tenantConfig.dart';
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
   final dynamic tenantConfig;
@@ -860,6 +861,7 @@ class _StockOffloadingState extends State<StockOffloading>
                           TruckDetailsForm(
                             isEdit: false,
                             truckDetails: offloadData,
+                            tenantConfigP: context.read<tenantConfigProvider>().tenantConfig,
                           ),
                           const SizedBox(
                             height: 20,
@@ -1084,6 +1086,7 @@ class _StockOffloadingState extends State<StockOffloading>
                         TruckDetailsForm(
                           isEdit: false,
                           truckDetails: offloadData,
+                          tenantConfigP: context.read<tenantConfigProvider>().tenantConfig,
                         ),
                         const SizedBox(
                           height: 20,

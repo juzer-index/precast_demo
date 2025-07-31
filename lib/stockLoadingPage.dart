@@ -969,6 +969,7 @@ class _StockLoadingState extends State<StockLoading>
                                     TruckDetailsForm(
                                       isEdit: true,
                                       truckDetails: offloadData,
+                                      tenantConfigP: tenantConfigP,
                                     ),
                                   const SizedBox(height: 20),
                                   if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
@@ -1256,6 +1257,7 @@ class _StockLoadingState extends State<StockLoading>
                                   TruckDetailsForm(
                                     isEdit: true,
                                     truckDetails: offloadData,
+                                    tenantConfigP: tenantConfigP,
                                   ),
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
@@ -1896,6 +1898,7 @@ class _StockLoadingState extends State<StockLoading>
                                     TruckDetailsForm(
                                       isEdit: true,
                                       truckDetails: offloadData,
+                                      tenantConfigP: tenantConfigP,
                                     ),
                                   const SizedBox(height: 20),
                                   if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
@@ -2287,6 +2290,7 @@ class _StockLoadingState extends State<StockLoading>
                                   TruckDetailsForm(
                                     isEdit: true,
                                     truckDetails: offloadData,
+                                    tenantConfigP: tenantConfigP,
                                   ),
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
