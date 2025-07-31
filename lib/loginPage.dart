@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'Providers/UserManagement.dart';
 import 'Models/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,11 +20,11 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final ImagePath = 'assets/app-logo.png';
   late Image image;
-
+  bool hidePassword = true;
   String username = '' ;
   String password = '';
   String tenantId = '';
-
+  String APIUrl=dotenv.env['APIURL']??'';
   dynamic tenantConfig;
   bool RememberMe=false ;
   bool isLoading = false;
@@ -35,7 +36,7 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = true;
       });
 
-    var url = Uri.parse('https://77.92.189.106:83/Account/${tenantId}/Login');
+    var url = Uri.parse('${APIUrl}/Account/${tenantId}/Login');
       var response =  http.MultipartRequest('POST', url);
       response.fields['username'] = username;
       response.fields['password'] = password;
@@ -45,9 +46,9 @@ class _LoginPageState extends State<LoginPage> {
         isLoading = false;
 
       });
+      var responseData= json.decode(await res.stream.bytesToString());
+      if(res.statusCode == 200 && responseData['success']){
 
-      if(res.statusCode == 200){
-        var responseData= json.decode(await res.stream.bytesToString());
         var userManagement = responseData['message']['userManagement'];
         var tenantConfig = responseData['message']['tenantConfig'];
         SharedPreferences prefs =  await  SharedPreferences.getInstance();
@@ -55,9 +56,10 @@ class _LoginPageState extends State<LoginPage> {
           prefs.setString('userManagement', json.encode(userManagement));
           prefs.setString('tenantConfig', json.encode(tenantConfig));
           tenantConfig = json.decode(prefs.getString('tenantConfig')!);
-          context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
-          context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
+
         }
+        context.read<UserManagementProvider>().updateUserManagement(UserManagement.fromJson(userManagement)!);
+        context.read<tenantConfigProvider>().updateTenantConfig(tenantConfig);
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -170,9 +172,14 @@ void didChangeDependencies() {
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: TextFormField(
-                              obscureText: true,
-                              decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
+                              obscureText: hidePassword,
+                              decoration: InputDecoration(
+                                suffixIcon: IconButton(onPressed: () {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                }, icon: Icon(hidePassword ? Icons.visibility_off : Icons.visibility)),
+                                  border: const OutlineInputBorder(),
                                   labelText: "Password"),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {

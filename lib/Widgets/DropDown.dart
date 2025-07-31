@@ -9,7 +9,9 @@ class ReDropDown extends StatefulWidget {
   TextEditingController controller = TextEditingController();
   List<dynamic> dataMap;
   bool loading = false;
-  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap,required this.loading});
+  Function? onChnaged;
+  String value = '';
+  ReDropDown({super.key, required this.enabled, required this.data, required this.label , required this.controller , required this.dataMap,required this.loading, this.onChnaged= null});
 
   @override
   State<StatefulWidget> createState() {
@@ -44,9 +46,9 @@ class _DropDownState extends State<ReDropDown> {
       padding: const EdgeInsets.all(8.0),
       child: Stack(
         children: [
-          DropdownSearch(
-            selectedItem: widget.controller.text ,
-            enabled: widget.enabled && !widget.loading,
+          DropdownSearch<dynamic>(
+            selectedItem: widget.controller.text,
+            enabled: widget.enabled,
             popupProps: const PopupProps.modalBottomSheet(
               showSearchBox: true,
               searchFieldProps: TextFieldProps(
@@ -65,12 +67,12 @@ class _DropDownState extends State<ReDropDown> {
               ),
             ),
             items: widget.data,
-            onChanged: (value) {
+            onChanged: widget.onChnaged==null? (value) {
              dynamic element= widget.dataMap.where((element) => element['Description'] == value).first;
               setState(() {
                 widget.controller.text =element['BinNum'];
               });
-            },
+            }:widget.onChnaged as void Function(dynamic),
           ),
           Builder(
             builder: (context) {

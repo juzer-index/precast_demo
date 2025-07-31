@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+
+import 'package:GoCastTrack/Providers/LoadProvider.dart';
+
+import 'Models/EpicorError.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'elementTable.dart';
@@ -18,33 +22,57 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:device_info/device_info.dart';
+
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
-
+import 'package:toggle_switch/toggle_switch.dart';
+import './Providers/ArchitectureProvider.dart';
+import './Widgets/SalesOrderSearch.dart';
+import 'Widgets/ProjectSearch.dart';
+import 'utils/APIProviderV2.dart';
+import './element_model.dart';
+import'./Models/CustomerShipment.dart';
+import '../Providers/LoadStateProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
-  final bool isUpdate;
-  final List <LoadData> loadDataList;
+  late final bool isUpdate;
+  final List<LoadData> loadDataList;
   final dynamic addLoadData;
   final String historyLoadID;
+  late bool LinesOriented;
+  late List<ElementData> passedElements;
+  late int custNum;
 
 
-  const StockLoading({super.key, required this.initialTabIndex, required this.isUpdate, required this.loadDataList,required this.addLoadData , this.historyLoadID=''}) ;
+   StockLoading(
+      {super.key,
+      required this.initialTabIndex,
+       this.isUpdate=false,
+       this.loadDataList=const [],
+       this.addLoadData=null,
+      this.historyLoadID = '',
+      this.LinesOriented = false,
+      this.passedElements=const [],
+      this.custNum=0,
+
+      }
+
+       );
+
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
 }
 
-class _StockLoadingState extends State<StockLoading> with SingleTickerProviderStateMixin{
-
+class _StockLoadingState extends State<StockLoading>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  TextEditingController dateController = TextEditingController();
-  TextEditingController loadTimeController = TextEditingController();
+  TextEditingController dateController =  TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+  TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
   TextEditingController truckController = TextEditingController();
   TextEditingController loadIDController = TextEditingController();
-  String _selectedDate = '';
+  String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String loadTypeValue = 'Issue Load';
   String loadConditionValue = 'Internal Truck';
   String inputTypeValue = 'Manual';
@@ -69,18 +97,14 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   LoadData? currentLoad;
   int childCount = 1;
 
-
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
   bool back = false;
   Map<String, dynamic> fetchedWarehouseData = {};
   List<dynamic> fetchedWarehouseValue = [];
 
-
-  Map<String,dynamic>fetchedBinData = {};
+  Map<String, dynamic> fetchedBinData = {};
   List<dynamic> fetchedBinValue = [];
-
-
 
   TextEditingController truckIdController = TextEditingController();
   TextEditingController resourceIdController = TextEditingController();
@@ -98,6 +122,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   ResourceDetails? resourceDetails;
   TextEditingController foremanId = TextEditingController();
   TextEditingController foremanName = TextEditingController();
+  TextEditingController SalesOrderController = TextEditingController();
+  TextEditingController OrderLineController = TextEditingController();
   bool toBinLoading = false;
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
@@ -112,6 +138,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   List<dynamic> foremanValue = [];
 
   LoadData? offloadData;
+  bool projectOrSO = true;
 
   //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
 
@@ -130,32 +157,50 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   bool isTruckChanged = false;
 
   bool isLoaded = false;
-  List<dynamic> deletedSavedElements=[];
+  List<dynamic> deletedSavedElements = [];
+  Map<String,dynamic> LineStatus = {};
 
   late int lastLoad = 50;
-  late int lastCustShip= 0;
+  late int lastCustShip = 0;
   late int custNum = 0;
   late final int l1;
   late final int l2;
   late final String nextLoad;
+  late  bool CreateLoadLoading = false;
+  late bool SaveLinesLoading = false;
+
 
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
-  bool isPrinting = false ;
-  int pdfCount =0;
+   String ErrorMessage="";
+  bool isPrinting = false;
+  int pdfCount = 0;
+  int archLabelIndex = 0;
   @override
   void initState() {
-
-
 
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
+    setState(() {
+      context.read<ArchitectureProvider>().init();
+      context.read<ArchitectureProvider>().setArchitecure('SO');
+    });
 
+    if(widget.LinesOriented){
+    fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
+    SalesOrderController.text = widget.passedElements[0].SO.toString();
+    context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
+    selectedElements = widget.passedElements;
+    setState(() {
+      context.read<ArchitectureProvider>().custNum = widget.custNum;
+    });
+
+    }
     if (!widget.isUpdate) {
-      dataLoaded =
-          makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
-      getDeviceID();
+      context.read<LoadProvider>().clearLoad();
+      dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
+
       entryPersonController?.text =
           context.read<UserManagementProvider>().userManagement!.firstName!;
     } else if (widget.isUpdate && widget.historyLoadID != '') {
@@ -163,9 +208,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         loadIDController.text = widget.historyLoadID;
       });
 
- dataLoaded =  fetchLoadDataFromURL(widget.historyLoadID,
+      dataLoaded = fetchLoadDataFromURL(widget.historyLoadID,
               context.read<tenantConfigProvider>().tenantConfig)
           .then((value) => {
+
                 offloadData = getLoadObjectFromJson(widget.historyLoadID),
                 getElementObjectFromJson(widget.historyLoadID),
                 getPartObjectFromJson(widget.historyLoadID),
@@ -179,15 +225,19 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   fromWarehouseController.text = offloadData!.fromWarehouse;
                   isLoaded = true;
                 }),
-
-
               });
-    } else {
+    }
+
+    else {
       dataLoaded = Future.value(true);
       setState(() {
         isLoaded = true;
       });
     }
+    setState(() {
+      context.read<loadStateProvider>().clearCurrentLoad();
+    });
+    context.read<loadStateProvider>().currentLoad= widget.historyLoadID;
     super.initState();
   }
 
@@ -199,1124 +249,2379 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    dateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
-    _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    loadTimeController.text = DateFormat('HH:mm').format(DateTime.now());
-    final  tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
+    final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
     return PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) {
-          if (!didPop) {
-           if(_tabController.index > 0) {
-             _tabController.animateTo(_tabController.index - 1);
-           }
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          if(context.read<loadStateProvider>().loadCreated) {
+            context.read<loadStateProvider>().clearCurrentLoad();
+            Navigator.pop(context);
 
+          }
+          if (_tabController.index > 0 ) {
+            _tabController.animateTo(_tabController.index - 1);
+          } else {
+            showAlertDialog(BuildContext context) {
+              // Init
+              AlertDialog dialog = AlertDialog(
+                title: const Text("Are you sure you want to exit?",
+                    style: TextStyle(color: Colors.red)),
+                content: const Text("All unsaved data will be lost"),
+                actions: [
+                  TextButton(
+                      child: Text("Yes",
+                          style:
+                              TextStyle(color: Theme.of(context).canvasColor)),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      }),
+                  TextButton(
+                      child: Text("No",
+                          style:
+                              TextStyle(color: Theme.of(context).canvasColor)),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      }),
+                ],
+              );
 
-          else{
+              // Show the dialog
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return dialog;
+                  });
+            }
 
-             showAlertDialog(BuildContext context) {
-               // Init
-               AlertDialog dialog = AlertDialog(
-                 title: const Text("Are you sure you want to exit?", style: TextStyle(color: Colors.red)),
-                 content: const Text("All unsaved data will be lost"),
-                 actions: [
-                   TextButton(
-                       child: Text("Yes",style: TextStyle(color:Theme.of(context).canvasColor )),
-
-                       onPressed: () {
-                         Navigator.pop(context);
-                         Navigator.pop(context);
-                       }
-                   ),
-                   TextButton(
-                       child: Text("No",style: TextStyle(color:Theme.of(context).canvasColor)),
-                       onPressed: () {
-                         Navigator.pop(context);
-                       }
-                   ),
-                 ],
-               );
-
-               // Show the dialog
-               showDialog(
-                   context: context,
-                   builder: (BuildContext context) {
-                     return dialog;
-                   }
-               );
-             }
-             showAlertDialog(context);
-          }}
-
-        },
-
+            showAlertDialog(context);
+          }
+        }
+      },
       child: DefaultTabController(
-          length: 3,
-          initialIndex: widget.initialTabIndex,
-          child: Scaffold(
-            backgroundColor: Color(0xffF0F0F0),
-            appBar: AppBar(
-              backgroundColor: Theme
-                  .of(context)
-                  .primaryColor,
-
-              title: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(),
-                    if(widget.isUpdate)
-                      const Text('Edit Load', style: TextStyle(color: Colors.white)),
-                    if(!widget.isUpdate)
-                      const Text('Stock Loading', style: TextStyle(color: Colors.white)),
-                    // ClipOval(
-                    //   child: Image.network(
-                    //     '${tenantConfigP['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
-                    //     height: 35,
-                    //     width: 35,
-                    //   ),
-                    // )
-                  ],
-                ),
-              ),
-              actions: [
-                PopupMenuButton(itemBuilder: (BuildContext context) {
-                  return [
-                    if(widget.isUpdate)
-                      PopupMenuItem(
-                        child: ListTile(
-                          title: const Text('Create New Load'),
-                          leading: const Icon(Icons.edit_calendar),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  StockLoading(initialTabIndex: 0, isUpdate: false,loadDataList:widget.loadDataList,addLoadData: widget.addLoadData,)));
-                          },
-                        ),
-                      ),
-                    if(!widget.isUpdate)
-                      PopupMenuItem(
-                        child: ListTile(
-                          title: const Text('Edit a Load'),
-                          leading: const Icon(Icons.edit_calendar),
-                          onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => StockLoading(initialTabIndex: 0, isUpdate: true,loadDataList:widget.addLoadData,addLoadData: widget.addLoadData,)));
-                          },
-                        ),
-                      ),
-                    PopupMenuItem(
-                      child: ListTile(
-                        title: const Text('Offload'),
-                        leading: const Icon(Icons.playlist_remove),
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => StockOffloading(initialTabIndex: 0,tenantConfig: tenantConfigP,)));
-                        },
-                      ),
-                    ),
-                  ];
-                }
-                ) ],
-              bottom: TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(
-                    text: 'Detail',
-                  ),
-                  Tab(
-                    text: 'Line',
-                  ),
-                  Tab(
-                    text: 'Summary',
-                  ),
+        length: 3,
+        initialIndex: widget.initialTabIndex,
+        child: Scaffold(
+          backgroundColor: Color(0xffF0F0F0),
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).primaryColor,
+            title: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(),
+                  if (widget.isUpdate)
+                    const Text('Edit Load',
+                        style: TextStyle(color: Colors.white)),
+                  if (!widget.isUpdate)
+                    const Text('Stock Loading',
+                        style: TextStyle(color: Colors.white)),
+                  // ClipOval(
+                  //   child: Image.network(
+                  //     '${tenantConfigP['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
+                  //     height: 35,
+                  //     width: 35,
+                  //   ),
+                  // )
                 ],
               ),
             ),
-            body:      isPrinting?
-              const Center(
-                child: CircularProgressIndicator(),
-             ) : FutureBuilder(
-                future: dataLoaded,
-                  builder:(context,snapshot){
-                   if(snapshot.connectionState == ConnectionState.waiting){
-                        return   Stack(
-                          children: [
-                            Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
-                              ), // Show spinner when disabled
-                            ),
-                          ],
-                        );
-                      }
-                   return Padding(
+            actions: [
+              PopupMenuButton(itemBuilder: (BuildContext context) {
+                return [
+                  if (widget.isUpdate)
+                    PopupMenuItem(
+                      child: ListTile(
+                        title: const Text('Create New Load'),
+                        leading: const Icon(Icons.edit_calendar),
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => StockLoading(
+                                        initialTabIndex: 0,
+                                        isUpdate: false,
+                                        loadDataList: widget.loadDataList,
+                                        addLoadData: widget.addLoadData,
+                                      )));
+                        },
+                      ),
+                    ),
+                  if (!widget.isUpdate)
+                    PopupMenuItem(
+                      child: ListTile(
+                        title: const Text('Edit a Load'),
+                        leading: const Icon(Icons.edit_calendar),
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => StockLoading(
+                                        initialTabIndex: 0,
+                                        isUpdate: true,
+                                        loadDataList: widget.addLoadData,
+                                        addLoadData: widget.addLoadData,
+                                      )));
+                        },
+                      ),
+                    ),
+                  PopupMenuItem(
+                    child: ListTile(
+                      title: const Text('Offload'),
+                      leading: const Icon(Icons.playlist_remove),
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => StockOffloading(
+                                      initialTabIndex: 0,
+                                      tenantConfig: tenantConfigP,
+                                    )));
+                      },
+                    ),
+                  ),
+                ];
+              })
+            ],
+            bottom: TabBar(
+              controller: _tabController,
+              tabs: widget.LinesOriented?[
+              Tab(
+                text: 'Line',
+              ),
+              Tab(
+                text: 'Details',
+              ),
+
+              Tab(
+                text: 'Summary',
+              ),
+              ]:[Tab(
+                text: 'Details',
+              ),
+                Tab(
+                  text: 'Line',
+                ),
+
+                Tab(
+                  text: 'Summary',
+                ),
+              ],
+            ),
+          ),
+          body: isPrinting
+              ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+              : FutureBuilder(
+                  future: dataLoaded,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Stack(
+                        children: [
+                          Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).primaryColor),
+                            ), // Show spinner when disabled
+                          ),
+                        ],
+                      );
+                    }
+                    return Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            //Tab 1 Content
-                            SingleChildScrollView(
-                              child: Form(
-                                key: _formKey,
-                                child: Center(
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Load Details',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color:  Theme.of(context).primaryColor),
-                                        ),
-                                      ),
-                                      if(!widget.isUpdate)
-                                        Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            controller: loadIDController,
-                                            enabled: false,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load ID"),
-                                          ),
-                                        ),
-                                      if(widget.isUpdate)
-                                        Row(
-                                            children: [
-                                              Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextFormField(
-                                                    controller: loadIDController,
-                                                    decoration: const InputDecoration(
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "Load ID"),
-                                                  ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () async {
-                                                //  await makeSureDataLoaded(tenantConfigP);
-                                                 // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
-                                                 // await fetchElementDataFromURL();
-                                                  //await fetchPartDataFromURL();
-                                                  await loadLoadAndData(tenantConfigP);
-                                                  String projectLoadID = loadIDController.text;
-                                                  offloadData = getLoadObjectFromJson(projectLoadID);
-                                                  getElementObjectFromJson(projectLoadID);
-                                                  getPartObjectFromJson(projectLoadID);
-                                                  if (offloadData != null) {
-                                                    setState(() {
-                                                      projectIdController.text = offloadData!.projectId;
-                                                      dateController.text = offloadData!.loadDate;
-                                                      toWarehouseController.text = offloadData!.toWarehouse;
-                                                      toBinController.text = offloadData!.toBin;
-                                                      loadTypeValue = offloadData!.loadType;
-                                                      loadConditionValue = offloadData!.loadCondition;
-                                                      fromWarehouseController.text = offloadData!.fromWarehouse;
-                                                      isLoaded = true;
-                                                    });
-                                                  }
-                                                  else {
-                                                    if(mounted) {
-                                                      showDialog(
-                                                        context: context,
-                                                        builder: (context) {
-                                                          return AlertDialog(
-                                                            title: const Text('Error'),
-                                                            content: const Text(
-                                                                'Load ID not found'),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.pop(context);
-                                                                },
-                                                                child:  Text('Close',style: TextStyle(color:Theme.of(context).canvasColor)),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
-                                                      );
-                                                    }
-                                                  }
-                                                },
-                                                icon: const Icon(Icons.search),
-                                              ),
-                                            ]
-                                        ),
-                                      Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: FutureBuilder(
-
-                                            future: getProjectList(tenantConfigP),
-                                            builder:(context,snapshot){
-
-                                              return DropdownSearch(
-                                                selectedItem: projectIdController.text,
-                                                enabled: !widget.isUpdate,
-                                                popupProps: const PopupProps.modalBottomSheet(
-                                                  showSearchBox: true,
-                                                  searchFieldProps: TextFieldProps(
-                                                    decoration: InputDecoration(
-                                                      suffixIcon: Icon(Icons.search),
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Search",
-                                                    ),
-                                                  ),
-                                                ),
-                                                autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                dropdownDecoratorProps: const DropDownDecoratorProps(
-                                                  dropdownSearchDecoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Project ID",
-                                                  ),
-                                                ),
-                                                items: fetchedProjectValue.map((project) => project['ProjectID']).toList(),
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    projectIdController.text = fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ProjectID'];
-                                                    custNum= fetchedProjectValue.firstWhere((project) => project['ProjectID'] == value)['ConCustNum'];
-                                                  });
-                                                },
-                                              );
-                                            },
-                                          )
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: !widget.isUpdate,
-                                                controller: dateController,
-                                                onTap: () async {
-                                                  final DateTime? date = await showDatePicker(
-                                                    builder: (BuildContext context, Widget? child) {
-                                                     return Theme(
-                                                       data: ThemeData.light().copyWith(
-                                                         colorScheme: ColorScheme.light(
-                                                           primary :Theme.of(context).primaryColor,
-                                                           background: Colors.white,
-                                                           secondary: Theme.of(context).primaryColor,
-                                                           outline: Colors.cyanAccent,
-                                                         ),
-                                                       ),
-                                                       child: child!,
-                                                     );
-                                                    },
-                                                    context: context,
-                                                    initialDate: DateTime.now(),
-                                                    firstDate: DateTime(2018),
-                                                    lastDate: DateTime(2030),
-                                                  );
-                                                  if (date != null) {
-                                                    setState(() {
-                                                      dateController.text =
-                                                      "${date.day}/${date.month}/${date
-                                                          .year}";
-                                                      _selectedDate = DateFormat('yyyy-MM-dd').format(date);
-                                                    });
-                                                  }
-                                                },
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Load Date"),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: TextFormField(
-                                                  enabled: !widget.isUpdate,
-                                                  onTap: () async {
-                                                    final TimeOfDay? time = await showTimePicker(
-                                                      context: context,
-                                                      initialTime: TimeOfDay.now(),
-                                                      builder:(context,child  ){
-                                                        return Theme(
-                                                          data:Theme.of(context).copyWith(
-                                                            colorScheme: ColorScheme.light(
-                                                              primary: Theme.of(context).primaryColor,
-                                                              onPrimary: Colors.white,
-                                                              secondary: Theme.of(context).primaryColor,
-                                                            ),
-                                                          ),
-                                                          child: child!,
-                                                        );
-
-                                                      }
-                                                    );
-                                                    if (time != null) {
-                                                      setState(() {
-                                                        loadTimeController.text =
-                                                        "${time.hour}:${time.minute}";
-                                                      });
-                                                    }
-                                                  },
-                                                  controller: loadTimeController,
-                                                  decoration: const InputDecoration(
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Load Time"),
-                                                ),
-                                              )
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: DropdownSearch(
-                                                selectedItem: fromWarehouseController.text,
-                                                enabled: true,
-                                                popupProps: const PopupProps.modalBottomSheet(
-                                                  showSearchBox: true,
-                                                  searchFieldProps: TextFieldProps(
-                                                    decoration: InputDecoration(
-                                                      suffixIcon: Icon(Icons.search),
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "Search",
-                                                    ),
-                                                  ),
-                                                ),
-                                                autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                dropdownDecoratorProps: const DropDownDecoratorProps(
-                                                  dropdownSearchDecoration: InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "From Warehouse",
-                                                  ),
-                                                ),
-                                                items: fetchedWarehouseValue
-                                                    //.where((warehouse) => warehouse['FinishGoods_c'] == true)
-                                                    .map((warehouse) => warehouse['Description']).toList(),
-                                                onChanged: (value) {
-                                                  setState(() {
-                                                    fromWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(8.0),
-                                                child: DropdownSearch(
-                                                  selectedItem: toWarehouseNameController.text,
-                                                  enabled:  true,
-                                                  popupProps: const PopupProps.modalBottomSheet(
-                                                    showSearchBox: true,
-                                                    searchFieldProps: TextFieldProps(
-                                                      decoration: InputDecoration(
-                                                        suffixIcon: Icon(Icons.search),
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "Search",
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  autoValidateMode: AutovalidateMode.onUserInteraction,
-                                                  dropdownDecoratorProps: const DropDownDecoratorProps(
-                                                    dropdownSearchDecoration: InputDecoration(
-                                                      border: OutlineInputBorder(),
-                                                      labelText: "To Warehouse",
-                                                    ),
-                                                  ),
-                                                  items: fetchedWarehouseValue.map((warehouse) => warehouse['Description']).toList(),
-                                                  onChanged: (value)async  {
-
-                                                    setState(() {
-                                                      toWarehouseController.text = fetchedWarehouseValue.firstWhere((warehouse) => warehouse['Description'] == value)['WarehouseCode'];
-                                                      toWarehouseNameController.text = value.toString();
-                                                      fetchedBinValue=[];
-                                                      toBinLoading = true;
-
-                                                    });
-                                                    await getBinsFromWarehouse(tenantConfigP,toWarehouseController.text);
-                                                    setState(() {
-                                                      toBinLoading = false;
-                                                      toBinController.text=fetchedBinValue.first['BinNum'];
-                                                    });
-                                                  },
-                                                ),
-                                              )
-                                          ),
-                                        ],
-                                      ),
-                                     /* Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: DropdownSearch(
-                                          selectedItem: toBinController.text,
-
-
-                                          enabled: fromWarehouseController.text.isNotEmpty&&toWarehouseController.text.isNotEmpty,
-                                          popupProps: const PopupProps.modalBottomSheet(
-                                            showSearchBox: true,
-                                            searchFieldProps: TextFieldProps(
-                                              decoration: InputDecoration(
-                                                suffixIcon: Icon(Icons.search),
-                                                border: OutlineInputBorder(),
-                                                labelText: "Search",
-                                              ),
-                                            ),
-                                          ),
-                                          autoValidateMode: AutovalidateMode.onUserInteraction,
-                                          dropdownDecoratorProps: const DropDownDecoratorProps(
-                                            dropdownSearchDecoration: InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "To Bin",
-                                            ),
-                                          ),
-                                          items: subfetchedBinValue.map((bin) => bin['Description']).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              toBinController.text = subfetchedBinValue.firstWhere((bin) => bin['Description'] == value)['BinNum'];
-                                              toBinNameController.text = value.toString();
-                                            });
-                                            debugPrint(toBinController.text);
-                                            debugPrint(toBinNameController.text);
-                                          },
-                                        ),
-                                      ),*/
-                                      ReDropDown(enabled: toWarehouseController.text!="", data: fetchedBinValue.map((bin) => bin['Description']).toList(), label: "To Bin", loading:toBinLoading, controller: toBinController,dataMap:fetchedBinValue,),
-                                      if(loadConditionValue == 'External')
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextFormField(
-                                                    controller: poNumberController,
-                                                    decoration: const InputDecoration(
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "PO Num"),
-                                                  ),
-                                                )
-                                            ),
-                                            Expanded(
-                                                child: Padding(
-                                                  padding: const EdgeInsets.all(8.0),
-                                                  child: TextFormField(
-                                                    controller: poLineController,
-                                                    decoration: const InputDecoration(
-                                                        border: OutlineInputBorder(),
-                                                        labelText: "PO Line"),
-                                                  ),
-                                                )
-                                            ),
-                                          ],
-                                        ),
-                                      Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                              child: Column(
-                                                  children: [
-                                                    Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Text('Load Type',
-                                                        style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
-                                                            color: Theme.of(context).canvasColor),
-                                                      ),
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Return Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Return',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Delivery Trip', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Issue Load',
-                                                      groupValue: loadTypeValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadTypeValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                  ]
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: Column(
-                                                  children: [
-                                                   Padding(
-                                                      padding: EdgeInsets.all(8.0),
-                                                      child: Text('Load Condition',
-                                                        style: TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 18,
-                                                            color: Theme.of(context).canvasColor),
-                                                      ),
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('External', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'External',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    ),
-                                                    RadioListTile(
-                                                      title: Text('Internal', style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.022,)),
-                                                      value: 'Internal Truck',
-                                                      groupValue: loadConditionValue,
-                                                      onChanged: (value) {
-                                                        setState(() {
-                                                          loadConditionValue =
-                                                              value.toString();
-                                                        });
-                                                      },
-                                                    )
-
-                                                  ]
-                                              ),
-                                            ),
-                                          ]
-                                      ),
-                                       Padding(padding: EdgeInsets.all(8.0),
-                                        child: Text(
-                                          'Truck Details',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: Theme.of(context).canvasColor),
-                                        ),
-                                      ),
-                                      if(!widget.isUpdate)
-                                        buildTruckDetailsFrom(true),
-                                      if(widget.isUpdate)
-                                        TruckDetailsForm(isEdit: true, truckDetails: offloadData,
-                                        tenantConfigP: tenantConfigP,
-                                        ),
-                                      const SizedBox(height: 20),
-                                      if(widget.isUpdate)
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _tabController.animateTo(1);
-                                            });
-                                          },
-                                          child: const Text('Next'),
-                                        ),
-                                      if(!widget.isUpdate)
-                                        ElevatedButton(
-                                            onPressed: () async {
-                                              if (truckIdController.text.isEmpty || resourceIdController.text.isEmpty || projectIdController.text.isEmpty) {
-                                                showDialog(context: context, builder: (BuildContext context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Error'),
-                                                    content: const Text(
-                                                        'Please fill all the required fields'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.of(context).pop();
-                                                        },
-                                                        child: const Text('OK'),
-                                                      ),
-                                                    ],
-                                                  );
-                                                }
-                                                );
-                                              } else {
-                                                final newLoadId = 'I-${lastLoad+1}';
-                                                final loadDateFormat = '${_selectedDate}T00:00:00';
-                                                debugPrint(toBinController.text);
-                                                await createNewLoad({
-                                                  "Key1": newLoadId,
-                                                  "Company": "${tenantConfigP['company']}",
-                                                  "ShortChar07": plateNumberController.text,
-                                                  "ShortChar05": projectIdController.text,
-                                                  "ShortChar01": loadTypeValue,
-                                                  "ShortChar04": loadConditionValue,
-                                                  "ShortChar08": truckIdController.text,
-                                                  "ShortChar03": "Open",
-
-                                                  "Number01": loadedController.text.isNotEmpty ? loadedController.text : '0',
-                                                  "Number02": "0",
-                                                  "Number06": capacityController.text.isNotEmpty ? capacityController.text : '0',
-                                                  "Number07": volumeController.text.isNotEmpty ? volumeController.text : '0',
-                                                  "Number08": heightController.text.isNotEmpty ? heightController.text : '0',
-                                                  "Number09": widthController.text.isNotEmpty ? widthController.text : '0',
-                                                  "Number10": lengthController.text.isNotEmpty ? lengthController.text : '0',
-                                                  "Number11": (lastCustShip+1).toString(),
-                                                  "Number12": custNum.toString(),
-                                                  "Date01": loadDateFormat,
-
-                                                  "Character02": driverNameController.text,
-                                                  "Character03": driverNumberController.text,
-                                                  "Character04": toWarehouseNameController.text,
-                                                  "Character05": toBinController.text,
-                                                  "Character07": toWarehouseController.text,
-                                                  "Character08": toBinController.text,
-                                                  "Character06": fromWarehouseController.text,
-                                                  "Character09": resourceId,
-                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                                },tenantConfigP);
-                                                debugPrint(toWarehouseNameController.text);
-                                                if(isLoaded){
-                                                  if(mounted) {
-                                                    showDialog(context: context,
-                                                        builder: (BuildContext context) {
-                                                          return AlertDialog(
-                                                            title: const Text('Success'),
-                                                            content: Text(
-                                                                'Stock Loading details saved successfully, LoadID: $newLoadId'),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () {
-                                                                  Navigator.of(context).pop();
-                                                                  _tabController.animateTo(1);
-                                                                },
-                                                                child: Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        }
-                                                    );
-                                                  }
-                                                  setState(() {
-                                                    loadIDController.text = newLoadId;
-                                                  });
-                                                }
-                                              }
-                                            },
-                                            child: const Text(
-                                              'Create Load',
-
-                                            )),
-                                      const SizedBox(height: 20),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            //Tab 2 Content
-                            if(isLoaded)
-                              SingleChildScrollView(
-                                child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Column(
-                                        children: [
-                                           Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              'Part Search Form',
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18,
-                                                  color: Theme.of(context).canvasColor),
-                                            ),
-                                          ),
-                                           SizedBox(height: 10,),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).indicatorColor,
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: ElementSearchForm(onElementsSelected: updateElementInformation,arrivedElements:selectedElements.isNotEmpty?selectedElements:[],isOffloading: false, Warehouse:fromWarehouseController.text!=''?fromWarehouseController.text:null , AddElement:_addElement,Project:projectIdController.text,tenantConfig: tenantConfigP,isInstalling: false,),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20,),
-                                        ],
-                                      ),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                       Text(
-                                        'Selected Elements',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).canvasColor),
-                                      ),
-                                      ElementTable(selectedElements: selectedElements,DeletededSaveElements: widget.isUpdate?deletedSavedElements:null,),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                       Text(
-                                        'Selected Parts',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color: Theme.of(context).canvasColor),
-                                      ),
-                                      PartTable(selectedParts: selectedParts),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            _tabController.animateTo(2);
-                                          });
-                                        },
-                                        child: const Text('Next'),
-                                      )
-                                    ]),
-                              ),
-                            if(!isLoaded)
-                              const Center(
-                                child: Text('Please create a load first or Select a load to update'),
-                              ),
-                            //Tab 3 Content
-                            SingleChildScrollView(
-                              controller: ScrollController(),
-                              child: Center(
-                                child: Column(
+                      child: TabBarView(controller: _tabController, children: widget.LinesOriented ? ([
+                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
+                          SingleChildScrollView(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Column(
                                   children: [
-                                     Padding(
+                                    Padding(
                                       padding: EdgeInsets.all(8.0),
-                                      child: Text('Project Details', style: TextStyle(
+                                      child: Text(
+                                        'Part Search Form',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                            Theme.of(context).canvasColor),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).indicatorColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: !widget.LinesOriented? ElementSearchForm(
+                                          onElementsSelected:
+                                          updateElementInformation,
+                                          arrivedElements:
+                                          selectedElements.isNotEmpty
+                                              ? selectedElements
+                                              : [],
+                                          isOffloading: false,
+                                          Warehouse: fromWarehouseController.text??'',
+                                          AddElement: _addElement,
+                                          Project: projectIdController.text,
+                                          tenantConfig: tenantConfigP,
+                                          isInstalling: false,
+                                        ) : SizedBox(
+                                          height: 50,
+                                          child: Center(
+                                            child: Text('Lines Oriented',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                          ),
+
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Elements',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                ElementTable(
+                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
+                                  DeletededSaveElements: widget.isUpdate
+                                      ? deletedSavedElements
+                                      : null,
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Consumables',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                PartTable(selectedParts: selectedParts),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _tabController.animateTo(_tabController.index+1);
+                                    });
+                                  },
+                                  child: const Text('Next'),
+                                )
+                              ],
+                            ),
+                          ),
+                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
+                          const Center(
+                            child: Text(
+                                'Please create a load first or Select a load to update'),
+                          ),
+                        //Tab 1 Content
+                        SingleChildScrollView(
+                          child: Form(
+                            key: _formKey,
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Load Details',
+                                      style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18,
-                                          color: Theme.of(context).canvasColor),),
+                                          color:
+                                          Theme.of(context).primaryColor),
                                     ),
+                                  ),
+                                  if (!widget.isUpdate)
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: TextFormField(
+                                        controller: loadIDController,
                                         enabled: false,
-                                        initialValue: loadIDController.text,
                                         decoration: const InputDecoration(
                                             border: OutlineInputBorder(),
                                             labelText: "Load ID"),
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        enabled: false,
-                                        initialValue: projectIdController.text,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Project ID"),
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextFormField(
-                                              enabled: false,
-                                              initialValue: dateController.text,
-                                              decoration: const InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Load Date"),
-                                            ),
+                                  if (widget.isUpdate)
+                                    Row(children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            controller: loadIDController,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "Load ID"),
                                           ),
                                         ),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: loadTimeController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "Load Time"),
-                                              ),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: fromWarehouseController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "From"),
-                                              ),
-                                            )
-                                        ),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                enabled: false,
-                                                initialValue: toWarehouseController.text,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "To"),
-                                              ),
-                                            )
-                                        ),
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Truck Details', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        color: Theme.of(context).primaryColor
-                                          ),),
-                                    ),
-                                    if(!widget.isUpdate)
-                                      buildTruckDetailsFrom(false),
-                                    if(widget.isUpdate)
-                                      TruckDetailsForm(isEdit: true, truckDetails: offloadData,
-                                      tenantConfigP: tenantConfigP,
                                       ),
-
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Selected Elements', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context).canvasColor),),
-                                    ),
-                                    ElementTable(selectedElements: selectedElements),
-                                   Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text('Selected Parts', style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context).canvasColor),),
-                                    ),
-                                    PartTable(selectedParts: selectedParts),
-                                    const SizedBox(height: 20,),
-                                    ElevatedButton(
+                                      IconButton(
                                         onPressed: () async {
-                                          debugPrint(selectedElements.length.toString());
-                                          for(var e = 0; e < selectedElements.length; e++){
-                                            debugPrint(selectedElements[e].toString());
-                                            try {
-                                              await updateUD104A({
-                                                "Company": "${tenantConfigP['company']}",
-                                                "ChildKey1": selectedElements[e].ChildKey1,
-                                                "Key1": loadIDController.text,
-                                                "Character01": selectedElements[e].partId,
-                                                "Character02": selectedElements[e].elementId,
-                                                "Character03": fromWarehouseController.text,
-                                                "Character04":selectedElements[e].fromBin,
-                                                "Character07": toWarehouseController.text,
-                                                "Character05": toBinController.text,
-                                                "Number01": selectedElements[e].selectedQty.toString().isNotEmpty? selectedElements[e].selectedQty.toString() : '0',
-                                                "Number03": selectedElements[e].weight.toString().isNotEmpty ? selectedElements[e].weight : '0',
-                                                "Number04": selectedElements[e].area.toString().isNotEmpty ? selectedElements[e].area : '0',
-                                                "Number05": selectedElements[e].volume.toString().isNotEmpty ? selectedElements[e].volume : '0',
-                                                "Number06": selectedElements[e].erectionSeq.toString().isNotEmpty  ? selectedElements[e].erectionSeq : '0',
-                                                "ShortChar07": selectedElements[e].UOM,
-                                                "CheckBox05":false,
-                                                "CheckBox01":true,
-                                                "CheckBox02":false,
-                                                "CheckBox03":false,
-                                                "CheckBox07":false,
-                                                "CheckBox13": false,
-                                              },tenantConfigP);
-                                              updateInTransit(selectedElements[e].partId, selectedElements[e].elementId,tenantConfigP);
-                                              childCount++;
-                                            } on Exception catch (e) {
-                                              debugPrint(e.toString());
-                                            }
-                                          }
-                                          for(int i=0;i<deletedSavedElements.length;i++){
-                                            try{
-                                              await deleteUD104A(deletedSavedElements[i],tenantConfigP);
-                                            }catch(e){
-                                              debugPrint(e.toString());
-                                            }
-
-                                          }
-                                          for (var p = 0; p < selectedParts.length; p++){
-                                            debugPrint(selectedParts[p].toString());
-                                             await updateUD104A({
-                                               "Company": "${tenantConfigP['company']}",
-                                               "Key1": loadIDController.text,
-                                               "Character01": selectedParts[p].partNum,
-                                               "Character02": selectedParts[p].partDesc,
-                                               "Character03": toWarehouseController.text,
-                                               "Character04": toBinController.text,
-                                               "Number01": selectedParts[p].qty,
-                                               "ShortChar07": selectedParts[p].uom,
-                                               "CheckBox13": true,
-                                            },tenantConfigP);
-                                          }
-                                          if (mounted) {
-                                            showDialog(
+                                          //  await makeSureDataLoaded(tenantConfigP);
+                                          // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                          // await fetchElementDataFromURL();
+                                          //await fetchPartDataFromURL();
+                                          await loadLoadAndData(tenantConfigP);
+                                          String projectLoadID =
+                                              loadIDController.text;
+                                          offloadData = getLoadObjectFromJson(
+                                              projectLoadID);
+                                          getElementObjectFromJson(
+                                              projectLoadID);
+                                          getPartObjectFromJson(projectLoadID);
+                                          if (offloadData != null) {
+                                            setState(() {
+                                              projectIdController.text =
+                                                  offloadData!.projectId;
+                                              dateController.text =
+                                                  offloadData!.loadDate;
+                                              toWarehouseController.text =
+                                                  offloadData!.toWarehouse;
+                                              toBinController.text =
+                                                  offloadData!.toBin;
+                                              loadTypeValue =
+                                                  offloadData!.loadType;
+                                              loadConditionValue =
+                                                  offloadData!.loadCondition;
+                                              fromWarehouseController.text =
+                                                  offloadData!.fromWarehouse;
+                                              isLoaded = true;
+                                            });
+                                          } else {
+                                            if (mounted) {
+                                              showDialog(
                                                 context: context,
-                                                builder: (BuildContext context) {
+                                                builder: (context) {
                                                   return AlertDialog(
-                                                    title: const Text('Success'),
-                                                    content: Text(
-                                                        'Stock Loading details saved successfully, LoadID: ${loadIDController.text}'),
+                                                    title: const Text('Error'),
+                                                    content: const Text(
+                                                        'Load ID not found'),
                                                     actions: [
                                                       TextButton(
                                                         onPressed: () {
-                                                          Navigator.of(context).pop();
+                                                          Navigator.pop(
+                                                              context);
                                                         },
-                                                        child: Text('OK',style: TextStyle(color:Theme.of(context).canvasColor)),
+                                                        child: Text('Close',
+                                                            style: TextStyle(
+                                                                color: Theme.of(
+                                                                    context)
+                                                                    .canvasColor)),
                                                       ),
                                                     ],
                                                   );
-                                                });
+                                                },
+                                              );
+                                            }
                                           }
                                         },
-                                        child: const Text(
-                                          'Save Load',
+                                        icon: const Icon(Icons.search),
+                                      ),
+                                    ]),
+                                  Padding(padding: EdgeInsets.all(8.0),
+                                      child: ToggleButtons(
+                                        onPressed: (projectOrSO) {
+                                          setState(() {
+                                            this.projectOrSO = projectOrSO == 0;
+                                            context.read<ArchitectureProvider>().toggleArchitecure();
+                                          });
+                                        },
+                                          borderRadius: BorderRadius.circular(10),
+                                          fillColor: Theme.of(context).primaryColor,
+                                          color: Theme.of(context).canvasColor,
+                                          selectedColor: Colors.white,
+                                          constraints: const BoxConstraints(
+                                            minHeight: 40.0,
+                                            minWidth: 100.0,
+                                          ),
+                                          borderWidth: 1.0,
+                                          borderColor: Theme.of(context).primaryColor,
+                                          selectedBorderColor: Theme.of(context).primaryColor,
+                                          isSelected: [
+                                            context.watch<ArchitectureProvider>().architecure=='Project',
+                                            context.watch<ArchitectureProvider>().architecure=='SO',
+                                          ],
+                                          children: const [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Project'),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Sales Order'),
+                                            ),
+                                          ],
+                                      )
+                                  ),
+                                  context.watch<ArchitectureProvider>().architecure == 'Project'?
+                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(isUpdate: widget.isUpdate,),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            readOnly: true,  // Make the field read-only so it can still respond to taps
+                                            controller: dateController,
+                                            onTap: () async {
+                                              final DateTime? date = await showDatePicker(
+                                                builder: (BuildContext context, Widget? child) {
+                                                  return Theme(
+                                                    data: ThemeData.light().copyWith(
+                                                      colorScheme: ColorScheme.light(
+                                                        primary: Theme.of(context).primaryColor,
+                                                        background: Colors.white,
+                                                        secondary: Theme.of(context).primaryColor,
+                                                        outline: Colors.cyanAccent,
+                                                      ),
+                                                    ),
+                                                    child: child!,
+                                                  );
+                                                },
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime(2018),
+                                                lastDate: DateTime(2030),
+                                              );
+                                              if (date != null) {
+                                                setState(() {
+                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                });
+                                              }
+                                            },
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              enabled: !widget.isUpdate,
+                                              onTap: () async {
+                                                final TimeOfDay? time =
+                                                await showTimePicker(
+                                                    context: context,
+                                                    initialTime:
+                                                    TimeOfDay.now(),
+                                                    builder: (context, child) {
+                                                      return Theme(
+                                                        data: Theme.of(context)
+                                                            .copyWith(
+                                                          colorScheme:
+                                                          ColorScheme.light(
+                                                            primary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                            onPrimary:
+                                                            Colors.white,
+                                                            secondary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                          ),
+                                                        ),
+                                                        child: child!,
+                                                      );
+                                                    });
+                                                if (time != null) {
+                                                  setState(() {
+                                                    loadTimeController.text =
+                                                    "${time.hour}:${time.minute}";
+                                                  });
+                                                }
+                                              },
+                                              controller: loadTimeController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load Time"),
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: DropdownSearch(
+                                            selectedItem:
+                                            fromWarehouseController.text,
+                                            enabled: true,
+                                            popupProps: const PopupProps
+                                                .modalBottomSheet(
+                                              showSearchBox: true,
+                                              searchFieldProps: TextFieldProps(
+                                                decoration: InputDecoration(
+                                                  suffixIcon:
+                                                  Icon(Icons.search),
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Search",
+                                                ),
+                                              ),
+                                            ),
+                                            autoValidateMode: AutovalidateMode
+                                                .onUserInteraction,
+                                            dropdownDecoratorProps:
+                                            const DropDownDecoratorProps(
+                                              dropdownSearchDecoration:
+                                              InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "From Warehouse",
+                                              ),
+                                            ),
+                                            items: fetchedWarehouseValue.map((warehouse) =>
+                                            warehouse['Description'])
+                                                .toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                fromWarehouseController
+                                                    .text = fetchedWarehouseValue
+                                                    .firstWhere(
+                                                        (warehouse) =>
+                                                    warehouse[
+                                                    'Description'] ==
+                                                        value)[
+                                                'WarehouseCode'];
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ),
 
+                                    ],
+                                  ),
+
+
+
+                                  if (loadConditionValue == 'External')
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: poNumberController,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "PO Num"),
+                                              ),
+                                            )),
+                                        Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: poLineController,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "PO Line"),
+                                              ),
+                                            )),
+                                      ],
+                                    ),
+                                  Row(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(children: [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Load Type',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context)
+                                                        .canvasColor),
+                                              ),
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Return Trip',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Return',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Delivery Trip',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Issue Load',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                          ]),
+                                        ),
+                                        Expanded(
+                                          child: Column(children: [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Truck Type',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context)
+                                                        .canvasColor),
+                                              ),
+                                            ),
+                                            RadioListTile(
+                                              title: Text('External',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'External',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Internal',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Internal Truck',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            )
+                                          ]),
+                                        ),
+                                      ]),
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Truck Details',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).canvasColor),
+                                    ),
+                                  ),
+                                  if (!widget.isUpdate)
+                                    buildTruckDetailsFrom(true),
+                                  if (widget.isUpdate)
+                                    TruckDetailsForm(
+                                      isEdit: true,
+                                      truckDetails: offloadData,
+                                    ),
+                                  const SizedBox(height: 20),
+                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _tabController.animateTo(_tabController.index+1);
+                                        });
+                                      },
+                                      child: const Text('Next'),
+                                    ),
+                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                    ElevatedButton(
+                                        onPressed: () async {
+                                          if(!CreateLoadLoading){
+                                            setState(() {
+                                              CreateLoadLoading = true;
+                                            });
+                                            if (truckIdController.text.isEmpty ||
+                                                resourceIdController
+                                                    .text.isEmpty ||
+
+                                                loadTimeController.text.isEmpty ||
+                                                dateController.text.isEmpty
+                                            ) {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Error'),
+                                                      content: const Text(
+                                                          'Please fill all the required fields'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context)
+                                                                .pop();
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                            } else {
+                                              final newLoadId =
+                                                  'I-${lastLoad + 1}';
+                                              final loadDateFormat =
+                                                  '${_selectedDate}T00:00:00';
+                                              debugPrint(projectIdController.text);
+                                              await createNewLoad({
+                                                "Key1": newLoadId,
+                                                "Company":
+                                                "${tenantConfigP['company']}",
+                                                "ShortChar07":
+                                                plateNumberController.text,
+                                                "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                                "ShortChar01": loadTypeValue,
+                                                "ShortChar04": loadConditionValue,
+                                                "ShortChar08":
+                                                truckIdController.text,
+                                                "ShortChar03": "Open",
+
+                                                "Number01": loadedController
+                                                    .text.isNotEmpty
+                                                    ? loadedController.text
+                                                    : '0',
+                                                "Number02": "0",
+                                                "Number03": context.read<ArchitectureProvider>().SO.toString(),
+                                                "Number06": capacityController
+                                                    .text.isNotEmpty
+                                                    ? capacityController.text
+                                                    : '0',
+                                                "Number07": volumeController
+                                                    .text.isNotEmpty
+                                                    ? volumeController.text
+                                                    : '0',
+                                                "Number08": heightController
+                                                    .text.isNotEmpty
+                                                    ? heightController.text
+                                                    : '0',
+                                                "Number09": widthController
+                                                    .text.isNotEmpty
+                                                    ? widthController.text
+                                                    : '0',
+                                                "Number10": lengthController
+                                                    .text.isNotEmpty
+                                                    ? lengthController.text
+                                                    : '0',
+                                                "Number11":
+                                                (lastCustShip + 1).toString(),
+                                                "Number12": context.read<ArchitectureProvider>().custNum.toString(),
+                                                "Date01": loadDateFormat,
+
+                                                "Character02":
+                                                driverNameController.text,
+                                                "Character03":
+                                                driverNumberController.text,
+                                                "Character04": context.read<ArchitectureProvider>().CustomerId,
+
+                                                "Character07":context.read<ArchitectureProvider>().SO.toString(),
+                                                "Character08":context.read<ArchitectureProvider>().selectedShipment,
+
+
+                                                "Character09": resourceId,
+                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
+                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                              }, tenantConfigP);
+                                              debugPrint(
+                                                  toWarehouseNameController.text);
+                                              if (isLoaded) {
+                                                if (mounted) {
+                                                  showDialog(
+                                                      context: context,
+                                                      builder:
+                                                          (BuildContext context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Success'),
+                                                          content: Text(
+
+                                                              'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
+
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                    context)
+                                                                    .pop();
+                                                                _tabController
+                                                                    .animateTo(
+                                                                        _tabController.index + 1);
+                                                              },
+                                                              child: Text('OK',
+                                                                  style: TextStyle(
+                                                                      color: Theme.of(
+                                                                          context)
+                                                                          .canvasColor)),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      });
+                                                }
+                                                setState(() {
+                                                  loadIDController.text =
+                                                      newLoadId;
+                                                });
+                                              }
+                                            }
+                                            setState(() {
+                                              CreateLoadLoading = false;
+                                            });
+                                          }
+                                        },
+                                        child: CreateLoadLoading
+                                            ? Padding(
+                                          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                          child: Container(
+                                            height: 20,
+                                            width: 20,
+                                            child: const CircularProgressIndicator(
+                                              valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                            ),
+                                          ),
                                         )
+
+                                            : const Text('Create Load')),
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        //Tab 2 Content
+
+                        //Tab 3 Content
+                        SingleChildScrollView(
+                          controller: ScrollController(),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Project Details',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    enabled: false,
+                                    initialValue: loadIDController.text,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Load ID"),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    enabled: false,
+                                    initialValue: projectIdController.text,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Project ID"),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: dateController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date"),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue: loadTimeController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "Load Time"),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue:
+                                            fromWarehouseController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "From"),
+                                          ),
+                                        )),
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue:
+                                            toWarehouseController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "To"),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Truck Details',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                                if (!widget.isUpdate)
+                                  buildTruckDetailsFrom(false),
+                                if (widget.isUpdate)
+                                  TruckDetailsForm(
+                                    isEdit: true,
+                                    truckDetails: offloadData,
+                                  ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Selected Elements',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                ElementTable(
+                                    selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Selected Consumables',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                PartTable(selectedParts: selectedParts),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      if(!SaveLinesLoading){
+                                        debugPrint(
+                                            selectedElements.length.toString());
+                                        setState(() {
+                                          SaveLinesLoading = true;
+                                        });
+                                        for (var e = 0;
+                                        e < selectedElements.length;
+                                        e++) {
+                                          debugPrint(
+                                              selectedElements[e].toString());
+                                          try {
+                                           final  ElementData element=ElementData.fromJson({
+                                              "Company":
+                                              "${tenantConfigP['company']}",
+
+                                              "ChildKey1":
+                                              (e+1).toString(),
+                                              "Key1": loadIDController.text,
+                                              "Character01":
+                                              selectedElements[e].partId,
+                                              "Character02":
+                                              selectedElements[e].elementId,
+                                              "Character03":
+                                              fromWarehouseController.text,
+                                              "Character04":
+                                              selectedElements[e].fromBin,
+                                              "Character07":
+                                              toWarehouseController.text,
+                                              "Character05": toBinController.text,
+                                              "Number01": selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                                  : '0',
+                                              "Number03": selectedElements[e]
+                                                  .weight
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].weight.toString()
+                                                  : '0',
+                                              "Number04": selectedElements[e]
+                                                  .area
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].area.toString()
+                                                  : '0',
+                                              "Number05": selectedElements[e]
+                                                  .volume
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].volume.toString()
+                                                  : '0',
+                                              "Number06": selectedElements[e]
+                                                  .erectionSeq
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e]
+                                                  .erectionSeq.toString()
+                                                  : '0',
+                                              "ShortChar07":
+                                              selectedElements[e].UOM,
+                                              "CheckBox05": false,
+                                              "CheckBox01": true,
+                                              "CheckBox02": false,
+                                              "CheckBox03": false,
+                                              "CheckBox07": false,
+                                              "CheckBox13": false,
+                                              "Character08":
+                                              selectedElements[e].Revision,
+                                              "Character09":
+                                              selectedElements[e].UOMClass
+                                            });
+                                            await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
+                                            updateInTransit(
+                                                selectedElements[e].partId,
+                                                selectedElements[e].elementId,
+                                                tenantConfigP);
+                                            childCount++;
+                                            LineStatus[selectedElements[e].elementId]='Success';
+
+                                          } on HttpException  catch (error) {
+
+                                            setState(() {
+                                              LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
+                                            });
+
+                                          }
+                                        }
+                                        for (int i = 0;
+                                        i < deletedSavedElements.length;
+                                        i++) {
+                                          try {
+                                            await deleteUD104A(
+                                                deletedSavedElements[i],
+                                                tenantConfigP);
+                                            LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
+                                          } catch (e) {
+                                            setState(() {
+                                              LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
+                                            });
+                                          }
+                                        }
+                                        for (var p = 0;
+                                        p < selectedParts.length;
+                                        p++) {
+                                          debugPrint(selectedParts[p].toString());
+                                          await updateUD104A(ElementData.fromJson({
+                                            "ChildKey1":
+                                            (p + 1).toString(),
+                                            "Company":
+                                            "${tenantConfigP['company']}",
+                                            "Key1": loadIDController.text,
+                                            "Character01":
+                                            selectedParts[p].partNum,
+                                            "Character02":
+                                            selectedParts[p].partDesc,
+                                            "Character03":
+                                            toWarehouseController.text,
+                                            "Character04": toBinController.text,
+                                            "Number01": selectedParts[p].qty,
+                                            "ShortChar07": selectedParts[p].uom,
+                                            "CheckBox13": true,
+                                          }), tenantConfigP);
+                                        }
+                               
+                                        if (mounted) {
+                                          String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+                                          showDialog(context: context, builder:
+                                              (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Result'),
+                                              content: Text(resultMessage),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                    context.read<loadStateProvider>().setLinesLoaded(true);
+                                                  },
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            );
+                                          }
+                                          );
+                                        }}
+                                      setState(() {
+                                        SaveLinesLoading = false;
+                                      });
+                                    },
+                                    child: SaveLinesLoading?
+                                    Padding(
+
+                                      padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                      child: Container(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).shadowColor),
+                                        ),
+                                      ),
+                                    )
+                                        :const Text(
+                                      'Load Lines',
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ]) : [
+                        //Tab 1 Content
+                        SingleChildScrollView(
+                          child: Form(
+                            key: _formKey,
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Load Details',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color:
+                                          Theme.of(context).primaryColor),
+                                    ),
+                                  ),
+                                  if (!widget.isUpdate)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        controller: loadIDController,
+                                        enabled: false,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load ID"),
+                                      ),
+                                    ),
+                                  if (widget.isUpdate)
+                                    Row(children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            controller: loadIDController,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "Load ID"),
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () async {
+                                          //  await makeSureDataLoaded(tenantConfigP);
+                                          // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                          // await fetchElementDataFromURL();
+                                          //await fetchPartDataFromURL();
+                                          await loadLoadAndData(tenantConfigP);
+                                          String projectLoadID =
+                                              loadIDController.text;
+                                          offloadData = getLoadObjectFromJson(
+                                              projectLoadID);
+                                          getElementObjectFromJson(
+                                              projectLoadID);
+                                          getPartObjectFromJson(projectLoadID);
+                                          if (offloadData != null) {
+                                            debugPrint(offloadData.toString());
+                                            setState(() {
+                                              projectIdController.text =
+                                                  offloadData!.projectId;
+                                              dateController.text =
+                                                  offloadData!.loadDate;
+                                              toWarehouseController.text =
+                                                  offloadData!.toWarehouse;
+                                              toBinController.text =
+                                                  offloadData!.toBin;
+                                              loadTypeValue =
+                                                  offloadData!.loadType;
+                                              loadConditionValue =
+                                                  offloadData!.loadCondition;
+                                              fromWarehouseController.text =
+                                                  offloadData!.fromWarehouse;
+                                              isLoaded = true;
+                                            });
+                                          } else {
+                                            if (mounted) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Error'),
+                                                    content: const Text(
+                                                        'Load ID not found'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child: Text('Close',
+                                                            style: TextStyle(
+                                                                color: Theme.of(
+                                                                    context)
+                                                                    .canvasColor)),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          }
+                                        },
+                                        icon: const Icon(Icons.search),
+                                      ),
+                                    ]),
+                                  ToggleButtons(
+                                    onPressed: (projectOrSO){
+                                      setState(() {
+                                        this.projectOrSO = projectOrSO == 0;
+                                        context.read<ArchitectureProvider>().toggleArchitecure();
+                                      });
+                                    },
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderColor: Theme.of(context).primaryColor,
+                                      fillColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                                      selectedBorderColor: Theme.of(context).primaryColor,
+                                      color: Theme.of(context).canvasColor,
+                                      selectedColor: Theme.of(context).primaryColor,
+                                      constraints: const BoxConstraints(
+                                        minHeight: 40.0,
+                                        minWidth: 100.0,
+                                      ),
+                                      direction: Axis.horizontal,
+                                      renderBorder: true,
+                                      textStyle: TextStyle(
+                                          fontSize:
+                                          MediaQuery.of(context).size.height *
+                                              0.0175),
+                                      isSelected: [
+                                        projectOrSO == true,
+                                        projectOrSO == false,
+                                      ],
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text('Stand-alone SO'),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: Text('Project based'),
+                                        ),
+                                      ],
+                                  ),
+                                  if(projectOrSO)
+                                    SalesOrderSearch(isUpdate: widget.isUpdate,enabled: !widget.isUpdate,)
+                                  else
+                                    ProjectSearch(isUpdate: widget.isUpdate,enabled:!widget.isUpdate),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            readOnly: true,  // Make the field read-only so it can still respond to taps
+                                            controller: dateController,
+                                            onTap: () async {
+                                              final DateTime? date = await showDatePicker(
+                                                builder: (BuildContext context, Widget? child) {
+                                                  return Theme(
+                                                    data: ThemeData.light().copyWith(
+                                                      colorScheme: ColorScheme.light(
+                                                        primary: Theme.of(context).primaryColor,
+                                                        background: Colors.white,
+                                                        secondary: Theme.of(context).primaryColor,
+                                                        outline: Colors.cyanAccent,
+                                                      ),
+                                                    ),
+                                                    child: child!,
+                                                  );
+                                                },
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime(2018),
+                                                lastDate: DateTime(2030),
+                                              );
+                                              if (date != null) {
+                                                setState(() {
+                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                });
+                                              }
+                                            },
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              onTap: () async {
+                                                final TimeOfDay? time =
+                                                await showTimePicker(
+                                                    context: context,
+                                                    initialTime:
+                                                    TimeOfDay.now(),
+                                                    builder: (context, child) {
+                                                      return Theme(
+                                                        data: Theme.of(context)
+                                                            .copyWith(
+                                                          colorScheme:
+                                                          ColorScheme.light(
+                                                            primary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                            onPrimary:
+                                                            Colors.white,
+                                                            secondary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                          ),
+                                                        ),
+                                                        child: child!,
+                                                      );
+                                                    });
+                                                if (time != null) {
+                                                  setState(() {
+                                                    loadTimeController.text =
+                                                    "${time.hour}:${time.minute}";
+                                                  });
+                                                }
+                                              },
+                                              controller: loadTimeController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load Time"),
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: DropdownSearch(
+                                            selectedItem:
+                                            fromWarehouseController.text,
+                                            enabled: true,
+                                            popupProps: const PopupProps
+                                                .modalBottomSheet(
+                                              showSearchBox: true,
+                                              searchFieldProps: TextFieldProps(
+                                                decoration: InputDecoration(
+                                                  suffixIcon:
+                                                  Icon(Icons.search),
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Search",
+                                                ),
+                                              ),
+                                            ),
+                                            autoValidateMode: AutovalidateMode
+                                                .onUserInteraction,
+                                            dropdownDecoratorProps:
+                                            const DropDownDecoratorProps(
+                                              dropdownSearchDecoration:
+                                              InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "From Warehouse",
+                                              ),
+                                            ),
+                                            items: fetchedWarehouseValue.map((warehouse) =>
+                                            warehouse['Description'])
+                                                .toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                fromWarehouseController
+                                                    .text = fetchedWarehouseValue
+                                                    .firstWhere(
+                                                        (warehouse) =>
+                                                    warehouse[
+                                                    'Description'] ==
+                                                        value)[
+                                                'WarehouseCode'];
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+
+
+
+                                  if (loadConditionValue == 'External')
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: poNumberController,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "PO Num"),
+                                              ),
+                                            )),
+                                        Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: TextFormField(
+                                                controller: poLineController,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder(),
+                                                    labelText: "PO Line"),
+                                              ),
+                                            )),
+                                      ],
+                                    ),
+                                  Row(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(children: [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Load Type',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context)
+                                                        .canvasColor),
+                                              ),
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Return Trip',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Return',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Delivery Trip',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Issue Load',
+                                              groupValue: loadTypeValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadTypeValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                          ]),
+                                        ),
+                                        Expanded(
+                                          child: Column(children: [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text(
+                                                'Truck Type',
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: Theme.of(context)
+                                                        .canvasColor),
+                                              ),
+                                            ),
+                                            RadioListTile(
+                                              title: Text('External',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'External',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            ),
+                                            RadioListTile(
+                                              title: Text('Internal',
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                    MediaQuery.of(context)
+                                                        .size
+                                                        .height *
+                                                        0.022,
+                                                  )),
+                                              value: 'Internal Truck',
+                                              groupValue: loadConditionValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  loadConditionValue =
+                                                      value.toString();
+                                                });
+                                              },
+                                            )
+                                          ]),
+                                        ),
+                                      ]),
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Truck Details',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Theme.of(context).canvasColor),
+                                    ),
+                                  ),
+                                  if (!widget.isUpdate)
+                                    buildTruckDetailsFrom(true),
+                                  if (widget.isUpdate)
+                                    TruckDetailsForm(
+                                      isEdit: true,
+                                      truckDetails: offloadData,
+                                    ),
+                                  const SizedBox(height: 20),
+                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _tabController.animateTo(_tabController.index+1);
+                                        });
+                                      },
+                                      child: const Text('Next'),
+                                    ),
+                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                    ElevatedButton(
+                                        onPressed: () async {
+                                          if(!CreateLoadLoading){
+                                            setState(() {
+                                              CreateLoadLoading = true;
+                                            });
+                                            if (truckIdController.text.isEmpty ||
+                                                resourceIdController
+                                                    .text.isEmpty ||
+
+                                                loadTimeController.text.isEmpty ||
+                                                dateController.text.isEmpty
+                                            ) {
+                                              showDialog(
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: const Text('Error'),
+                                                      content: const Text(
+                                                          'Please fill all the required fields'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(context)
+                                                                .pop();
+                                                          },
+                                                          child: const Text('OK'),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  });
+                                            } else {
+                                              final newLoadId =
+                                                  'I-${lastLoad + 1}';
+                                              final loadDateFormat =
+                                                  '${_selectedDate}T00:00:00';
+                                              debugPrint(toBinController.text);
+                                              await createNewLoad({
+                                                "Key1": newLoadId,
+                                                "Company":
+                                                "${tenantConfigP['company']}",
+                                                "ShortChar07":
+                                                plateNumberController.text,
+                                                "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                                "ShortChar01": loadTypeValue,
+                                                "ShortChar04": loadConditionValue,
+                                                "ShortChar08":
+                                                truckIdController.text,
+                                                "ShortChar03": "Open",
+
+                                                "Number01": loadedController
+                                                    .text.isNotEmpty
+                                                    ? loadedController.text
+                                                    : '0',
+                                                "Number02": "0",
+                                                "Number03": context.read<ArchitectureProvider>().SO.toString(),
+                                                "Number06": capacityController
+                                                    .text.isNotEmpty
+                                                    ? capacityController.text
+                                                    : '0',
+                                                "Number07": volumeController
+                                                    .text.isNotEmpty
+                                                    ? volumeController.text
+                                                    : '0',
+                                                "Number08": heightController
+                                                    .text.isNotEmpty
+                                                    ? heightController.text
+                                                    : '0',
+                                                "Number09": widthController
+                                                    .text.isNotEmpty
+                                                    ? widthController.text
+                                                    : '0',
+                                                "Number10": lengthController
+                                                    .text.isNotEmpty
+                                                    ? lengthController.text
+                                                    : '0',
+                                                "Number11":
+                                                (lastCustShip + 1).toString(),
+                                                "Number12": context.read<ArchitectureProvider>().custNum.toString(),
+                                                "Date01": loadDateFormat,
+
+                                                "Character02":
+                                                driverNameController.text,
+                                                "Character03":
+                                                driverNumberController.text,
+                                                "Character04": context.read<ArchitectureProvider>().CustomerId,
+
+                                                "Character07":context.read<ArchitectureProvider>().SO.toString(),
+                                                "Character08":context.read<ArchitectureProvider>().selectedShipment,
+
+
+                                                "Character09": resourceIdController.text,
+                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
+                                                "Character06": fromWarehouseController.text,
+                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                              }, tenantConfigP);
+                                              debugPrint(
+                                                 resourceIdController.text);
+                                              if (isLoaded) {
+                                                if (mounted) {
+                                                  showDialog(
+                                                      context: context,
+                                                      builder:
+                                                          (BuildContext context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Success'),
+                                                          content: Text(
+
+                                                              'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
+
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                    context)
+                                                                    .pop();
+                                                                _tabController
+                                                                    .animateTo(1);
+                                                              },
+                                                              child: Text('OK',
+                                                                  style: TextStyle(
+                                                                      color: Theme.of(
+                                                                          context)
+                                                                          .canvasColor)),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      });
+                                                }
+                                                setState(() {
+                                                  loadIDController.text =
+                                                      newLoadId;
+                                                });
+                                              }
+                                            }
+                                            setState(() {
+                                              CreateLoadLoading = false;
+                                            });
+                                          }
+                                        },
+                                        child: CreateLoadLoading
+                                            ? Padding(
+                                          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                          child: Container(
+                                            height: 20,
+                                            width: 20,
+                                            child: const CircularProgressIndicator(
+                                              valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                            ),
+                                          ),
+                                        )
+
+                                            : const Text('Create Load')),
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        //Tab 2 Content
+                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
+                          SingleChildScrollView(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Column(
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Part Search Form',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                            Theme.of(context).canvasColor),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).indicatorColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: !widget.LinesOriented? ElementSearchForm(
+                                          onElementsSelected:
+                                          updateElementInformation,
+                                          arrivedElements:
+                                          selectedElements.isNotEmpty
+                                              ? selectedElements
+                                              : [],
+                                          isOffloading: false,
+                                          Warehouse: fromWarehouseController.text,
+                                          AddElement: _addElement,
+                                          Project: projectIdController.text,
+                                          tenantConfig: tenantConfigP,
+                                          isInstalling: false,
+                                        ) : SizedBox(
+                                          height: 50,
+                                          child: Center(
+                                            child: Text('Lines Oriented',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                          ),
+
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
                                     ),
                                   ],
                                 ),
-                              ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Elements',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                ElementTable(
+                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
+                                  DeletededSaveElements: widget.isUpdate
+                                      ? deletedSavedElements
+                                      : null,
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Consumables',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                PartTable(selectedParts: selectedParts),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _tabController.animateTo(_tabController.index+1);
+                                    });
+                                  },
+                                  child: const Text('Next'),
+                                )
+                              ],
                             ),
-                          ]),
-                    );}
-                  ),
-          ),
+                          ),
+                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
+                          const Center(
+                            child: Text(
+                                'Please create a load first or Select a load to update'),
+                          ),
+                        //Tab 3 Content
+                        SingleChildScrollView(
+                          controller: ScrollController(),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Project Details',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    enabled: false,
+                                    initialValue: loadIDController.text,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Load ID"),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: TextFormField(
+                                    enabled: false,
+                                    initialValue: projectIdController.text,
+                                    decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        labelText: "Project ID"),
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: dateController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date"),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue: loadTimeController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "Load Time"),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue:
+                                            fromWarehouseController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "From"),
+                                          ),
+                                        )),
+                                    Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            enabled: false,
+                                            initialValue:
+                                            toWarehouseController.text,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "To"),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Truck Details',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                                if (!widget.isUpdate)
+                                  buildTruckDetailsFrom(false),
+                                if (widget.isUpdate)
+                                  TruckDetailsForm(
+                                    isEdit: true,
+                                    truckDetails: offloadData,
+                                  ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Selected Elements',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                ElementTable(
+                                    selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Selected Consumables',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Theme.of(context).canvasColor),
+                                  ),
+                                ),
+                                PartTable(selectedParts: selectedParts),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                 // context.watch<loadStateProvider>().linesLoaded ?
+                                ElevatedButton(
+                                    onPressed: () async {
+                                      if(!SaveLinesLoading){
+                                        debugPrint(
+                                            selectedElements.length.toString());
+                                        setState(() {
+                                          SaveLinesLoading = true;
+                                        });
+                                        for (var e = 0;
+                                        e < selectedElements.length;
+                                        e++) {
+                                          debugPrint(
+                                              selectedElements[e].toString());
+                                          try {
+                                            await updateUD104A(ElementData.fromJson({
+                                              "Company":
+                                              "${tenantConfigP['company']}",
+
+                                              "ChildKey1":
+                                              (e+1).toString(),
+                                              "Key1": loadIDController.text,
+                                              "Character01":
+                                              selectedElements[e].partId,
+                                              "Character02":
+                                              selectedElements[e].elementId,
+                                              "Character03":
+                                              fromWarehouseController.text,
+                                              "Character04":
+                                              selectedElements[e].fromBin,
+                                              "Character07":
+                                              toWarehouseController.text,
+                                              "Character05": toBinController.text,
+                                              "Number01": selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e]
+                                                  .selectedQty
+                                                  .toString()
+                                                  : '0',
+                                              "Number03": selectedElements[e]
+                                                  .weight
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].weight.toString()
+                                                  : '0',
+                                              "Number04": selectedElements[e]
+                                                  .area
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].area.toString()
+                                                  : '0',
+                                              "Number05": selectedElements[e]
+                                                  .volume
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e].volume.toString()
+                                                  : '0',
+                                              "Number06": selectedElements[e]
+                                                  .erectionSeq
+                                                  .toString()
+                                                  .isNotEmpty
+                                                  ? selectedElements[e]
+                                                  .erectionSeq.toString()
+                                                  : '0',
+                                              "ShortChar07":
+                                              selectedElements[e].UOM,
+                                              "CheckBox05": false,
+                                              "CheckBox01": true,
+                                              "CheckBox02": false,
+                                              "CheckBox03": false,
+                                              "CheckBox07": false,
+                                              "CheckBox13": false,
+                                              "Character08":
+                                              selectedElements[e].Revision,
+                                              "Character09":
+                                              selectedElements[e].UOMClass
+                                            }), tenantConfigP ,last: e==selectedElements.length-1);
+                                            updateInTransit(
+                                                selectedElements[e].partId,
+                                                selectedElements[e].elementId,
+                                                tenantConfigP);
+                                            childCount++;
+                                            LineStatus[selectedElements[e].elementId]='Success';
+
+                                          } on HttpException  catch (error) {
+
+                                            setState(() {
+                                              LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
+                                            });
+
+                                          }
+                                        }
+                                        for (int i = 0;
+                                        i < deletedSavedElements.length;
+                                        i++) {
+                                          try {
+                                            await deleteUD104A(
+                                                deletedSavedElements[i],
+                                                tenantConfigP);
+                                            LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
+                                          } catch (e) {
+                                            setState(() {
+                                              LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
+                                            });
+                                          }
+                                        }
+                                        for (var p = 0;
+                                        p < selectedParts.length;
+                                        p++) {
+                                          debugPrint(selectedParts[p].toString());
+                                          await updateUD104A(ElementData.fromJson({
+                                            "ChildKey1":
+                                            (p + 1).toString(),
+                                            "Company":
+                                            "${tenantConfigP['company']}",
+                                            "Key1": loadIDController.text,
+                                            "Character01":
+                                            selectedParts[p].partNum,
+                                            "Character02":
+                                            selectedParts[p].partDesc,
+                                            "Character03":
+                                            toWarehouseController.text,
+                                            "Character04": toBinController.text,
+                                            "Number01": selectedParts[p].qty,
+                                            "ShortChar07": selectedParts[p].uom,
+                                            "CheckBox13": true,
+                                          }), tenantConfigP);
+                                        }
+                                        if (mounted) {
+                                          String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+                                          showDialog(context: context, builder:
+                                              (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Result'),
+                                              content: Text(resultMessage),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            );
+                                          }
+                                          );
+                                        }}
+                                      setState(() {
+                                        SaveLinesLoading = false;
+                                         context.read<loadStateProvider>().setLinesLoaded(true);
+                                      });
+                                    },
+                                    child: SaveLinesLoading?
+                                    Padding(
+
+                                      padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                      child: Container(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                              Theme.of(context).shadowColor),
+                                        ),
+                                      ),
+                                    )
+                                        :const Text(
+                                      'Load Lines',
+                                    ))
+                                    // :SizedBox(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ]
+
+                      ),
+                    );
+                  }),
+        ),
       ),
     );
   }
 
   Future<void> makeSureDataLoaded(dynamic tenantConfigP) async {
-
-      await Future.wait([
-        getProjectList(tenantConfigP),
-
-        getTrucksFromURL(tenantConfigP),
-        getDriverList(tenantConfigP),
-        getLastLoadID(tenantConfigP),
-        getWarehouseList(tenantConfigP),
-        getLastCustomerShipment(tenantConfigP)
-      ]);
-
-
-
+    await Future.wait([
+      getProjectList(tenantConfigP),
+      getTrucksFromURL(tenantConfigP),
+      getDriverList(tenantConfigP),
+      getLastLoadID(tenantConfigP),
+      getWarehouseList(tenantConfigP),
+      getLastCustomerShipment(tenantConfigP)
+    ]);
   }
-  void _addElement(ElementData element){
+
+  void _addElement(ElementData element) {
     setState(() {
       selectedElements.add(element);
     });
   }
+
   Future<bool> submitReport(tenantConfigP) async {
-    dynamic body={
-
-    "ds": {
-    "extensionTables": [],
-    "BAQReportParam": [
-    {
-
-    "Summary": false,
-    "BAQRptID": "",
-    "ReportID": "IIT_DeliveryNot",
-    "Option01": loadIDController.text,
-    "SysRowID": "00000000-0000-0000-0000-000000000000",
-    "AutoAction": "SSRSGenerate",
-    "PrinterName": "Microsoft Print to PDF",
-    "AgentSchedNum": 0,
-    "AgentID": "",
-    "AgentTaskNum": 0,
-    "RecurringTask": false,
-    "RptPageSettings": "Color=True,Landscape=False,AutoRotate=False,PaperSize=[Kind=\"Custom\" PaperName=\"Custom\" Height=0 Width=0],PaperSource=[SourceName=\"Automatically Select\" Kind=\"Custom\"],PrinterResolution=[]",
-    "RptPrinterSettings": "PrinterName=\"Microsoft Print to PDF\",Copies=1,Collate=False,Duplex=Default,FromPage=1,ToPage=0",
-    "RptVersion": "",
-    "ReportStyleNum": 1002,
-    "WorkstationID": "web_Manager",
-    "AttachmentType": "PDF",
-    "ReportCurrencyCode": "USD",
-    "ReportCultureCode": "en-US",
-    "SSRSRenderFormat": "PDF",
-    "UIXml": "",
-    "PrintReportParameters": false,
-    "SSRSEnableRouting": false,
-    "DesignMode": false,
-    "RowMod": "A"
-    }
-    ],
-    "ReportStyle": [
-
-    {
-    "Company": "${tenantConfigP['company']}",
-    "ReportID": "IIT_DeliveryNot",
-    "StyleNum": 1002,
-    "StyleDescription": "Delivery Note Report - SSRS",
-    "RptTypeID": "SSRS",
-    "PrintProgram": "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
-    "PrintProgramOptions": "",
-    "RptDefID": "IIT_DeliveryNot",
-    "CompanyList": "${tenantConfigP['company']}",
-    "ServerNum": 0,
-    "OutputLocation": "Database",
-    "OutputEDI": "",
-    "SystemFlag": false,
-    "CGCCode": "",
-    "SysRevID": 93280823,
-    "SysRowID": "724b1ca9-4a67-4db8-840a-24b73be01b80",
-    "RptCriteriaSetID": null,
-    "RptStructuredOutputDefID": null,
-    "StructuredOutputEnabled": false,
-    "RequireSubmissionID": false,
-    "AllowResetAfterSubmit": false,
-    "CertificateID": null,
-    "LangNameID": "",
-    "FormatCulture": "",
-    "StructuredOutputCertificateID": null,
-    "StructuredOutputAlgorithm": null,
-    "HasBAQOrEI": false,
-    "RoutingRuleEnabled": false,
-    "CertificateIsAllComp": false,
-    "CertificateIsSystem": false,
-    "CertExpiration": null,
-    "Status": 0,
-    "StatusMessage": "",
-    "RptDefSystemFlag": false,
-    "LangNameIDDescription": "",
-    "IsBAQReport": false,
-    "StructuredOutputCertificateIsAllComp": false,
-    "StructuredOutputCertificateIsSystem": false,
-    "StructuredOutputCertificateExpirationDate": null,
-    "AllowGenerateEDI": false,
-    "BitFlag": 0,
-    "ReportRptDescription": "",
-    "RptDefRptDescription": "",
-    "RptTypeRptTypeDescription": "",
-    "RowMod": "",
-    "SSRSRenderFormat": "PDF"
-    }
-
-    ]
-    },
-    "agentID": "",
-    "agentSchedNum": 0,
-    "agentTaskNum": 0,
-    "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
+    dynamic body = {
+      "ds": {
+        "extensionTables": [],
+        "BAQReportParam": [
+          {
+            "Summary": false,
+            "BAQRptID": "",
+            "ReportID": "IIT_DeliveryNot",
+            "Option01": loadIDController.text,
+            "SysRowID": "00000000-0000-0000-0000-000000000000",
+            "AutoAction": "SSRSGenerate",
+            "PrinterName": "Microsoft Print to PDF",
+            "AgentSchedNum": 0,
+            "AgentID": "",
+            "AgentTaskNum": 0,
+            "RecurringTask": false,
+            "RptPageSettings":
+                "Color=True,Landscape=False,AutoRotate=False,PaperSize=[Kind=\"Custom\" PaperName=\"Custom\" Height=0 Width=0],PaperSource=[SourceName=\"Automatically Select\" Kind=\"Custom\"],PrinterResolution=[]",
+            "RptPrinterSettings":
+                "PrinterName=\"Microsoft Print to PDF\",Copies=1,Collate=False,Duplex=Default,FromPage=1,ToPage=0",
+            "RptVersion": "",
+            "ReportStyleNum": 1002,
+            "WorkstationID": "web_Manager",
+            "AttachmentType": "PDF",
+            "ReportCurrencyCode": "USD",
+            "ReportCultureCode": "en-US",
+            "SSRSRenderFormat": "PDF",
+            "UIXml": "",
+            "PrintReportParameters": false,
+            "SSRSEnableRouting": false,
+            "DesignMode": false,
+            "RowMod": "A"
+          }
+        ],
+        "ReportStyle": [
+          {
+            "Company": "${tenantConfigP['company']}",
+            "ReportID": "IIT_DeliveryNot",
+            "StyleNum": 1002,
+            "StyleDescription": "Delivery Note Report - SSRS",
+            "RptTypeID": "SSRS",
+            "PrintProgram":
+                "Reports/CustomReports/IIT_DeliveryNot/IIT_Delivery_v2",
+            "PrintProgramOptions": "",
+            "RptDefID": "IIT_DeliveryNot",
+            "CompanyList": "${tenantConfigP['company']}",
+            "ServerNum": 0,
+            "OutputLocation": "Database",
+            "OutputEDI": "",
+            "SystemFlag": false,
+            "CGCCode": "",
+            "SysRevID": 93280823,
+            "SysRowID": "724b1ca9-4a67-4db8-840a-24b73be01b80",
+            "RptCriteriaSetID": null,
+            "RptStructuredOutputDefID": null,
+            "StructuredOutputEnabled": false,
+            "RequireSubmissionID": false,
+            "AllowResetAfterSubmit": false,
+            "CertificateID": null,
+            "LangNameID": "",
+            "FormatCulture": "",
+            "StructuredOutputCertificateID": null,
+            "StructuredOutputAlgorithm": null,
+            "HasBAQOrEI": false,
+            "RoutingRuleEnabled": false,
+            "CertificateIsAllComp": false,
+            "CertificateIsSystem": false,
+            "CertExpiration": null,
+            "Status": 0,
+            "StatusMessage": "",
+            "RptDefSystemFlag": false,
+            "LangNameIDDescription": "",
+            "IsBAQReport": false,
+            "StructuredOutputCertificateIsAllComp": false,
+            "StructuredOutputCertificateIsSystem": false,
+            "StructuredOutputCertificateExpirationDate": null,
+            "AllowGenerateEDI": false,
+            "BitFlag": 0,
+            "ReportRptDescription": "",
+            "RptDefRptDescription": "",
+            "RptTypeRptTypeDescription": "",
+            "RowMod": "",
+            "SSRSRenderFormat": "PDF"
+          }
+        ]
+      },
+      "agentID": "",
+      "agentSchedNum": 0,
+      "agentTaskNum": 0,
+      "maintProgram": "Ice.UIRpt.IIT_DeliveryNot"
     };
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final submitReportURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
-      final response = await http.post(
-          submitReportURL,
+      final submitReportURL = Uri.parse(
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.RPT.BAQReportSvc/TransformAndSubmit');
+      final response = await http.post(submitReportURL,
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode(body)
-      );
-      if(response.statusCode == 200){
+          body: jsonEncode(body));
+      if (response.statusCode == 200) {
         return true;
-      }
-      else {
+      } else {
         return false;
       }
     } on Exception catch (e) {
@@ -1326,31 +2631,29 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<dynamic> fetchPDFCounts(dynamic tenantConfigP) async {
-    final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-      final pdfCountsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${tenantConfigP['company']})');
-      final response = await http.get(
-          pdfCountsURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+      final pdfCountsURL = Uri.parse(
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_getDN(${tenantConfigP['company']})');
+      final response = await http.get(pdfCountsURL, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
       final jsonResponse = json.decode(response.body);
       if (response.statusCode == 200) {
         return jsonResponse['value'];
-      }
-      else {
+      } else {
         return null;
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
+
   Future<void> getProjectList(dynamic tenantConfigP) async {
-    final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
           Uri.parse(
@@ -1358,8 +2661,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+          });
       if (response.statusCode == 200) {
         setState(() {
           fetchedProjectData = json.decode(response.body);
@@ -1372,27 +2674,31 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
+
   Future<Uint8List> deliveryNote(String base64String) async {
     Uint8List decodedBytes = base64.decode(base64String);
     final pdf = pw.Document();
     final directory = await getApplicationDocumentsDirectory();
-    final output = File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
+    final output =
+        File('${directory.path}/DeliveryNote${loadIDController.text}.pdf');
 
     await pdf.save();
     await output.writeAsBytes(decodedBytes, flush: true);
 
     return output.readAsBytesSync();
   }
+
   Future<void> getWarehouseList(dynamic tenantConfigP) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
       final response = await http.get(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.Bo.WarehseSvc/Warehses'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+          });
       if (response.statusCode == 200) {
         setState(() {
           fetchedWarehouseData = json.decode(response.body);
@@ -1406,26 +2712,25 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  Future<void> getBinsFromWarehouse (dynamic tenantConfigP, String warehouse) async {
-    final String basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+  Future<void> getBinsFromWarehouse(
+      dynamic tenantConfigP, String warehouse) async {
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
-
       final response = await http.get(
-          Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.WhseBinSvc/WhseBins?\$filter=WarehouseCode eq '$warehouse'"),
+          Uri.parse(
+              "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.WhseBinSvc/WhseBins?\$filter=WarehouseCode eq '$warehouse'"),
           headers: {
-      HttpHeaders.authorizationHeader: basicAuth,
-      HttpHeaders.contentTypeHeader: 'application/json',
-      });
+            HttpHeaders.authorizationHeader: basicAuth,
+            HttpHeaders.contentTypeHeader: 'application/json',
+          });
       if (response.statusCode == 200) {
         setState(() {
           fetchedBinData = json.decode(response.body);
           fetchedBinValue = fetchedBinData['value'];
-
         });
       }
-    }
-    on Exception catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
       setState(() {
         toBinLoading = false;
@@ -1433,7 +2738,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
   }
 
-  void updateElementInformation(List<ElementData> selectedElementsFromForm, List<PartData> selectedPartsFromForm){
+  void updateElementInformation(List<ElementData> selectedElementsFromForm,
+      List<PartData> selectedPartsFromForm) {
     setState(() {
       selectedElements = selectedElementsFromForm;
       selectedParts = selectedPartsFromForm;
@@ -1441,25 +2747,30 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> createNewLoad(Map<String, dynamic> loadItems, tenantConfigP) async {
-    final String basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
-    try{
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
       final response = await http.post(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104s'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104s'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode(loadItems)
-      );
+          body: jsonEncode(loadItems));
       if (response.statusCode == 201) {
         debugPrint(response.body);
         LoadData load = LoadData.fromJson(json.decode(response.body));
         setState(() {
           isLoaded = true;
           currentLoad = load;
-          widget.addLoadData(load);
+          context.read<loadStateProvider>().setLoadCreated(true);
+
         });
         debugPrint(widget.loadDataList.toString());
+      }
+      else {
+        debugPrint(response.body);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -1469,8 +2780,12 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   ResourceDetails? getResourceDetailsFromJson(String resourceID) {
     debugPrint(resourceID);
     if (resourceValue != null) {
-      if(resourceValue!.where((element) => element['Character01'] == resourceID).isNotEmpty){
-        resourceDetails = ResourceDetails.fromJson(resourceValue!.where((element) => element['Character01'] == resourceID).first);
+      if (resourceValue!
+          .where((element) => element['Character01'] == resourceID)
+          .isNotEmpty) {
+        resourceDetails = ResourceDetails.fromJson(resourceValue!
+            .where((element) => element['Character01'] == resourceID)
+            .first);
         return resourceDetails;
       }
     }
@@ -1479,63 +2794,59 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
 
   Future<void> getTrucksFromURL(dynamic tenantConfigP) async {
     try {
-      final basicAuth = 'Basic ${base64Encode(
-        utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
-      var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+      var truckURL = Uri.parse(
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
 
-      final response = await http.get(
-
-          truckURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+      final response = await http.get(truckURL, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
       final jsonResponse = json.decode(response.body);
       setState(() {
         truckData = jsonResponse;
         truckValue = truckData['value'];
       });
-    }
-    on Exception catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
 
-  Future<void> getResourceForTrucks(String resourceID,tenantConfigP) async {
+  Future<void> getResourceForTrucks(String resourceID, tenantConfigP) async {
     resourceValue = [];
-    var urL = Uri.parse("${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse(
+        "${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
-      final response = await http.get(
-          urL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+      final response = await http.get(urL, headers: {
+        HttpHeaders.authorizationHeader: basicAuth,
+        HttpHeaders.contentTypeHeader: 'application/json',
+      });
       final jsonResponse = json.decode(response.body);
       setState(() {
         resourceData = jsonResponse;
         resourceValue = resourceData['value'];
-        resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
+        if (resourceValue!.isNotEmpty) {
+          resourceDetails = ResourceDetails.fromJson(resourceValue!.first);
+        }
       });
-    }
-    on Exception catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
 
   Future<void> getDriverList(dynamic tenantConfigP) async {
-    try{
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_DriverName(${tenantConfigP['company']})'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_DriverName(${tenantConfigP['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
@@ -1554,60 +2865,61 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   Future<void> getLastLoadID(dynamic tenantConfigP) async {
-    try{
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_UD104AutoGenerateNum(${tenantConfigP['company']})'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_UD104AutoGenerateNum(${tenantConfigP['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           });
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         Map<String, dynamic> rp = json.decode(response.body);
         setState(() {
-          lastLoad = rp['value'][0]['Calculated_AutoGen'];
+          lastLoad = int.parse(rp['value'][0]['Calculated_AutoGen']);
         });
         debugPrint(lastLoad.toString());
       }
-    }
-    on Exception catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
+
   Future<void> getLastCustomerShipment(dynamic tenantConfigP) async {
-    try{
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.get(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_MaxShip(${tenantConfigP['company']})'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/IIT_MaxShip(${tenantConfigP['company']})'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           });
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         Map<String, dynamic> rp = json.decode(response.body);
         setState(() {
           lastCustShip = rp['value'][0]['Calculated_Max_packNum'];
         });
         debugPrint(lastCustShip.toString());
       }
-    }
-    on Exception catch (e) {
+    } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
-  Future<dynamic> fetchLoadDataFromURL(String loadId,dynamic tenantConfigP) async {
+
+  Future<dynamic> fetchLoadDataFromURL(
+      String loadId, dynamic tenantConfigP) async {
     try {
-
-
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       Map<String, dynamic> body = {
-        "Company":tenantConfigP["company"],
+        "Company": tenantConfigP["company"],
         "key1": loadId,
         "key2": "",
         "key3": "",
@@ -1649,23 +2961,23 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   LoadData? getLoadObjectFromJson(String loadID) {
-    if (loadValue.isNotEmpty){
-
-    LoadData loadObject = LoadData.fromJson(loadValue[0]);
+    if (loadValue.isNotEmpty) {
+      LoadData loadObject = LoadData.fromJson(loadValue[0]);
       return loadObject;
     }
     return null;
   }
 
   ElementData? getElementObjectFromJson(String loadID) {
-    if (elementValue.isNotEmpty){
-      var matchingElement = elementValue.where((element) => element['Key1'] == loadID).toList();
+    if (elementValue.isNotEmpty) {
+      var matchingElement =
+          elementValue.where((element) => element['Key1'] == loadID).toList();
       ElementData? elementObject;
       setState(() {
         selectedElements.clear();
       });
-      if (matchingElement.isNotEmpty){
-        for (var v = 0; v<matchingElement.length; v++) {
+      if (matchingElement.isNotEmpty) {
+        for (var v = 0; v < matchingElement.length; v++) {
           elementObject = ElementData.fromJson(matchingElement[v]);
           debugPrint(elementObject.elementId);
           selectedElements.add(elementObject);
@@ -1676,10 +2988,11 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
   }
 
   PartData? getPartObjectFromJson(String loadID) {
-    if (partValue.isNotEmpty){
-      var matchingPart = partValue.where((part) => part['Key1'] == loadID).toList();
-      if (matchingPart.isNotEmpty){
-        for (var v = 0; v<matchingPart.length; v++) {
+    if (partValue.isNotEmpty) {
+      var matchingPart =
+          partValue.where((part) => part['Key1'] == loadID).toList();
+      if (matchingPart.isNotEmpty) {
+        for (var v = 0; v < matchingPart.length; v++) {
           PartData partObject = PartData.fromJson(matchingPart[v]);
           selectedParts.add(partObject);
         }
@@ -1687,18 +3000,19 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     }
     return null;
   }
-  Future<void> deleteUD104A(String childKey1,dynamic tenantConfigP) async {
+
+  Future<void> deleteUD104A(String childKey1, dynamic tenantConfigP) async {
     try {
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
       final response = await http.delete(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As(${tenantConfigP['company']},${loadIDController.text},,,,,$childKey1,,,,)'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As(${tenantConfigP['company']},${loadIDController.text},,,,,$childKey1,,,,)'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
-          }
-      );
+          });
       if (response.statusCode == 200) {
         widget.addLoadData(currentLoad);
       }
@@ -1706,76 +3020,131 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       debugPrint(e.toString());
     }
   }
-  Future<void> updateUD104A(Map<String, dynamic> UD104AData,dynamic tenantConfigP) async {
-    try {
-      final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
+  Future<void> updateUD104A(
+      ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
+    try {
+      CustomerShipment customerShipment = new CustomerShipment(
+        PackNum: lastCustShip+1,
+
+        Company: UD104AData.Company,
+        CustNum: context.read<ArchitectureProvider>().custNum,
+        LineDesc: UD104AData.elementDesc,
+        OrderLine: int.parse(UD104AData.ChildKey1),
+        OrderNum: context.read<ArchitectureProvider>().SO,
+        OrderRelNum: 1,
+       RevisionNum: UD104AData.Revision,
+        BinNum: UD104AData.fromBin,
+        WarehouseCode: UD104AData.Warehouse,
+       partNum: UD104AData.partId,
+        LotNum: UD104AData.elementId,
+
+        IUM: "EA",
+        LineType: "PART",
+        InventoryShipUOM: "EA",
+        ShipToNum: context.read<ArchitectureProvider>().selectedShipment,
+        JobShipUOM: "EA",
+        MFCustNum: context.read<ArchitectureProvider>().custNum,
+        MFShipToNum: context.read<ArchitectureProvider>().selectedShipment,
+        OurReqUM: "EA",
+        OurShippedUM: "EA",
+        PartNumIUM: "EA",
+        PartNumSalesUM: "EA",
+        PartNumTrackLots: true,
+        ShipCmpl: true,
+        SalesUM: "EA",
+        SellingReqUM: "EA",
+        SellingShipmentUM: "EA",
+        SellingShippedUM: "EA",
+
+
+
+
+      );
+      final basicAuth =
+          'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+      final dynamic body =UD104AData.toJson();
       final response = await http.post(
-          Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As'),
+          Uri.parse(
+              '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As'),
           headers: {
             HttpHeaders.authorizationHeader: basicAuth,
             HttpHeaders.contentTypeHeader: 'application/json',
           },
-          body: jsonEncode(UD104AData)
+          body: body );
+      final customerShipmentURL =
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.CustShipSvc/ShipDtls';
+      final CustShipresponse = await APIV2Helper.Post(customerShipmentURL,
+      basicAuth,
+        customerShipment.toJson(),
+        entity: "CustomerShipment",
       );
-      if (response.statusCode == 201) {
-        debugPrint(response.body);
-        setState(() {
-          widget.addLoadData(currentLoad);
-        });
+      final customerShipmentHeadURL =
+          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.CustShipSvc/CustShips';
+      if(last) {
+        final CustShipHeadresponse = await APIV2Helper.Post(
+          customerShipmentHeadURL,
+          basicAuth,
+          {
+            "Company": tenantConfigP['company'],
+            "PackNum": lastCustShip + 1,
+            "ReadyToInvoice": true
+          },
+          entity: "Shipment head",
+        );
+        if ((response.statusCode >= 200 && response.statusCode < 300)
+            && CustShipresponse.statusCode >= 200 &&
+            CustShipresponse.statusCode < 300
+            && CustShipHeadresponse.statusCode >= 200 &&
+            CustShipHeadresponse.statusCode < 300
+        ) {
+          debugPrint(response.body);
+          setState(() {
+            context.read<loadStateProvider>().setLinesLoaded(true);
+
+          });
+        } else {
+          Map<String, dynamic> body = json.decode(response.body);
+
+          throw new HttpException(body['ErrorMessage'] ?? "Error");
+        }
       }
-      else {
-        debugPrint(response.body);
-        debugPrint(response.statusCode.toString());
-      }
-    } on Exception catch (e) {
-      debugPrint(e.toString());
+    } on HttpException catch (e) {
+      debugPrint(e.message);
+      throw new HttpException(e.message);
     }
   }
 
-  Future<void> updateInTransit(String partNum, String elementId,dynamic tenantConfigP) async {
-    final basicAuth = 'Basic ${base64Encode(
-          utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+  Future<void> updateInTransit(
+      String partNum, String elementId, dynamic tenantConfigP) async {
+    final basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
 
     final response = await http.post(
-       Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
-       headers: {
-         HttpHeaders.authorizationHeader: basicAuth,
-         HttpHeaders.contentTypeHeader: 'application/json',
-       },
-       body: jsonEncode({
-         "Company": "${tenantConfigP['company']}",
-         "PartNum": partNum,
-         "LotNum": elementId,
-         "ElementStatus_c": "In-Transit"
-       })
-   );
-    if(response.statusCode == 200){
+        Uri.parse(
+            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.LotSelectUpdateSvc/LotSelectUpdates'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+        body: jsonEncode({
+          "Company": "${tenantConfigP['company']}",
+          "PartNum": partNum,
+          "LotNum": elementId,
+          "ElementStatus_c": "In-Transit"
+        }));
+    if (response.statusCode == 200) {
       debugPrint(response.body);
-    }
-    else {
+    } else {
       debugPrint(response.body);
       debugPrint(response.statusCode.toString());
     }
   }
 
-  Future<void> getDeviceID () async {
-    final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-    try {
 
-        final AndroidDeviceInfo build = await deviceInfoPlugin.androidInfo;
-        debugPrint('Running on ${build.model}');
-        setState(() {
-          deviceIDController?.text = build.model;
-        });
 
-    } on Exception catch (e) {
-      debugPrint(e.toString());
-    }
-  }
- Future<void> loadLoadAndData(dynamic tenantConfigP) async{
-    await fetchLoadDataFromURL(loadIDController.text,  tenantConfigP ) ;
+  Future<void> loadLoadAndData(dynamic tenantConfigP) async {
+    await fetchLoadDataFromURL(loadIDController.text, tenantConfigP);
     offloadData = getLoadObjectFromJson(widget.historyLoadID);
     getElementObjectFromJson(widget.historyLoadID);
     getPartObjectFromJson(widget.historyLoadID);
@@ -1788,166 +3157,183 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
       loadConditionValue = offloadData!.loadCondition;
       fromWarehouseController.text = offloadData!.fromWarehouse;
       isLoaded = true;
+      resourceIdController.text = offloadData!.resourceId;
+      if(offloadData?.projectOrSO == 'Project'){
+        projectOrSO = false;
+        context.read<ArchitectureProvider>().Project = offloadData!.projectId;
+        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
+      } else {
+        projectOrSO = true;
+        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
+      }
+      debugPrint("${offloadData?.fromWarehouse.toString()}");
     });
     await getWarehouseList(tenantConfigP);
     await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);
     await getResourceForTrucks(offloadData!.resourceId, tenantConfigP);
     await getResourceDetailsFromJson(offloadData!.resourceId);
-    setState(() {
-      capacityController.text = resourceDetails!.capacity;
-      lengthController.text = resourceDetails!.length;
-      widthController.text = resourceDetails!.width;
-      heightController.text = resourceDetails!.height;
-      volumeController.text = resourceDetails!.volume;
-      loadedController.text = resourceDetails!.loaded;
-    });
- }
+    if (resourceDetails != null) {
+      setState(() {
+        capacityController.text = resourceDetails!.capacity ?? "";
+        lengthController.text = resourceDetails!.length ?? "";
+        widthController.text = resourceDetails!.width ?? "";
+        heightController.text = resourceDetails!.height ?? "";
+        volumeController.text = resourceDetails!.volume ?? "";
+        loadedController.text = resourceDetails!.loaded ?? "";
+      });
+    }
+  }
+
   Widget buildTruckDetailsFrom(bool isEditable) {
     return Column(
       children: [
-      Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        if(!isEditable)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                key: _truckKey,
-                controller: truckIdController,
-                enabled: isEditable,
-                decoration: const InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(),
-                    labelText: "Truck ID"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            if (!isEditable)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    key: _truckKey,
+                    controller: truckIdController,
+                    enabled: isEditable,
+                    decoration: const InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(),
+                        labelText: "Truck ID"),
+                  ),
+                ),
               ),
-            ),
-          ),
-        if(isEditable)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownSearch(
-                selectedItem: truckIdController.text,
-                popupProps: const PopupProps.modalBottomSheet(
-                  showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
-                    decoration: InputDecoration(
-                      suffixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                      labelText: "Search",
+            if (isEditable)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownSearch(
+                    selectedItem: truckIdController.text,
+                    popupProps: const PopupProps.modalBottomSheet(
+                      showSearchBox: true,
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          suffixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(),
+                          labelText: "Search",
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                autoValidateMode: AutovalidateMode.onUserInteraction,
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Truck",
-                  ),
-                ),
-                items: truckValue
-                    .map((value) => value['Character01'])
-                    .toList(),
-                onChanged: (value) async {
-                  setState(() {
-                    truckIdController.text = value.toString();
-                    resourceIdController.text = truckValue
-                        .where((element) =>
-                    element['Character01'] ==
-                        truckIdController.text)
-                        .first['Key1'];
-                  });
-                  plateNumberController.text = truckValue
-                      .where((element) =>
-                  element['Character01'] ==
-                      truckIdController.text)
-                      .first['Character02'];
-                  await getResourceForTrucks(resourceIdController.text,context.read<tenantConfigProvider>().tenantConfig);
-                },
-              ),
-            ),
-          ),
-        if(!isEditable)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                enabled: isEditable,
-                controller: resourceIdController,
-                decoration: const InputDecoration(
-                    fillColor: Colors.white,
-                    filled: true,
-                    border: OutlineInputBorder(),
-                    labelText: "Resource"),
-              ),
-            ),
-          ),
-        if(isEditable)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownSearch(
-                enabled:resourceValue?.isNotEmpty ?? false,
-                selectedItem: resourceIdController.text,
-                popupProps: const PopupProps.modalBottomSheet(
-                  showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
-                    decoration: InputDecoration(
-                      suffixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                      labelText: "Search",
+                    autoValidateMode: AutovalidateMode.onUserInteraction,
+                    dropdownDecoratorProps: const DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: "Truck",
+                      ),
                     ),
+                    items: truckValue
+                        .map((value) => value['Character01'])
+                        .toList(),
+                    onChanged: (value) async {
+                      setState(() {
+                        truckIdController.text = value.toString();
+                        resourceIdController.text = truckValue
+                            .where((element) =>
+                                element['Character01'] ==
+                                truckIdController.text)
+                            .first['Key1'];
+                      });
+                      plateNumberController.text = truckValue
+                          .where((element) =>
+                              element['Character01'] == truckIdController.text)
+                          .first['Character02'];
+                      await getResourceForTrucks(resourceIdController.text,
+                          context.read<tenantConfigProvider>().tenantConfig);
+                    },
                   ),
                 ),
-                autoValidateMode: AutovalidateMode.onUserInteraction,
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Truck Attachment",
-                  ),
-                ),
-                items: resourceValue?.map((value) => value['Character01'])
-                    .toList() ?? [],
-                onChanged: (value) async {
-                  setState(() {
-                    resourceIdController.text = value.toString();
-                    resourceId = resourceValue!.where((element) => element['Character01'] == value).first['ChildKey1'];
-                  });
-                  getResourceDetailsFromJson(resourceIdController.text);
-                  if(resourceDetails != null){
-                    setState(() {
-                      capacityController.text = resourceDetails!.capacity;
-                      lengthController.text = resourceDetails!.length;
-                      widthController.text = resourceDetails!.width;
-                      heightController.text = resourceDetails!.height;
-                      volumeController.text = resourceDetails!.volume;
-                      loadedController.text = resourceDetails!.loaded;
-                    });
-                  }
-                },
               ),
-            ),
-          ),
-      ],
-    ),
+            if (!isEditable)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    enabled: isEditable,
+                    controller: resourceIdController,
+                    decoration: const InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(),
+                        labelText: "Resource"),
+                  ),
+                ),
+              ),
+            if (isEditable)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownSearch(
+                    enabled: resourceValue?.isNotEmpty ?? false,
+                    selectedItem: resourceIdController.text,
+                    popupProps: const PopupProps.modalBottomSheet(
+                      showSearchBox: true,
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          suffixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(),
+                          labelText: "Search",
+                        ),
+                      ),
+                    ),
+                    autoValidateMode: AutovalidateMode.onUserInteraction,
+                    dropdownDecoratorProps: const DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: "Truck Attachment",
+                      ),
+                    ),
+                    items: resourceValue
+                            ?.map((value) => value['Character01'])
+                            .toList() ??
+                        [],
+                    onChanged: (value) async {
+                      setState(() {
+                        resourceIdController.text = value.toString();
+                        resourceId = resourceValue!
+                            .where((element) => element['Character01'] == value)
+                            .first['ChildKey1'];
+                      });
+                      getResourceDetailsFromJson(resourceIdController.text);
+                      if (resourceDetails != null) {
+                        setState(() {
+                          capacityController.text = resourceDetails!.capacity;
+                          lengthController.text = resourceDetails!.length;
+                          widthController.text = resourceDetails!.width;
+                          heightController.text = resourceDetails!.height;
+                          volumeController.text = resourceDetails!.volume;
+                          loadedController.text = resourceDetails!.loaded;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+          ],
+        ),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextFormField(
             enabled: false,
             controller: plateNumberController,
             decoration: const InputDecoration(
-
-                border: OutlineInputBorder(),
-                labelText: "Plate Number"),
+                border: OutlineInputBorder(), labelText: "Plate Number"),
           ),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             //add dropdown item list with label truck ID
-            if(!isEditable)
+            if (!isEditable)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -1962,7 +3348,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   ),
                 ),
               ),
-            if(isEditable)
+            if (isEditable)
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -1991,7 +3377,10 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     onChanged: (value) async {
                       setState(() {
                         driverNameController.text = value.toString();
-                        driverNumberController.text=fetchedDriverValue.where((element) => element['Driver_Name'] == value.toString()).first['Driver_Contact_c'];
+                        driverNumberController.text = fetchedDriverValue
+                            .where((element) =>
+                                element['Driver_Name'] == value.toString())
+                            .first['Driver_Contact_c'];
                       });
                     },
                   ),
@@ -2004,7 +3393,6 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   enabled: false,
                   controller: driverNumberController,
                   decoration: const InputDecoration(
-
                       border: OutlineInputBorder(),
                       labelText: "Driver Contact"),
                 ),
@@ -2014,7 +3402,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
         ),
         const SizedBox(height: 20),
         ExpansionTile(
-          title: const Text('Truck Load'),
+          title: const Text('Truck Load '),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -2023,7 +3411,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      enabled: isEditable,
+                      enabled: false,
                       controller: capacityController,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
@@ -2038,7 +3426,7 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
                       controller: loadedController,
-                      enabled: isEditable,
+                      enabled: false,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
                           filled: true,
@@ -2049,74 +3437,8 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
                 ),
               ],
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: lengthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Length"),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: widthController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Width"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                //add dropdown item list with label truck ID
-                Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        enabled: isEditable,
-                        controller: heightController,
-                        decoration: const InputDecoration(
-                            fillColor: Colors.white,
-                            filled: true,
-                            border: OutlineInputBorder(),
-                            labelText: "Height"),
-                      ),
-                    )
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      enabled: isEditable,
-                      controller: volumeController,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Volume"),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+
+
           ],
         ),
         const SizedBox(height: 20),
@@ -2128,27 +3450,34 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
               children: [
                 //add dropdown item list with label truck ID
 
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        enabled: false,
-                        initialValue: context.watch<UserManagementProvider>().userManagement?.id.toString(),
-                        decoration: const InputDecoration(
-                            fillColor: Colors.white,
-                            filled: true,
-                            border: OutlineInputBorder(),
-                            labelText: "Foreman ID"),
-                      ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      enabled: false,
+                      initialValue: context
+                          .watch<UserManagementProvider>()
+                          .userManagement
+                          ?.id
+                          .toString(),
+                      decoration: const InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(),
+                          labelText: "Foreman ID"),
                     ),
                   ),
-
+                ),
 
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
-                      initialValue: context.watch<UserManagementProvider>().userManagement?.firstName.toString(),
+                      initialValue: context
+                          .watch<UserManagementProvider>()
+                          .userManagement
+                          ?.firstName
+                          .toString(),
                       enabled: false,
                       decoration: const InputDecoration(
                           fillColor: Colors.white,
@@ -2177,5 +3506,3 @@ class _StockLoadingState extends State<StockLoading> with SingleTickerProviderSt
     );
   }
 }
-
-

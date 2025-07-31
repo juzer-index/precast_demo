@@ -127,7 +127,7 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
         //     ),
         //   ],
         // ),
-        ListTile(
+       /* ListTile(
             leading: Icon(
               Icons.history,
               color: Theme.of(context).primaryColor,
@@ -140,6 +140,8 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
                       builder: (context) => LoadHistory(loads:loads!=null?loads:[],addLoad:AddLoadData,tenantConfig: tenantConfig,)));
               // Navigator.push(context, route);
             }),
+
+        */
         const Divider(),
         ListTile(
             leading: Icon(
