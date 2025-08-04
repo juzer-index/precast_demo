@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'indexAppBar.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'detailsPage.dart';
 import 'Providers/tenantConfig.dart';
 import 'load_model.dart';
@@ -157,7 +158,9 @@ class _ElementMasterState extends State<ElementMaster> {
 
 
 
+  Barcode? elementResult;
   String elementResultCode = '';
+  QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   bool isScanned = false;
@@ -428,6 +431,48 @@ class _ElementMasterState extends State<ElementMaster> {
                                             builder: (context) {
                                               return AlertDialog(
                                                 title: const Text('Scan Element'),
+                                                content: SizedBox(
+                                                  width: MediaQuery.of(context).size.width,
+                                                  height: MediaQuery.of(context).size.height * 0.35,
+                                                  child: QRView(
+                                                    key: qrKey,
+                                                    onQRViewCreated: (QRViewController controller) {
+                                                      this.controller = controller;
+                                                      controller.scannedDataStream.listen((scanData) async {
+                                                        String elementId = '';
+                                                        String partNum = '';
+                                                        String companyId = '';
+                                                        controller.pauseCamera();
+                                                        Navigator.pop(context);
+                                                        debugPrint('this is the code ${scanData.code}');
+                                                        List<String> scanResult = scanData.code!.split('  ');
+                                                        if (scanResult.length >= 4) {
+                                                          elementId = scanResult[4];
+                                                          partNum = scanResult[3];
+                                                          companyId = scanResult[2];
+                                                          await getScannedElement(partNum, elementId, companyId);
+                                                        } else {
+                                                          showDialog(
+                                                              context: context,
+                                                              builder: (context) {
+                                                                return AlertDialog(
+                                                                  title: const Text('Invalid QR Code'),
+                                                                  content: const Text('Please scan a valid QR code'),
+                                                                  actions: [
+                                                                    TextButton(
+                                                                      onPressed: () {
+                                                                        Navigator.pop(context);
+                                                                      },
+                                                                      child: Text('OK', style: TextStyle(color: Theme.of(context).canvasColor)),
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              });
+                                                        }
+                                                      });
+                                                    },
+                                                  ),
+                                                ),
                                               );
                                             },
                                           );

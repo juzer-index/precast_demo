@@ -48,7 +48,7 @@ final ThemeData myTheme = ThemeData(
       color: Color(0xFF00AEEF),
     ),
   ),
-  tabBarTheme: TabBarThemeData(
+  tabBarTheme: TabBarTheme(
     // Set the indicator color to change the active tab color globally
     indicatorColor: Color(0xFF00AEEF),
     labelStyle: TextStyle(
