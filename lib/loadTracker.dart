@@ -1,130 +1,112 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_polyline_points_plus/flutter_polyline_points_plus.dart';
-import 'package:google_maps_directions/google_maps_directions.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'load_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'Models/NotFoundException.dart';
+import 'load_model.dart';
+import '../utils/APIProviderV2.dart';
+import 'package:provider/provider.dart';
+import '../Providers/tenantConfig.dart';
 
-class loadTrack extends StatefulWidget {
+class LoadTrack extends StatefulWidget {
   final dynamic tenantConfig;
-  const loadTrack(
-      {super.key, required this.tenantConfig});
+  const LoadTrack({super.key, required this.tenantConfig});
+
   @override
-  State<loadTrack> createState() => _loadTrackState();
+  State<LoadTrack> createState() => _LoadTrackState();
 }
 
-class _loadTrackState extends State<loadTrack>
-    with SingleTickerProviderStateMixin {
+class _LoadTrackState extends State<LoadTrack> {
+  // Map controller for flutter_map
+  final MapController _mapController = MapController();
 
-  Map<PolylineId, Polyline> polylines = {};
+  // Coordinates storage
   List<LatLng> polylineCoordinates = [];
-  PolylinePoints polylinePoints = PolylinePoints();
+  List<Polyline> _polylines = [];
+  List<Marker> markers = [];
+
+  // Location data (defaults)
+  double fromLatitude = 30.027756;
+  double fromLongitude = 31.403733;
+  double toLatitude = 30.050059;
+  double toLongitude = 31.387759;
 
   Map<String, dynamic> fetchedWarehouseData = {};
   List<dynamic> fetchedWarehouseValue = [];
-  final Completer<GoogleMapController> _controller =
-  Completer<GoogleMapController>();
-  static const CameraPosition _kGooglePlex = CameraPosition(
-    target: LatLng(30, 30),
-    zoom: 5,
-  );
+  Map<String, dynamic> fetchedSiteData = {};
+  List<dynamic> fetchedSiteValue = [];
 
-  double? fromLatitude = 30.027756;
-  double? fromLongtude = 31.403733;
-  double? toLatitude = 30.050059;
-  double? toLongtude = 31.387759;
+  // Initial map position
+  final LatLng _initialPosition = const LatLng(30, 30);
+  double _initialZoom = 5;
 
-  TextEditingController loadIDController = TextEditingController();
-  TextEditingController loadDateController = TextEditingController();
-  TextEditingController toWarehouseController = TextEditingController();
-  TextEditingController fromWarehouseController = TextEditingController();
+  // Form controllers
+  final TextEditingController loadIDController = TextEditingController();
+  final TextEditingController loadDateController = TextEditingController();
+  final TextEditingController siteAddress = TextEditingController();      // Will show Address1 (To)
+  final TextEditingController fromWarehouseController = TextEditingController();    // Will keep showing From code/name if desired
+  final TextEditingController customerSiteController = TextEditingController();
+
+  // NEW: controllers for coordinates row (third row)
+  final TextEditingController longitudeController = TextEditingController(); // To location longitude
+  final TextEditingController latitudeController = TextEditingController();  // To location latitude
+
   final _formKey = GlobalKey<FormState>();
+
+  // Data storage
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
   LoadData? loadInfo;
   bool isPrinting = false;
-  AddressPoint _destination = AddressPoint(lat: 30.050059, lng: 31.387759);
-  Directions? _directions;
-  AddressPoint _origin = AddressPoint(lat: 30.027756, lng: 31.403733);
-  List<Polyline>? _polylines;
-  Set<Marker> markers = {};
 
-  Future<void> _setupRoutes(AddressPoint p1, AddressPoint p2) async {
-    _polylines = [];
+  @override
+  void initState() {
+    super.initState();
+    _setupInitialMarkers();
+  }
 
+  void _setupInitialMarkers() {
+    setState(() {
+      markers = [
+        Marker(
+          point: LatLng(fromLatitude, fromLongitude),
+          width: 40.0,
+          height: 40.0,
+          child: const Icon(Icons.location_pin, color: Colors.red),
+        ),
+        Marker(
+          point: LatLng(toLatitude, toLongitude),
+          width: 40.0,
+          height: 40.0,
+          child: const Icon(Icons.location_pin, color: Colors.blue),
+        ),
+      ];
+    });
+  }
+
+  Future<void> _setupRoutes(LatLng origin, LatLng destination) async {
     try {
-      Directions directions = await getDirections(
-          p1.lat,
-          p1.lng,
-          p2.lat,
-          p2.lng,
-          language: "fr_FR",
-          googleAPIKey: "AIzaSyA_ugbgaUJZV5BeR1weSqxwJGZ78GUXCcE"
-      );
-      _directions = directions;
-
-      List<LatLng> results = PolylinePoints().decodePolyline(
-        directions.shortestRoute.overviewPolyline.points,
-      ).map((PointLatLng point) {
-        return LatLng(point.latitude, point.longitude);
-      }).toList();
-      LatLng origin = LatLng(p1.lat, p1.lng);
-      LatLng destination = LatLng(p2.lat, p2.lng);
-      final MarkerId originMarkerId = MarkerId(origin.toString());
-      final MarkerId destinationMarkerId = MarkerId(destination.toString());
-
       setState(() {
-        markers.add(
-          Marker(
-              markerId: originMarkerId,
-              position: origin,
-              infoWindow: InfoWindow(
-                title: 'Origin',
-                snippet: 'This is the origin',)
-          ),
-        );
-        markers.add(
-          Marker(
-            markerId: destinationMarkerId,
-            position: destination,
-            infoWindow: InfoWindow(
-              title: 'Destination',
-              snippet: 'This is the destination',
-            ),
-          ),
-        );
+        _polylines = [
+          Polyline(
+            points: [origin, destination],
+            color: Colors.green,
+            strokeWidth: 4.0,
+          )
+        ];
       });
-
-      if (results.isNotEmpty) {
-        setState(() {
-          _polylines!.add(
-            Polyline(
-              width: 5,
-              polylineId: PolylineId("${p1.lat}-${p1.lng}_${p2.lat}-${p2.lng}"),
-              color: Colors.green,
-              points: results
-                  .map((point) => LatLng(point.latitude, point.longitude))
-                  .toList(),
-            ),
-          );
-
-        });
-      }
     } catch (e) {
-      throw new Exception(e.toString());
+      debugPrint('Error setting up routes: $e');
     }
   }
 
   Future<void> fetchLoadDataFromURL() async {
     final loadURL = Uri.parse(
         '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/GetByID');
+
     Map<String, dynamic> body = {
       "key1": loadIDController.text,
       "key2": "",
@@ -132,97 +114,27 @@ class _loadTrackState extends State<loadTrack>
       "key4": "",
       "key5": ""
     };
+
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${widget.tenantConfig['userID']}:${widget.tenantConfig['password']}'))}';
-    Completer<void> completer = Completer<void>();
+
     try {
-      final response = await http.post(loadURL,
-          headers: {
-            HttpHeaders.authorizationHeader: basicAuth,
-            HttpHeaders.contentTypeHeader: 'application/json',
-          },
-          body: jsonEncode(body));
+      final response = await http.post(
+        loadURL,
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+        body: jsonEncode(body),
+      );
+
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         setState(() {
           loadData = jsonResponse['returnObj'];
           loadValue = loadData['UD104'];
         });
-        // Resolve the completer when the states are set
-        completer.complete();
-      } else {
-        throw new Exception('Failed to load data');
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    // Return the future associated with the completer
-    return completer.future;
-  }
-
-  Future<void> getWarehouseList(dynamic tenantConfigP) async {
-    final String basicAuth =
-        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
-    try {
-      final response = await http.get(
-        Uri.parse(
-            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/BaqSvc/Warehouse'
-        ),
-        headers: {
-          HttpHeaders.authorizationHeader: basicAuth,
-          HttpHeaders.contentTypeHeader: 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          fetchedWarehouseData = json.decode(response.body);
-          fetchedWarehouseValue = fetchedWarehouseData['value'];
-        });
-        var fromWarehouse = fetchedWarehouseValue.firstWhere(
-              (warehouse) => warehouse['Warehse_WarehouseCode'] == loadValue[0]['Character06'],
-          orElse: () => null,
-        );
-        var toWarehouse = fetchedWarehouseValue.firstWhere(
-              (warehouse) => warehouse['Warehse_WarehouseCode'] == loadValue[0]['Character07'],
-          orElse: () => null,
-        );
-
-        // if (fromWarehouse != null) {
-        //   fromLongtude = double.parse(fromWarehouse['Warehse_Longitude_c']);
-        //   fromLatitude = double.parse(fromWarehouse['Warehse_Latitude_c']);
-        // } else {
-        //   print('From Warehouse not found');
-        // }
-        // if (toWarehouse != null) {
-        //   toLongtude = double.parse(toWarehouse['Warehse_Longitude_c']);
-        //   toLatitude = double.parse(toWarehouse['Warehse_Latitude_c']);
-        // } else {
-        //   print('From Warehouse not found');
-        // }
-        setState(() {
-          markers.add(
-              Marker(
-                markerId: MarkerId('1'),
-                position: LatLng(fromLatitude!, fromLongtude!),
-                infoWindow: InfoWindow(
-                  title: 'Cairo',
-                  snippet: 'Cairo, Egypt',
-                ),
-              ));
-          markers.add(
-              Marker(
-                markerId: MarkerId('2'),
-                position: LatLng(toLatitude!, toLongtude!),
-                infoWindow: InfoWindow(
-                  title: 'Cairo',
-                  snippet: 'Cairo, Egypt',
-                ),
-              ));
-        });
-        _origin = AddressPoint(lat: fromLatitude!, lng: fromLongtude!);
-        _destination = AddressPoint(lat: toLatitude!, lng: toLongtude!);
-        _setupRoutes(_origin, _destination);
+        await getSiteList(widget.tenantConfig);
       } else {
         throw Exception('Failed to load data');
       }
@@ -231,174 +143,341 @@ class _loadTrackState extends State<loadTrack>
     }
   }
 
+  /// UPDATED: Fetches ShipTo list and fills Address1 (To) + Longitude/Latitude (third row)
+  Future<void> getSiteList(dynamic tenantConfigP) async {
+    final String basicAuth =
+        'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    try {
+      final response = await http.get(
+        Uri.parse(
+            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Erp.BO.ShipToSvc/ShipToes'),
+        headers: {
+          HttpHeaders.authorizationHeader: basicAuth,
+          HttpHeaders.contentTypeHeader: 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        setState(() {
+          fetchedSiteData = decoded;
+          fetchedSiteValue = fetchedSiteData['value'] ?? [];
+        });
+
+        // If we have load info, attempt to map From/To to ShipTo entries
+        // Assumptions:
+        // - loadInfo!.fromWarehouse and loadInfo!.toWarehouse hold identifiers
+        //   that match ShipToNum (preferred) or Name.
+        String projectLoadID = loadIDController.text;
+        loadInfo = getLoadObjectFromJson(projectLoadID);
+
+        if (loadInfo != null) {
+          final String fromKey = (loadInfo!.fromWarehouse).toString().trim();
+          final String toKey = (loadInfo!.toWarehouse).toString().trim();
+
+          Map<String, dynamic>? siteFrom = _findShipTo(fromKey);
+          Map<String, dynamic>? siteTo = _findShipTo(toKey);
+
+          // Fill the UI fields:
+          // Second row RIGHT field: Address1 for the "To" location
+          siteAddress.text = (siteTo?['Address1'] ?? '').toString();
+
+          // Second row LEFT field can still show From code/name (up to you)
+          fromWarehouseController.text = siteFrom != null
+              ? (siteFrom['Name']?.toString().isNotEmpty == true
+              ? siteFrom['Name'].toString()
+              : fromKey)
+              : fromKey;
+
+          // Third row: Longitude & Latitude (show "To" coordinates as requested)
+          final double? toLon = _toDouble(siteTo?['Longitude_c']);
+          final double? toLat = _toDouble(siteTo?['Latitude_c']);
+          longitudeController.text = toLon?.toString() ?? '';
+          latitudeController.text = toLat?.toString() ?? '';
+
+          // Update internal coords and map markers/route if available
+          if (siteFrom != null) {
+            final double? fLon = _toDouble(siteFrom['Longitude_c']);
+            final double? fLat = _toDouble(siteFrom['Latitude_c']);
+            if (fLon != null && fLat != null) {
+              fromLongitude = fLon;
+              fromLatitude = fLat;
+            }
+          }
+
+          if (toLon != null && toLat != null) {
+            toLongitude = toLon;
+            toLatitude = toLat;
+          }
+
+          // Refresh map with the new points (if both are valid)
+          if (!_anyNull([fromLatitude, fromLongitude, toLatitude, toLongitude])) {
+            _setupInitialMarkers();
+            await _setupRoutes(
+              LatLng(fromLatitude, fromLongitude),
+              LatLng(toLatitude, toLongitude),
+            );
+            setState(() {
+              _initialZoom = 9;
+            });
+          }
+        }
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Map<String, dynamic>? _findShipTo(String key) {
+    if (key.isEmpty) return null;
+
+    // 1) Prefer ShipToNum exact match
+    try {
+      return fetchedSiteValue.firstWhere(
+            (s) => (s['ShipToNum']?.toString().trim() ?? '') == key,
+      );
+    } catch (_) {
+      // 2) Fallback by Name
+      try {
+        return fetchedSiteValue.firstWhere(
+              (s) => (s['Name']?.toString().trim() ?? '').toLowerCase() ==
+              key.toLowerCase(),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  double? _toDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    final s = v.toString().trim();
+    if (s.isEmpty) return null;
+    return double.tryParse(s);
+  }
+
+  bool _anyNull(List<double> xs) {
+    for (final x in xs) {
+      if (x.isNaN) return true;
+    }
+    return false;
+  }
+
   LoadData? getLoadObjectFromJson(String loadID) {
     if (loadValue.isNotEmpty) {
-      LoadData loadObject = LoadData.fromJson(
+      return LoadData.fromJson(
           loadValue.where((element) => element['Key1'] == loadID).first);
-      return loadObject;
     }
     return null;
   }
 
-  Future<void> _openGoogleMapsDirections() async {
+  Future<void> _openMapDirections() async {
     final url = 'https://www.google.com/maps/dir/?api=1'
-        '&origin=$fromLatitude,$fromLongtude'
-        '&destination=$toLatitude,$toLongtude'
+        '&origin=$fromLatitude,$fromLongitude'
+        '&destination=$toLatitude,$toLongitude'
         '&travelmode=driving';
+
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } else {
       throw 'Could not launch $url';
     }
   }
+
   @override
-  void initState() {
-    super.initState();
+  void dispose() {
+    loadIDController.dispose();
+    loadDateController.dispose();
+    siteAddress.dispose();
+    fromWarehouseController.dispose();
+    customerSiteController.dispose();
+    longitudeController.dispose();
+    latitudeController.dispose();
+    super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
-    double height= MediaQuery.of(context).size.height;
-    double width= MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
-        backgroundColor: Theme.of(context).shadowColor,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
-          title: const Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(),
-                Text('Load Tracker', style: TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-          actions: const [],
+      backgroundColor: Theme.of(context).shadowColor,
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        title: const Center(
+          child: Text('Load Tracker', style: TextStyle(color: Colors.white)),
         ),
-        body: isPrinting
-            ? const Center(child: CircularProgressIndicator())
-            : Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Center(
-                  child: Column(
-                      children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: loadIDController,
-                              decoration: InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color:
-                                      Theme.of(context).canvasColor),
-                                ),
-                                label: Text('Load ID'),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () async {
-                              await fetchLoadDataFromURL();
-                              await getWarehouseList(widget.tenantConfig);
-                              String projectLoadID =
-                                  loadIDController.text;
-                              loadInfo =
-                                  getLoadObjectFromJson(projectLoadID);
-                              if (loadInfo != null) {
-                                setState(() {
-                                  loadDateController.text =
-                                      loadInfo!.loadDate;
-                                  toWarehouseController.text =
-                                      loadInfo!.toWarehouse;
-                                  fromWarehouseController.text =
-                                      loadInfo!.fromWarehouse;
-                                });
-                                await _setupRoutes(
-                                  _origin,
-                                  _destination,
-                                );
-                              }
-                            },
-                            icon: Icon(
-                              Icons.search,
-                              color: Theme.of(context).canvasColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        controller: loadDateController,
-                        enabled: false,
-                        decoration: InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).canvasColor),
-                          ),
-                          label: Text('Load Date'),
-                        ),
-                      ),
-                    ),
-                    Row(
+      ),
+      body: isPrinting
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Center(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
                       children: [
                         Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              controller: fromWarehouseController,
-                              enabled: false,
-                              decoration: InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color:
-                                      Theme.of(context).canvasColor),
-                                ),
-                                label: Text('From Warehouse'),
+                          child: TextFormField(
+                            controller: loadIDController,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color:
+                                    Theme.of(context).canvasColor),
                               ),
+                              label: const Text('Load ID'),
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextFormField(
-                              controller: toWarehouseController,
-                              enabled: false,
-                              decoration: InputDecoration(
-                                fillColor: Colors.white,
-                                filled: true,
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color:
-                                      Theme.of(context).canvasColor),
-                                ),
-                                label: Text('To Warehouse'),
-                              ),
-                            ),
+                        IconButton(
+                          onPressed: () async {
+                            await fetchLoadDataFromURL();
+                            await getSiteList(widget.tenantConfig);
+                            final String projectLoadID =
+                                loadIDController.text;
+                            loadInfo =
+                                getLoadObjectFromJson(projectLoadID);
+                            if (loadInfo != null) {
+                              setState(() {
+                                loadDateController.text =
+                                    loadInfo!.loadDate;
+                                // fromWarehouseController will be set inside getSiteList
+                                // toWarehouseController will be Address1 set in getSiteList
+                                customerSiteController.text =
+                                    loadInfo!.toWarehouse;
+                              });
+                            }
+                          },
+                          icon: Icon(
+                            Icons.search,
+                            color: Theme.of(context).canvasColor,
                           ),
                         ),
                       ],
                     ),
-                // ... your form widgets ...
-                Padding(
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      controller: loadDateController,
+                      enabled: false,
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Theme.of(context).canvasColor),
+                        ),
+                        label: const Text('Load Date'),
+                      ),
+                    ),
+                  ),
+                  // SECOND ROW: Left = From (name/code), Right = Address1 (To)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: fromWarehouseController,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color:
+                                    Theme.of(context).canvasColor),
+                              ),
+                              label: const Text('From Location'),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: siteAddress,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color:
+                                    Theme.of(context).canvasColor),
+                              ),
+                              // UPDATED: show Address1 for the "To" site
+                              label: const Text('To Address 1'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // THIRD ROW: UPDATED to show Longitude & Latitude (for the To site)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: longitudeController,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color:
+                                    Theme.of(context).canvasColor),
+                              ),
+                              label: const Text('Longitude'),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: latitudeController,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color:
+                                    Theme.of(context).canvasColor),
+                              ),
+                              label: const Text('Latitude'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Container(
                       height: height * 0.5,
                       width: width * 0.9,
-                      padding: EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Theme.of(context).shadowColor,
                         borderRadius: BorderRadius.circular(20),
@@ -409,34 +488,43 @@ class _loadTrackState extends State<loadTrack>
                       ),
                       child: Stack(
                         children: [
-                        GoogleMap(
-                        mapType: MapType.normal,
-                        initialCameraPosition: _kGooglePlex,
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
-                        markers: markers,
-                        polylines: _polylines != null
-                            ? Set<Polyline>.from(_polylines!)
-                            : {},
-                      ),
+                          FlutterMap(
+                            mapController: _mapController,
+                            options: MapOptions(
+                              initialCenter: _initialPosition,
+                              initialZoom: _initialZoom,
+                            ),
+                            children: [
+                              TileLayer(
+                                urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                userAgentPackageName:
+                                'com.IndexInfoTech.GoTrack',
+                              ),
+                              MarkerLayer(markers: markers),
+                              // PolylineLayer(polylines: _polylines),
+                            ],
+                          ),
                           Positioned(
                             bottom: 16,
                             right: 16,
                             child: FloatingActionButton(
-                              onPressed: () {
-                                _openGoogleMapsDirections();
-                              },
-                              child: Icon(Icons.directions),
-                              backgroundColor: Theme.of(context).primaryColor,
+                              onPressed: _openMapDirections,
+                              backgroundColor:
+                              Theme.of(context).primaryColor,
+                              child: const Icon(Icons.directions),
                             ),
                           )
-                    ]),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                  ]),
-                ),
+                ],
               ),
-            )));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -10,6 +10,7 @@ import './elementInstallationPg.dart';
 import 'stockOffloadingPage.dart';
 import './dispatchSchedule.dart';
 import 'homepage.dart';
+import './loadTracker.dart';
 
 Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadData, dynamic tenantConfig) {
  final width = MediaQuery.of(context).size.width;
@@ -255,6 +256,20 @@ Drawer SideBarMenu(BuildContext context,List<LoadData> loads , dynamic AddLoadDa
                     context,
                     MaterialPageRoute(
                       builder: (context) =>  DispatchSchedule(),
+                    ),
+                  );
+                }),
+            ListTile(
+                leading: Icon(
+                  Icons.timelapse,
+                  color: Theme.of(context).primaryColor,
+                ),
+                title: const Text('Truck Tracker'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>  LoadTrack(tenantConfig: tenantConfig,),
                     ),
                   );
                 }),
