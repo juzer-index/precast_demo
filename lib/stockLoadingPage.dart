@@ -238,6 +238,23 @@ class _StockLoadingState extends State<StockLoading>
     });
   }
 
+  // Calculate total loaded volume
+  double getTotalLoadedVolume() {
+    double total = 0;
+    for (var element in (widget.LinesOriented ? widget.passedElements : selectedElements)) {
+      total += (element.volume) * (element.selectedQty);
+    }
+    return total;
+  }
+
+  // Update loadedController whenever selectedElements changes
+  void updateLoadedController() {
+    loadedController.text = getTotalLoadedVolume().toStringAsFixed(2);
+  }
+
+  // Add a controller for site address if not already present
+  TextEditingController siteAddress = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
@@ -493,6 +510,7 @@ class _StockLoadingState extends State<StockLoading>
                                                                                 0.022,
                                                                           )),
                                                                     ),
+
                                                                   ),
                                                                 ),
                                                               ),
@@ -1260,7 +1278,7 @@ class _StockLoadingState extends State<StockLoading>
                                                           Padding(
                                                             padding: EdgeInsets.all(8.0),
                                                             child: Text(
-                                                              'Selected Parts',
+                                                              'Consumables',
                                                               style: TextStyle(
                                                                   fontWeight: FontWeight.bold,
                                                                   fontSize: 18,
@@ -2480,6 +2498,7 @@ class _StockLoadingState extends State<StockLoading>
   void _addElement(ElementData element) {
     setState(() {
       selectedElements.add(element);
+      updateLoadedController();
     });
   }
 
@@ -2591,7 +2610,7 @@ class _StockLoadingState extends State<StockLoading>
       } else {
         return false;
       }
-    } on Exception catch (e) {
+    } on Exception catch ( e) {
       debugPrint(e.toString());
       return false;
     }
@@ -2710,6 +2729,7 @@ class _StockLoadingState extends State<StockLoading>
     setState(() {
       selectedElements = selectedElementsFromForm;
       selectedParts = selectedPartsFromForm;
+      updateLoadedController();
     });
   }
 
@@ -2992,7 +3012,6 @@ class _StockLoadingState extends State<StockLoading>
     try {
       CustomerShipment customerShipment = new CustomerShipment(
         PackNum: lastCustShip+1,
-
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
@@ -3134,6 +3153,13 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
+    updateLoadedController();
+
+    // Parse capacity and loaded values for comparison
+    double capacity = double.tryParse(capacityController.text) ?? 0;
+    double loaded = double.tryParse(loadedController.text) ?? 0;
+    bool isOverloaded = loaded > capacity && capacity > 0;
+
     return Column(
       children: [
         Row(
@@ -3374,18 +3400,40 @@ class _StockLoadingState extends State<StockLoading>
                     child: TextFormField(
                       controller: loadedController,
                       enabled: false,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Loaded"),
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        labelText: "Loaded",
+                        suffixIcon: isOverloaded
+                            ? Tooltip(
+                                message: "Overloaded",
+                                child: Icon(Icons.warning, color: Colors.red),
+                              )
+                            : null,
+                      ),
+                      style: isOverloaded
+                          ? const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)
+                          : null,
                     ),
                   ),
                 ),
               ],
             ),
-
-
+            if (isOverloaded)
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Warning: Truck is overloaded!",
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 20),

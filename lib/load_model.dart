@@ -1,3 +1,4 @@
+import 'element_model.dart';
 
 class LoadData {
   late final String loadID;
@@ -25,6 +26,7 @@ class LoadData {
   late final dynamic comments;
   late final dynamic createdBy;
   late final dynamic DeviceID;
+  List<ElementData> elements = []; // Add this line to store the list of elements
 
   LoadData({
     required this.loadID,
@@ -52,6 +54,7 @@ class LoadData {
     required this.comments,
     this.createdBy,
     this.DeviceID,
+    this.elements = const [], // Add this to the constructor parameters
   });
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
@@ -81,6 +84,7 @@ class LoadData {
       comments: json['Comments_c'],
       createdBy: json['CreatedBy_C'],
       DeviceID: json['Deviceid_c'],
+      elements: [], // Initialize empty list when creating from JSON
     );
   }
 
