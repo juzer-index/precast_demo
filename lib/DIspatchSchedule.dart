@@ -25,10 +25,20 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
   List<dynamic> dynamicStructures = [];
   bool isLoading = false; // Track loading state
   bool hasError = false;
+  int totalRecords = 0;
+ int totalPages = 0; // Track total pages for pagination
   final TextEditingController _salesOrderController = TextEditingController();
   // Track error state
   int page =0;
-  Future<void> getData(String SalesOrder) async  {
+  addUniqueElements(List<dynamic> newElements) {
+    for (var element in newElements) {
+      if (!dynamicStructures.any((x) => x['PartLot_PartNum'] == element['PartLot_PartNum'] &&
+          x['PartLot_LotNum'] == element['PartLot_LotNum'])) {
+        dynamicStructures.add(element);
+      }
+    }
+  }
+  Future<void> getData(String SalesOrder,bool nextPage) async  {
     try {
       isLoading = true; // Set loading to true when fetching data
       page=0;
@@ -61,12 +71,23 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
         );
         return;
       }else {
-        setState(() {
-          dynamicStructures += data;
-          isLoading = false;
-          page++; // Increment page for pagination
-          // Set loading to false once data is fetched
-        });
+        if(nextPage) {
+          setState(() {
+            dynamicStructures += data;
+            isLoading = false;
+            page++; // Increment page for pagination
+         // Calculate total pages
+            // Set loading to false once data is fetched
+          });
+        }else{
+          setState(() {
+            dynamicStructures = data;
+            isLoading = false;
+            page=1; // Increment page for pagination
+            totalRecords = dynamicStructures[0]['Calculated_total_count'];
+            totalPages = (totalRecords / 10).ceil();
+          });
+        }
       }
     } catch (e) {
       setState(() {
@@ -94,7 +115,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
       setState(() {
         _salesOrderController.text = value;
       });
-      getData(value);
+      getData(value,false);
     }
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
@@ -177,6 +198,8 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                             dynamicStructures = data;
                             isLoading = false;
                             page=1;
+                            totalRecords=dynamicStructures[0]['Calculated_total_count'];
+                            totalPages = (totalRecords / 10).ceil();
                           });
                         }else{
                           setState(() {
@@ -320,8 +343,8 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
 
 
                                       } , icon: const Icon(Icons.arrow_back_ios_new)),
-                                      Text((page+1).toString()),
-                                      IconButton(onPressed:()async{
+                                      Text(('Page $page of $totalPages').toString()),
+                                      page<totalPages?IconButton(onPressed:()async{
                                         if(page*10<dynamicStructures.length){
                                           setState(() {
                                             page++;
@@ -333,11 +356,14 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                           });
 
 
-                                          await getData(_salesOrderController.text);
+                                          await getData(_salesOrderController.text,true);
 
 
                                         }
-                                      } , icon: const Icon(Icons.arrow_forward_ios)),
+                                      } , icon: const Icon(Icons.arrow_forward_ios)):IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey,)
+
+
+                                      ),
                                     ],
                                   ),
                                 ),

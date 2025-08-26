@@ -65,6 +65,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Precast Demo',
       theme: myTheme,
+
       debugShowCheckedModeBanner: false,
       home: const LoginPage(),
     );

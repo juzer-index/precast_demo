@@ -2767,6 +2767,7 @@ class _StockLoadingState extends State<StockLoading>
           context.read<loadStateProvider>().setLoadCreated(true);
 
         });
+        widget.addLoadData(load);
         debugPrint(widget.loadDataList.toString());
       }
       else {
@@ -3103,6 +3104,7 @@ class _StockLoadingState extends State<StockLoading>
             context.read<loadStateProvider>().setLinesLoaded(true);
 
           });
+          widget.addLoadData(currentLoad);
         } else {
           Map<String, dynamic> body = json.decode(response.body);
 
