@@ -32,7 +32,13 @@ final ThemeData myTheme = ThemeData(
       ),
     ),
   ),
-
+  floatingActionButtonTheme: FloatingActionButtonThemeData(
+    backgroundColor: Color(0xFF00AEEF),
+    foregroundColor: Colors.white, // Icon color
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0), // Rounded corners
+    ),
+  ),
   inputDecorationTheme: InputDecorationTheme(
 
     focusedBorder: OutlineInputBorder(

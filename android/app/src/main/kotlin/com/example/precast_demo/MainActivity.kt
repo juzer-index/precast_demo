@@ -1,4 +1,4 @@
-package com.example.precast_demo
+package com.index.precast_demo
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -826,25 +826,6 @@ class _StockOffloadingState extends State<StockOffloading>
                                         },
                                       ),
                                     ),
-                                    AbsorbPointer(
-                                      child: RadioListTile(
-                                        title: Text('Ex-Factory',
-                                            style: TextStyle(
-                                              fontSize: MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                  0.022,
-                                            )),
-                                        value: 'Ex-Factory',
-                                        groupValue: loadConditionValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            loadConditionValue =
-                                                value.toString();
-                                          });
-                                        },
-                                      ),
-                                    )
                                   ]),
                                 ),
                               ]),

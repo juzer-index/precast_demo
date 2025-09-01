@@ -544,31 +544,36 @@ class _ElementMasterState extends State<ElementMaster> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
 
-                                child: PaginatedDataTable(
-                                  key : dataTablekey,
-                                  onPageChanged: (page) async {
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: MediaQuery.of(context).size.width,
+                                  ),
+                                  child: PaginatedDataTable(
+                                    key : dataTablekey,
+                                    onPageChanged: (page) async {
 
-                                    debugPrint(offset.toString());
-                                    if(page>offset){
-                                      offset=max(offset, page);
-                                      isElement ? await getElementList(elementIdController.text, true, page,tenantConfigP!) : await getElementList(partNumController.text, false, page,tenantConfigP!);
-                                    }
-                                   },
-                                  initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
+                                      debugPrint(offset.toString());
+                                      if(page>offset){
+                                        offset=max(offset, page);
+                                        isElement ? await getElementList(elementIdController.text, true, page,tenantConfigP!) : await getElementList(partNumController.text, false, page,tenantConfigP!);
+                                      }
+                                     },
+                                    initialFirstRowIndex:currentPageIndex>0?currentPageIndex:0,
 
-                                  columnSpacing: 30,
-                                  columns: const [
-                                    DataColumn(label: Text('Element ID')),
-                                    DataColumn(label: Text('Part Num')),
-                                    DataColumn(label: Text('Element Desc')),
-                                    DataColumn(label: Text('Project')),
-                                    DataColumn(label: Text('Status')),
-                                  ],
-                                  source: filteredElementList.isNotEmpty ?
-                                  MyDataTableSource(filteredElementList, context,tenantConfigP!)
-                                      :
-                                  MyDataTableSource(filteredElementList, context,tenantConfigP!),
-                                  )
+                                    columnSpacing: 30,
+                                    columns: const [
+                                      DataColumn(label: Text('Element ID')),
+                                      DataColumn(label: Text('Part Num')),
+                                      DataColumn(label: Text('Element Desc')),
+                                      DataColumn(label: Text('Project')),
+                                      DataColumn(label: Text('Status')),
+                                    ],
+                                    source: filteredElementList.isNotEmpty ?
+                                    MyDataTableSource(filteredElementList, context,tenantConfigP!)
+                                        :
+                                    MyDataTableSource(filteredElementList, context,tenantConfigP!),
+                                    ),
+                                )
                               )
                         ),
                       ),

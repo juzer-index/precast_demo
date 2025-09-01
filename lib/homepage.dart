@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
                                                         const SizedBox(
                                                             height: 10),
                                                         Text(
-                                                          'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName} ${context.watch<UserManagementProvider>().userManagement?.lastName}',
+                                                          'Name: ${context.watch<UserManagementProvider>().userManagement?.firstName}',
                                                           style: const TextStyle(
                                                               fontSize: 18,
                                                               fontWeight:
@@ -207,9 +207,9 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               ElementPieChart(),
               const Divider(),
-              width>600
-                  ? const SizedBox()
-                  :
+              // width>600
+              //     ? const SizedBox()
+              //     :
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: GridView.count(
