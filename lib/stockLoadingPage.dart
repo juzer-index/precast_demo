@@ -1945,7 +1945,7 @@ class _StockLoadingState extends State<StockLoading>
                                                   'I-${lastLoad + 1}';
                                               final loadDateFormat =
                                                   '${_selectedDate}T00:00:00';
-                                              debugPrint(toBinController.text);
+                                              debugPrint(projectIdController.text);
                                               await createNewLoad({
                                                 "Key1": newLoadId,
                                                 "Company":
@@ -2314,7 +2314,6 @@ class _StockLoadingState extends State<StockLoading>
                                 const SizedBox(
                                   height: 20,
                                 ),
-                                 // context.watch<loadStateProvider>().linesLoaded ?
                                 ElevatedButton(
                                     onPressed: () async {
                                       if(!SaveLinesLoading){
@@ -2514,6 +2513,15 @@ class _StockLoadingState extends State<StockLoading>
     setState(() {
       selectedElements.add(element);
     });
+  }
+
+  // ADD: central helper to register current load in parent session list
+  void _pushCurrentLoadToSession() {
+    if (currentLoad != null && widget.addLoadData != null) {
+      try {
+        widget.addLoadData(currentLoad);
+      } catch (_) {}
+    }
   }
 
   Future<bool> submitReport(tenantConfigP) async {
@@ -2765,12 +2773,11 @@ class _StockLoadingState extends State<StockLoading>
           isLoaded = true;
           currentLoad = load;
           context.read<loadStateProvider>().setLoadCreated(true);
-
         });
-      //  widget.addLoadData(load);
+        // ADDED: push to session (was previously disabled)
+        _pushCurrentLoadToSession();
         debugPrint(widget.loadDataList.toString());
-      }
-      else {
+      } else {
         debugPrint(response.body);
       }
     } on Exception catch (e) {
@@ -2944,7 +2951,6 @@ class _StockLoadingState extends State<StockLoading>
         loadData = jsonResponse['returnObj'];
         loadValue = loadData['UD104'];
         currentLoad = LoadData.fromJson(loadValue[0]);
-
         elementValue = loadData['UD104A']
             .where((element) => element['CheckBox13'] == false)
             .toList();
@@ -2952,11 +2958,11 @@ class _StockLoadingState extends State<StockLoading>
             .where((part) => part['CheckBox13'] == true)
             .toList();
       });
+      // ADDED: ensure edited / viewed load appears in history
+      _pushCurrentLoadToSession();
       return jsonResponse;
     } catch (e) {
       debugPrint(e.toString());
-      // You may want to handle errors here or return some indication of failure
-      // For now, I'll return null to indicate failure
       return null;
     }
   }
@@ -3099,12 +3105,12 @@ class _StockLoadingState extends State<StockLoading>
             && CustShipHeadresponse.statusCode >= 200 &&
             CustShipHeadresponse.statusCode < 300
         ) {
-          debugPrint(response.body);
           setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
           });
-          //widget.addLoadData(currentLoad);
+          // ADDED: push updated loaded status / state to history
+          _pushCurrentLoadToSession();
         } else {
           Map<String, dynamic> body = json.decode(response.body);
 
@@ -3160,18 +3166,23 @@ class _StockLoadingState extends State<StockLoading>
       fromWarehouseController.text = offloadData!.fromWarehouse;
       isLoaded = true;
       resourceIdController.text = offloadData!.resourceId;
-      if(offloadData?.projectOrSO == 'Project'){
+      if (offloadData?.projectOrSO == 'Project') {
         projectOrSO = false;
         context.read<ArchitectureProvider>().Project = offloadData!.projectId;
-        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
-        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
+        context.read<ArchitectureProvider>().SO =
+            int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment =
+            offloadData!.shipTo;
       } else {
         projectOrSO = true;
-        context.read<ArchitectureProvider>().SO = int.parse(offloadData!.salesOrderNumber);
-        context.read<ArchitectureProvider>().selectedShipment = offloadData!.shipTo;
+        context.read<ArchitectureProvider>().SO =
+            int.parse(offloadData!.salesOrderNumber);
+        context.read<ArchitectureProvider>().selectedShipment =
+            offloadData!.shipTo;
       }
-      debugPrint("${offloadData?.fromWarehouse.toString()}");
     });
+    // ADDED: keep history in sync after load populate
+    _pushCurrentLoadToSession();
     await getWarehouseList(tenantConfigP);
     await getBinsFromWarehouse(tenantConfigP, offloadData!.toWarehouse);
     await getResourceForTrucks(offloadData!.resourceId, tenantConfigP);

@@ -13,6 +13,8 @@ import 'package:fl_chart/fl_chart.dart';
 import './ElementPieChart.dart';
 import './Providers/ArchitectureProvider.dart';
 import 'DIspatchSchedule.dart';
+import 'load_history.dart'; // FIX: ensure correct lowercase filename
+
 class HomePage extends StatefulWidget {
   final dynamic userManagement;
   final dynamic tenantConfig;
@@ -31,16 +33,22 @@ class _HomePageState extends State<HomePage> {
   List<LoadData> loads = [];
   void addLoadData(LoadData load) {
     setState(() {
-      for (int i = 0; i < loads.length; i++) {
-        if (loads[i].loadID == load.loadID) {
-          loads.removeAt(i);
-          break;
-        }
-      }
-    });
-    setState(() {
+      loads.removeWhere((l) => l.loadID == load.loadID);
       loads.add(load);
     });
+  }
+
+  void _openLoadHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LoadHistory(
+          loads: loads,
+          addLoad: addLoadData,
+          tenantConfig: widget.tenantConfig,
+        ),
+      ),
+    );
   }
 
   @override
@@ -65,7 +73,6 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-
                   ),
                 ),
               ),
@@ -420,6 +427,18 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 20),
+              // QUICK ACCESS BUTTON (optional) - add if you want easy history access
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton.icon(
+                    onPressed: _openLoadHistory,
+                    icon: const Icon(Icons.history),
+                    label: const Text('Load History'),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
