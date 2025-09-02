@@ -13,8 +13,16 @@ import 'Models/NotFoundException.dart';
 import './Widgets/SearchBar.dart';
 import 'Widgets/SalesOrderPop.dart';
 import 'dart:math';
+import 'load_model.dart'; // ADDED
 class DispatchSchedule extends StatefulWidget {
-  const DispatchSchedule({Key? key}) : super(key: key);
+  // ADDED: session loads & callback
+  final List<LoadData> sessionLoads;
+  final Function(LoadData) addLoadData;
+  const DispatchSchedule({
+    Key? key,
+    required this.sessionLoads,
+    required this.addLoadData,
+  }) : super(key: key);
 
   @override
   _DispatchScheduleState createState() => _DispatchScheduleState();
@@ -123,31 +131,40 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
           // Handle floating action button press
           List<dynamic> selectedItems = dynamicStructures.where((x) => x['checked'] == true).toList();
           if (selectedItems.isNotEmpty) {
-            // Perform action with selected items
-            Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context)=>StockLoading(initialTabIndex: 0, isUpdate: false, LinesOriented: true,
-            passedElements: selectedItems.map((x) => ElementData(
-              Company: context.read<tenantConfigProvider>().tenantConfig['company'].toString(),
-             partId: x['PartLot_PartNum'].toString(),
-             elementId: x['PartLot_LotNum'].toString(),
-              elementDesc: x['PartLot_PartLotDescription'].toString(),
-              erectionSeq: int.parse(x['PartLot_ErectionSequence_c'].toString()),
-              erectionDate: x['PartLot_ErectionPlannedDate_c'].toString(),
-              weight: double.parse(x['PartLot_Ton_c'].toString()),
-              area:double.parse(x['PartLot_M2_c'].toString()),
-              volume: double.parse(x['PartLot_M3_c'].toString()),
-              UOMClass: x['Part_UOMClassID'].toString(),
-              UOM: x['Part_SalesUM'].toString(),
-              Revision: x['OrderDtl_RevisionNum'].toString(),
-              quantity: 1,
-              selectedQty: 1,
-              ChildKey1: x['ChildKey1'].toString(),
-              fromBin: x['PartLot_BinNum_c'].toString(),
-              Warehouse: x['PartLot_Warehouse_c'].toString(),
-              SO: int.parse(x['OrderDtl_OrderNum'].toString() ?? '0'),
-            )).toList(),
-              custNum: int.parse(selectedItems[0]['OrderHed_CustNum'].toString()),
-            ))
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StockLoading(
+                  initialTabIndex: 0,
+                  isUpdate: false,
+                  LinesOriented: true,
+                  passedElements: selectedItems.map((x) => ElementData(
+                    // ...existing mapping...
+                    Company: context.read<tenantConfigProvider>().tenantConfig['company'].toString(),
+                    partId: x['PartLot_PartNum'].toString(),
+                    elementId: x['PartLot_LotNum'].toString(),
+                    elementDesc: x['PartLot_PartLotDescription'].toString(),
+                    erectionSeq: int.parse(x['PartLot_ErectionSequence_c'].toString()),
+                    erectionDate: x['PartLot_ErectionPlannedDate_c'].toString(),
+                    weight: double.parse(x['PartLot_Ton_c'].toString()),
+                    area: double.parse(x['PartLot_M2_c'].toString()),
+                    volume: double.parse(x['PartLot_M3_c'].toString()),
+                    UOMClass: x['Part_UOMClassID'].toString(),
+                    UOM: x['Part_SalesUM'].toString(),
+                    Revision: x['OrderDtl_RevisionNum'].toString(),
+                    quantity: 1,
+                    selectedQty: 1,
+                    ChildKey1: x['ChildKey1'].toString(),
+                    fromBin: x['PartLot_BinNum_c'].toString(),
+                    Warehouse: x['PartLot_Warehouse_c'].toString(),
+                    SO: int.parse(x['OrderDtl_OrderNum'].toString()),
+                  )).toList(),
+                  custNum: int.parse(selectedItems[0]['OrderHed_CustNum'].toString()),
+                  // ADDED: pass session loads & callback
+                  loadDataList: widget.sessionLoads,
+                  addLoadData: widget.addLoadData,
+                ),
+              ),
             );
           } else {
             // Show message to select at least one item
