@@ -40,8 +40,8 @@ class _LoadTrackState extends State<LoadTrack> {
   List<dynamic> fetchedSiteValue = [];
 
   // Initial map position
-  final LatLng _initialPosition = const LatLng(30, 30);
-  double _initialZoom = 5;
+  final LatLng _initialPosition = const LatLng(30.027756, 31.403733);
+  double _initialZoom = 13;
 
   // Form controllers
   final TextEditingController loadIDController = TextEditingController();
@@ -65,10 +65,10 @@ class _LoadTrackState extends State<LoadTrack> {
   @override
   void initState() {
     super.initState();
-    _setupInitialMarkers();
+    // _setupMarkers();
   }
 
-  void _setupInitialMarkers() {
+  void _setupMarkers() {
     setState(() {
       markers = [
         Marker(
@@ -89,15 +89,27 @@ class _LoadTrackState extends State<LoadTrack> {
 
   Future<void> _setupRoutes(LatLng origin, LatLng destination) async {
     try {
-      setState(() {
-        _polylines = [
-          Polyline(
-            points: [origin, destination],
-            color: Colors.green,
-            strokeWidth: 4.0,
-          )
-        ];
-      });
+      final url =
+          'http://router.project-osrm.org/route/v1/driving/${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}?overview=full&geometries=geojson';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final coords = data['routes'][0]['geometry']['coordinates'] as List;
+        final points = coords
+            .map<LatLng>((c) => LatLng(c[1] as double, c[0] as double))
+            .toList();
+        setState(() {
+          _polylines = [
+            Polyline(
+              points: points,
+              color: Colors.green,
+              strokeWidth: 4.0,
+            )
+          ];
+        });
+      } else {
+        throw Exception('Failed to fetch route');
+      }
     } catch (e) {
       debugPrint('Error setting up routes: $e');
     }
@@ -213,7 +225,7 @@ class _LoadTrackState extends State<LoadTrack> {
 
           // Refresh map with the new points (if both are valid)
           if (!_anyNull([fromLatitude, fromLongitude, toLatitude, toLongitude])) {
-            _setupInitialMarkers();
+            _setupMarkers();
             await _setupRoutes(
               LatLng(fromLatitude, fromLongitude),
               LatLng(toLatitude, toLongitude),
@@ -502,7 +514,7 @@ class _LoadTrackState extends State<LoadTrack> {
                                 'com.IndexInfoTech.GoTrack',
                               ),
                               MarkerLayer(markers: markers),
-                              // PolylineLayer(polylines: _polylines),
+                              PolylineLayer(polylines: _polylines),
                             ],
                           ),
                           Positioned(
