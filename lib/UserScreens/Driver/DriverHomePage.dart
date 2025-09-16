@@ -1,62 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../check_in_out_page.dart';
+import '../checkInOut.dart';
+import '../../sideBarMenu.dart';
+import '../../themeData.dart';
+import '../../loadTracker.dart';
+import '../../load_history.dart';
 
-void main() {
-  runApp(const DriverApp());
-}
-
-class DriverApp extends StatelessWidget {
-  const DriverApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    const primary = Color(0xFF4FC3F7); // sky-blue like the reference
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Driver',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: primary, primary: primary),
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFFF7F7F7),
-        textTheme: const TextTheme(
-          headlineMedium: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: Colors.black),
-          titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
-          bodyMedium: TextStyle(fontSize: 16, color: Colors.black87),
-        ),
-      ),
-      home: const HomePage(driverId: 37, jobNumber: 15, loadsDone: 32),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
+class DriverHomePage extends StatefulWidget {
   final int driverId;
-  final int jobNumber;
-  final int loadsDone;
+  final int activeLoad;
+  final int prevLoads;
+  final dynamic tenantConfig;
 
-  const HomePage({
+  const DriverHomePage({
     super.key,
     required this.driverId,
-    required this.jobNumber,
-    required this.loadsDone,
+    required this.activeLoad,
+    required this.prevLoads,
+    required this.tenantConfig,
   });
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<DriverHomePage> createState() => _DriverHomePageState();
 }
 
-/// Small data holder for passing state between pages.
-class CheckSession {
-  final bool isCheckedIn;
-  final DateTime? checkInTime;
-  final DateTime? checkOutTime;
-  const CheckSession({required this.isCheckedIn, this.checkInTime, this.checkOutTime});
-}
-
-class _HomePageState extends State<HomePage> {
+class _DriverHomePageState extends State<DriverHomePage> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // State mirrored from the Check In/Out page
+  // Mirror check-in/out state from secondary page
   CheckSession _session = const CheckSession(isCheckedIn: false);
 
   String _fmtTime(DateTime? t) {
@@ -69,15 +39,121 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final bool isWide = size.width >= 1000; // desktop/web breakpoint
+
+
+    final content = CustomScrollView(
+      slivers: [
+        // Header band
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              borderRadius: isWide
+                  ? const BorderRadius.only(
+                topRight: Radius.circular(0),
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              )
+                  : const BorderRadius.only(
+                bottomLeft: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Welcome, driver', style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
+                const SizedBox(height: 16),
+                _IdCard(driverId: widget.driverId),
+              ],
+            ),
+          ),
+        ),
+
+        // Dashboard grid
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+          sliver: SliverLayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.crossAxisExtent > 700 ? 3 : 2;
+              return SliverGrid.count(
+                crossAxisCount: crossAxisCount,
+                mainAxisSpacing: 20,
+                crossAxisSpacing: 20,
+                childAspectRatio: 1.05,
+                children: [
+                  DashboardTile(
+                    icon: Icons.local_shipping_rounded,
+                    title: 'Load Tracker',
+                    subtitle: 'Active Load: ${widget.activeLoad}',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LoadTrack(
+                              tenantConfig: widget.tenantConfig,
+                            )
+                        ),
+                      );
+                    },
+                  ),
+                  DashboardTile(
+                    icon: Icons.call_rounded,
+                    title: 'Report / Contact',
+                    subtitle: 'Reach admin\nor supervisor',
+                    onTap: () {},
+                  ),
+                  DashboardTile(
+                    icon: Icons.history_rounded,
+                    title: 'Load history',
+                    subtitle: 'Previous Loads: ${widget.prevLoads}',
+                    onTap: () {},
+                  ),
+                  // Check-in / Check-out summary card
+                  CheckSummaryTile(
+                    statusText: _session.isCheckedIn
+                        ? 'Checked in at ${_fmtTime(_session.checkInTime)}'
+                        : (_session.checkOutTime != null
+                        ? 'Checked out at ${_fmtTime(_session.checkOutTime)}'
+                        : 'Not checked in'),
+                    onTap: () async {
+                      final result = await Navigator.push<CheckSession>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CheckInOutPage(initial: _session),
+                        ),
+                      );
+                      if (result != null && mounted) {
+                        setState(() => _session = result);
+                      }
+                    },
+                  ),
+                  DashboardTile(
+                    icon: Icons.work,
+                    title: 'Work Queue',
+                    subtitle: 'Upcoming Tasks: 0',
+                    onTap: () {},
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
 
     return Scaffold(
       key: _scaffoldKey,
-
-      // ---------- APP BAR ----------
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.primary,
+        // backgroundColor: theme.primaryColor,
         elevation: 0,
-        leading: IconButton(
+        leading: isWide
+            ? null
+            : IconButton(
           icon: const Icon(Icons.menu, color: Colors.white),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           tooltip: 'Menu',
@@ -98,131 +174,23 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-
-      // ---------- DRAWER ----------
-      drawer: _DriverDrawer(onItemSelected: () => Navigator.pop(context)),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add, size: 28),
-      ),
-
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Header band like the reference
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Welcome, driver', style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
-                    const SizedBox(height: 16),
-                    _IdCard(driverId: widget.driverId),
-                  ],
-                ),
-              ),
-            ),
-
-            // Dashboard grid
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-              sliver: SliverLayoutBuilder(
-                builder: (context, constraints) {
-                  final crossAxisCount = constraints.crossAxisExtent > 700 ? 3 : 2;
-                  return SliverGrid.count(
-                    crossAxisCount: crossAxisCount,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 1.05,
-                    children: [
-                      DashboardTile(
-                        icon: Icons.local_shipping_rounded,
-                        title: 'Load Tracker',
-                        subtitle: 'Load number: ${widget.jobNumber}',
-                        onTap: () {},
-                      ),
-                      DashboardTile(
-                        icon: Icons.call_rounded,
-                        title: 'Report / Contact',
-                        subtitle: 'Reach admin\nor supervisor',
-                        onTap: () {},
-                      ),
-                      DashboardTile(
-                        icon: Icons.history_rounded,
-                        title: 'Load history',
-                        subtitle: 'Loads: ${widget.loadsDone}',
-                        onTap: () {},
-                      ),
-
-                      CheckSummaryTile(
-                        statusText: _session.isCheckedIn
-                            ? 'Checked in at ${_fmtTime(_session.checkInTime)}'
-                            : (_session.checkOutTime != null
-                            ? 'Checked out at ${_fmtTime(_session.checkOutTime)}'
-                            : 'Checked out'),
-                        onTap: () async {
-                          final result = await Navigator.push<CheckSession>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => CheckInOutPage(initial: _session),
-                            ),
-                          );
-                          if (result != null && mounted) {
-                            setState(() => _session = result);
-                          }
-                        },
-                      ),
-
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DriverDrawer extends StatelessWidget {
-  final VoidCallback onItemSelected;
-  const _DriverDrawer({required this.onItemSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Drawer(
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: theme.colorScheme.primary),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text('Welcome, driver',
-                    style: theme.textTheme.headlineMedium?.copyWith(color: Colors.white)),
-              ),
-            ),
-            ListTile(leading: const Icon(Icons.dashboard_rounded), title: const Text('Dashboard'), onTap: onItemSelected),
-            ListTile(leading: const Icon(Icons.local_shipping_rounded), title: const Text('Active load'), onTap: onItemSelected),
-            ListTile(leading: const Icon(Icons.history_rounded), title: const Text('Load History'), onTap: onItemSelected),
-            const Divider(height: 1),
-            ListTile(leading: const Icon(Icons.settings_rounded), title: const Text('Settings'), onTap: onItemSelected),
-            ListTile(leading: const Icon(Icons.logout_rounded), title: const Text('Logout'), onTap: onItemSelected),
-          ],
-        ),
-      ),
+      // Mobile/tablet: use drawer. Desktop/web: Row layout (like homepage).
+      drawer: isWide ? null : sideBarMenu(context),
+      body: isWide
+          ? Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sidebar fixed on the left
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),
+            child: sideBarMenu(context),
+          ),
+          const VerticalDivider(width: 1),
+          // Main content
+          Expanded(child: content),
+        ],
+      )
+          : content,
     );
   }
 }
@@ -248,11 +216,11 @@ class _IdCard extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w600)),
           ),
           Material(
-            color: theme.colorScheme.primary.withOpacity(.12),
+            color: theme.primaryColor.withOpacity(.12),
             shape: const CircleBorder(),
             child: IconButton(
               onPressed: () {},
-              icon: Icon(Icons.info_rounded, color: theme.colorScheme.primary),
+              icon: Icon(Icons.info_rounded, color: theme.primaryColor),
               tooltip: 'Driver info',
             ),
           ),
@@ -295,7 +263,7 @@ class DashboardTile extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
+                  color: theme.primaryColor,
                   borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -304,7 +272,10 @@ class DashboardTile extends StatelessWidget {
                   children: [
                     Icon(icon, color: Colors.white, size: 36),
                     const Spacer(),
-                    Text(title, style: theme.textTheme.titleMedium),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+                    ),
                   ],
                 ),
               ),
@@ -331,8 +302,6 @@ class DashboardTile extends StatelessWidget {
   }
 }
 
-/// Home card that just opens the Check In/Out page.
-// Replace the `_CheckSummaryTile` widget with:
 class CheckSummaryTile extends StatelessWidget {
   final String statusText;
   final VoidCallback onTap;
@@ -344,15 +313,12 @@ class CheckSummaryTile extends StatelessWidget {
 
     return Material(
       borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            boxShadow: const [
-              BoxShadow(color: Color(0x1F000000), blurRadius: 10, offset: Offset(0, 6)),
-            ],
+            boxShadow: const [BoxShadow(color: Color(0x1F000000), blurRadius: 10, offset: Offset(0, 6))],
           ),
           child: Column(
             children: [
@@ -361,11 +327,8 @@ class CheckSummaryTile extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(18),
-                      topRight: Radius.circular(18),
-                    ),
+                    color: theme.primaryColor,
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18)),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                   child: Column(
@@ -373,7 +336,10 @@ class CheckSummaryTile extends StatelessWidget {
                     children: [
                       const Icon(Icons.access_time_rounded, color: Colors.white, size: 36),
                       const Spacer(),
-                      Text('Check in / out', style: theme.textTheme.titleMedium),
+                      Text(
+                        'Check in / Check out',
+                        style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+                      ),
                     ],
                   ),
                 ),

@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
-import 'UserScreens/Driver/DriverHomePage.dart' show CheckSession; // to reuse the data holder from main.dart
+import '../sideBarMenu.dart';
+
+class CheckSession {
+  final bool isCheckedIn;
+  final DateTime? checkInTime;
+  final DateTime? checkOutTime;
+
+  const CheckSession({
+    required this.isCheckedIn,
+    this.checkInTime,
+    this.checkOutTime,
+  });
+}
 
 class CheckInOutPage extends StatefulWidget {
   final CheckSession? initial;
@@ -20,7 +32,6 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize from incoming session (if any)
     _isCheckedIn = widget.initial?.isCheckedIn ?? false;
     _checkInTime = widget.initial?.checkInTime;
     _checkOutTime = widget.initial?.checkOutTime;
@@ -76,96 +87,72 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final bool isWide = size.width >= 1000;
 
-    return WillPopScope(
-      onWillPop: () async {
-        _saveAndClose(); // always return current session on back
-        return false;
-      },
-      child: Scaffold(
-        key: _scaffoldKey,
-
-        // ---------- APP BAR ----------
-        appBar: AppBar(
-          backgroundColor: theme.colorScheme.primary,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            tooltip: 'Menu',
-          ),
-          title: const Text('Check in / Check out',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
-              tooltip: 'Notifications',
-              onPressed: () => ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('No new notifications'))),
-            ),
-            IconButton(
-              icon: const Icon(Icons.home_rounded, color: Colors.white),
-              tooltip: 'Home',
-              onPressed: () => Navigator.pop(context,
-                  CheckSession(isCheckedIn: _isCheckedIn, checkInTime: _checkInTime, checkOutTime: _checkOutTime)),
-            ),
-          ],
+    final content = ListView(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+      children: [
+        _StatusCard(
+          isCheckedIn: _isCheckedIn,
+          checkIn: _fmtTime(_checkInTime),
+          checkOut: _fmtTime(_checkOutTime),
         ),
-
-        // ---------- DRAWER ----------
-        drawer: _CheckDrawer(onItemSelected: () => Navigator.pop(context)),
-
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-            children: [
-              _StatusCard(
-                isCheckedIn: _isCheckedIn,
-                checkIn: _fmtTime(_checkInTime),
-                checkOut: _fmtTime(_checkOutTime),
-              ),
-              const SizedBox(height: 16),
-              _ActionCard(
-                isCheckedIn: _isCheckedIn,
-                onCheckIn: _checkIn,
-                onCheckOut: _checkOut,
-                onReset: _reset,
-                onSave: _saveAndClose,
-              ),
-            ],
-          ),
+        const SizedBox(height: 16),
+        _ActionCard(
+          isCheckedIn: _isCheckedIn,
+          onCheckIn: _checkIn,
+          onCheckOut: _checkOut,
+          onReset: _reset,
+          onSave: _saveAndClose,
         ),
-      ),
+      ],
     );
-  }
-}
 
-class _CheckDrawer extends StatelessWidget {
-  final VoidCallback onItemSelected;
-  const _CheckDrawer({required this.onItemSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Drawer(
-      child: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: theme.colorScheme.primary),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text('Menu', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white)),
-              ),
-            ),
-            ListTile(leading: const Icon(Icons.dashboard_rounded), title: const Text('Dashboard'), onTap: onItemSelected),
-            ListTile(leading: const Icon(Icons.access_time_rounded), title: const Text('Check in/Check out'), onTap: onItemSelected),
-            const Divider(height: 1),
-            ListTile(leading: const Icon(Icons.settings_rounded), title: const Text('Settings'), onTap: onItemSelected),
-          ],
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: theme.primaryColor,
+        elevation: 0,
+        leading: isWide
+            ? null
+            : IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          tooltip: 'Menu',
         ),
+        title: const Text('Check in / Check out',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+            tooltip: 'Notifications',
+            onPressed: () => ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text('No new notifications'))),
+          ),
+          IconButton(
+            icon: const Icon(Icons.home_rounded, color: Colors.white),
+            tooltip: 'Home',
+            onPressed: _saveAndClose,
+          ),
+        ],
       ),
+      // Mobile/tablet: drawer. Desktop/web: Row like homepage.
+      drawer: isWide ? null : sideBarMenu(context), // <-- EXACT homepage-style call
+      body: isWide
+          ? Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),
+            child: sideBarMenu(context), // <-- EXACT homepage-style call
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(child: content),
+        ],
+      )
+          : content,
     );
   }
 }
@@ -181,7 +168,7 @@ class _StatusCard extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary,
+        color: theme.primaryColor,
         borderRadius: BorderRadius.circular(18),
       ),
       padding: const EdgeInsets.all(18),
@@ -190,10 +177,8 @@ class _StatusCard extends StatelessWidget {
         children: [
           const Icon(Icons.access_time_rounded, color: Colors.white, size: 36),
           const SizedBox(height: 12),
-          Text(
-            isCheckedIn ? 'Status: Checked in' : 'Status: Not checked in',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text(isCheckedIn ? 'Status: Checked in' : 'Status: Not checked in',
+              style: theme.textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -256,7 +241,7 @@ class _ActionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          ElevatedButton.icon(
             onPressed: onSave,
             icon: const Icon(Icons.save_rounded),
             label: const Text('Save & Close'),
