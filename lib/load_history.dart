@@ -27,7 +27,9 @@ class LoadTableSource extends DataTableSource{
 
   @override
   DataRow? getRow(int index) {
-   return DataRow.byIndex(
+    if (index < 0 || index >= loads.length) return null; // guard
+    final l = loads[index];
+    return DataRow.byIndex(
        index: index,
        cells: [
          DataCell(
@@ -39,33 +41,33 @@ class LoadTableSource extends DataTableSource{
                          isUpdate: true,
                          loadDataList: loads,
                          addLoadData: addLoadData,
-                         historyLoadID: loads[index].loadID,
+                         historyLoadID: l.loadID,
                     )));
                  },
-             child: Text(loads[index].loadID),
+             child: Text(l.loadID),
 
            ),
          ),
-         DataCell(Text(loads[index].projectId)),
-          DataCell(Text(loads[index].loadDate)),
-          DataCell(Text(loads[index].fromWarehouse)),
-          DataCell(Text(loads[index].toWarehouse)),
-          DataCell(Text(loads[index].toBin)),
-          DataCell(Text(loads[index].loadType)),
-          DataCell(Text(loads[index].loadCondition)),
-          DataCell(Text(loads[index].loadStatus)),
-          DataCell(Text(loads[index].truckId)),
-          DataCell(Text(loads[index].resourceId)),
-          DataCell(Text(loads[index].plateNumber)),
-          DataCell(Text(loads[index].driverName)),
-          DataCell(Text(loads[index].driverNumber)),
-          DataCell(Text(loads[index].resourceCapacity.toString())),
-          DataCell(Text(loads[index].resourceLoaded.toString())),
-          DataCell(Text(loads[index].resourceLength.toString())),
-          DataCell(Text(loads[index].resourceWidth.toString())),
-          DataCell(Text(loads[index].resourceHeight.toString())),
-          DataCell(Text(loads[index].resourceVolume.toString())),
-          DataCell(Text(loads[index].foremanId.toString())),
+         DataCell(Text(l.projectId)),
+          DataCell(Text(l.loadDate)),
+          DataCell(Text(l.fromWarehouse)),
+          DataCell(Text(l.toWarehouse)),
+          DataCell(Text(l.toBin)),
+          DataCell(Text(l.loadType)),
+          DataCell(Text(l.loadCondition)),
+          DataCell(Text(l.loadStatus)),
+          DataCell(Text(l.truckId)),
+          DataCell(Text(l.resourceId)),
+          DataCell(Text(l.plateNumber)),
+          DataCell(Text(l.driverName)),
+          DataCell(Text(l.driverNumber)),
+          DataCell(Text(l.resourceCapacity?.toString() ?? '')),
+          DataCell(Text(l.resourceLoaded?.toString() ?? '')),
+          DataCell(Text(l.resourceLength?.toString() ?? '')),
+          DataCell(Text(l.resourceWidth?.toString() ?? '')),
+          DataCell(Text(l.resourceHeight?.toString() ?? '')),
+          DataCell(Text(l.resourceVolume?.toString() ?? '')),
+          DataCell(Text(l.foremanId?.toString() ?? '')),
 
 
 
@@ -78,7 +80,7 @@ class LoadTableSource extends DataTableSource{
   @override
   int get rowCount => loads.length;
   @override
-  int get selectedRowCount => loads.length;
+  int get selectedRowCount => 0; // no selection
 
 }
 class _LoadHistoryState extends State<LoadHistory> {
@@ -88,24 +90,22 @@ class _LoadHistoryState extends State<LoadHistory> {
   @override
   // TODO: implement widget
   Widget build(BuildContext context){
+    final sessionLoads = widget.loads; // ensure we use the passed updated list
+    final hasLoads = sessionLoads.isNotEmpty;
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            SizedBox(
-              child: Card(
-                 color: Theme.of(context).indicatorColor,
-                  child: Padding(
+        child: hasLoads
+            ? Column(
+              children: [
+                Card(
+                    color: Theme.of(context).indicatorColor,
+                    child: Padding(
                       padding: const EdgeInsets.all(8.0),
-
                       child: PaginatedDataTable(
-                        key : dataTableKey,
-
-
+                        key: dataTableKey,
                         columnSpacing: 30,
                         columns: const [
                           DataColumn(label: Text('Load ID')),
@@ -129,18 +129,25 @@ class _LoadHistoryState extends State<LoadHistory> {
                           DataColumn(label: Text('Resource Height')),
                           DataColumn(label: Text('Resource Volume')),
                           DataColumn(label: Text('Foreman ID')),
-
-
                         ],
-                       source:LoadTableSource(loads:widget.loads.reversed.toList(), context: context, addLoadData: widget.addLoad ,tenantConfig:widget.tenantConfig),
-
-                      )
-                  )
+                        source: LoadTableSource(
+                          loads: sessionLoads.reversed.toList(),
+                          context: context,
+                          addLoadData: widget.addLoad,
+                          tenantConfig: widget.tenantConfig,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            )
+            : Center(
+                child: Text(
+                  'No loads created in this session.',
+                  style: TextStyle(
+                      fontSize: 16, color: Theme.of(context).canvasColor),
+                ),
               ),
-            ),
-          ],
-        ),
-
       ),
     );
   }

@@ -1,4 +1,3 @@
-
 class LoadData {
   late final String loadID;
   late final String projectId;
@@ -102,7 +101,7 @@ class LoadData {
       shipTo: json['Character08'],
       SO: json['Character07'],
       CustomerId: json['Character04'],
-      CustNum: json['Number12'] is String ? json['Number12'] : json['Number12'].toString()// Assuming this is the project or SO identifier
+      CustNum: json['Number12'] == null ? '0' : json['Number12'].toString()// Assuming this is the project or SO identifier
     );
   }
 
