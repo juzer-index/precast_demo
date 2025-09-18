@@ -32,6 +32,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   TextEditingController widthController = TextEditingController();
   TextEditingController heightController = TextEditingController();
   TextEditingController volumeController = TextEditingController();
+  TextEditingController loadedController = TextEditingController();
 
   TextEditingController? foremanNameController;
   TextEditingController? foremanIdController;
@@ -137,6 +138,24 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
     }
   }
 
+  // Add this method to calculate total loaded volume
+  double getTotalLoadedVolume() {
+    // If truckDetails has a list of elements, sum their volume * selectedQty
+    if (widget.truckDetails != null &&
+        widget.truckDetails!.elements != null &&
+        widget.truckDetails!.elements is List) {
+      double total = 0;
+      for (var element in widget.truckDetails!.elements) {
+        // Defensive: check for nulls and types
+        final vol = (element.volume ?? 0);
+        final qty = (element.selectedQty ?? 1);
+        total += vol * qty;
+      }
+      return total;
+    }
+    return 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -164,6 +183,11 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
     if(widget.truckMasterDetails !=null){
 
     }
+
+    // Calculate and set total volume
+    double totalVolume = getTotalLoadedVolume();
+    loadedController.text = totalVolume.toStringAsFixed(2);
+
     return Center(
             child: Column(
               children: [
@@ -400,7 +424,8 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: TextFormField(
-                              enabled: widget.isEdit,
+                              enabled: false,
+                              controller: loadedController,
                               decoration: const InputDecoration(
                                   fillColor: Colors.white,
                                   filled: true,

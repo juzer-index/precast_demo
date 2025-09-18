@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'sideBarMenu.dart';
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
 
 import 'Models/EpicorError.dart';
@@ -39,6 +39,7 @@ class StockLoading extends StatefulWidget {
   late final bool isUpdate;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
+  dynamic tenantConfig;
   final String historyLoadID;
   late bool LinesOriented;
   late List<ElementData> passedElements;
@@ -47,19 +48,16 @@ class StockLoading extends StatefulWidget {
 
    StockLoading(
       {super.key,
-      required this.initialTabIndex,
-       this.isUpdate=false,
-       this.loadDataList=const [],
-       this.addLoadData=null,
-      this.historyLoadID = '',
-      this.LinesOriented = false,
-      this.passedElements=const [],
-      this.custNum=0,
-
+        required this.initialTabIndex,
+        this.isUpdate=false,
+        this.loadDataList=const [],
+        this.addLoadData=null,
+        this.historyLoadID = '',
+        this.LinesOriented = false,
+        this.passedElements=const [],
+        this.custNum=0,
       }
-
-       );
-
+   );
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -82,10 +80,8 @@ class _StockLoadingState extends State<StockLoading>
   TextEditingController fromWarehouseController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController toWarehouseNameController = TextEditingController();
-
   TextEditingController toBinController = TextEditingController();
   TextEditingController toBinNameController = TextEditingController();
-
   TextEditingController? poNumberController = TextEditingController();
   TextEditingController? poLineController = TextEditingController();
   TextEditingController? commentsController = TextEditingController();
@@ -96,16 +92,13 @@ class _StockLoadingState extends State<StockLoading>
   String resourceId = '';
   LoadData? currentLoad;
   int childCount = 1;
-
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
   bool back = false;
   Map<String, dynamic> fetchedWarehouseData = {};
   List<dynamic> fetchedWarehouseValue = [];
-
   Map<String, dynamic> fetchedBinData = {};
   List<dynamic> fetchedBinValue = [];
-
   TextEditingController truckIdController = TextEditingController();
   TextEditingController resourceIdController = TextEditingController();
   TextEditingController driverNameController = TextEditingController();
@@ -127,39 +120,30 @@ class _StockLoadingState extends State<StockLoading>
   bool toBinLoading = false;
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
-
   Map<String, dynamic> elementData = {};
   List<dynamic> elementValue = [];
   bool canGetBack = false;
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
-
   Map<String, dynamic> foremanData = {};
   List<dynamic> foremanValue = [];
-
   LoadData? offloadData;
   bool projectOrSO = true;
 
   //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
-
   //var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
   //var resourceURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
-
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
   Map<String, dynamic> resourceData = {};
   List<dynamic>? resourceValue = [];
   List<dynamic> matchingResources = [];
-
   Map<String, dynamic> fetchedDriverData = {};
   List<dynamic> fetchedDriverValue = [];
-
   bool isTruckChanged = false;
-
   bool isLoaded = false;
   List<dynamic> deletedSavedElements = [];
   Map<String,dynamic> LineStatus = {};
-
   late int lastLoad = 50;
   late int lastCustShip = 0;
   late int custNum = 0;
@@ -168,8 +152,6 @@ class _StockLoadingState extends State<StockLoading>
   late final String nextLoad;
   late  bool CreateLoadLoading = false;
   late bool SaveLinesLoading = false;
-
-
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
    String ErrorMessage="";
@@ -178,7 +160,6 @@ class _StockLoadingState extends State<StockLoading>
   int archLabelIndex = 0;
   @override
   void initState() {
-
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
@@ -247,9 +228,42 @@ class _StockLoadingState extends State<StockLoading>
     super.dispose();
   }
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
+  // Calculate total loaded volume
+  double getTotalLoadedVolume() {
+    double total = 0;
+    for (var element in (widget.LinesOriented ? widget.passedElements : selectedElements)) {
+      total += (element.volume) * (element.selectedQty);
+    }
+    return total;
+  }
+
+  // Update loadedController whenever selectedElements changes
+  void updateLoadedController() {
+    loadedController.text = getTotalLoadedVolume().toStringAsFixed(2);
+  }
+
+  // Add a controller for site address if not already present
+  TextEditingController siteAddress = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
+    final width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -303,7 +317,10 @@ class _StockLoadingState extends State<StockLoading>
         length: 3,
         initialIndex: widget.initialTabIndex,
         child: Scaffold(
-          backgroundColor: Color(0xffF0F0F0),
+          drawer: width > 600
+              ? null
+              : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+          backgroundColor: const Color(0xffF0F0F0),
           appBar: AppBar(
             backgroundColor: Theme.of(context).primaryColor,
             title: Center(
@@ -328,6 +345,12 @@ class _StockLoadingState extends State<StockLoading>
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.home, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                },
+              ),
               PopupMenuButton(itemBuilder: (BuildContext context) {
                 return [
                   if (widget.isUpdate)
@@ -1743,8 +1766,8 @@ class _StockLoadingState extends State<StockLoading>
                                         ),
                                       ),
 
-                                    ],
-                                  ),
+                                                              ],
+                                                            ),
 
 
 
@@ -2109,7 +2132,7 @@ class _StockLoadingState extends State<StockLoading>
                                               ? selectedElements
                                               : [],
                                           isOffloading: false,
-                                          Warehouse: fromWarehouseController.text,
+                                          Warehouse: fromWarehouseController.text??'',
                                           AddElement: _addElement,
                                           Project: projectIdController.text,
                                           tenantConfig: tenantConfigP,
@@ -2314,7 +2337,9 @@ class _StockLoadingState extends State<StockLoading>
                                 const SizedBox(
                                   height: 20,
                                 ),
+                                 context.watch<loadStateProvider>().linesLoaded?
                                 ElevatedButton(
+
                                     onPressed: () async {
                                       if(!SaveLinesLoading){
                                         debugPrint(
@@ -2490,9 +2515,19 @@ class _StockLoadingState extends State<StockLoading>
                         ),
                       ]
 
-                      ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
-                  }),
+                  }
+                ),
         ),
       ),
     );
@@ -2512,6 +2547,7 @@ class _StockLoadingState extends State<StockLoading>
   void _addElement(ElementData element) {
     setState(() {
       selectedElements.add(element);
+      updateLoadedController();
     });
   }
 
@@ -2751,6 +2787,7 @@ class _StockLoadingState extends State<StockLoading>
     setState(() {
       selectedElements = selectedElementsFromForm;
       selectedParts = selectedPartsFromForm;
+      updateLoadedController();
     });
   }
 
@@ -3029,11 +3066,10 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Future<void> updateUD104A(
-      ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
+      ElementData UD104AData, dynamic tenantConfigP) async {
     try {
       CustomerShipment customerShipment = new CustomerShipment(
         PackNum: lastCustShip+1,
-
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
@@ -3105,6 +3141,7 @@ class _StockLoadingState extends State<StockLoading>
             && CustShipHeadresponse.statusCode >= 200 &&
             CustShipHeadresponse.statusCode < 300
         ) {
+          debugPrint(response.body);
           setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
@@ -3200,6 +3237,13 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
+    updateLoadedController();
+
+    // Parse capacity and loaded values for comparison
+    double capacity = double.tryParse(capacityController.text) ?? 0;
+    double loaded = double.tryParse(loadedController.text) ?? 0;
+    bool isOverloaded = loaded > capacity && capacity > 0;
+
     return Column(
       children: [
         Row(
@@ -3440,18 +3484,40 @@ class _StockLoadingState extends State<StockLoading>
                     child: TextFormField(
                       controller: loadedController,
                       enabled: false,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Loaded"),
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        labelText: "Loaded",
+                        suffixIcon: isOverloaded
+                            ? Tooltip(
+                                message: "Overloaded",
+                                child: Icon(Icons.warning, color: Colors.red),
+                              )
+                            : null,
+                      ),
+                      style: isOverloaded
+                          ? const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)
+                          : null,
                     ),
                   ),
                 ),
               ],
             ),
-
-
+            if (isOverloaded)
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Warning: Truck is overloaded!",
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 20),
@@ -3519,3 +3585,4 @@ class _StockLoadingState extends State<StockLoading>
     );
   }
 }
+

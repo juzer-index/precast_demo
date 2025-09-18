@@ -21,6 +21,8 @@ import '../widgets/ProjectSearch.dart';
 import '../widgets/SalesOrderSearch.dart';
 import '../Providers/ArchitectureProvider.dart';
 import 'package:provider/provider.dart';
+import './sideBarMenu.dart';
+
 class StockOffloading extends StatefulWidget {
   final int initialTabIndex;
   final dynamic tenantConfig;
@@ -198,6 +200,21 @@ class _StockOffloadingState extends State<StockOffloading>
       return loadObject;
     }
     return null;
+  }
+
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
   }
 
   Future<dynamic> fetchPDFCounts() async {
@@ -407,6 +424,8 @@ class _StockOffloadingState extends State<StockOffloading>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return Scaffold(
         backgroundColor: Theme.of(context).shadowColor,
         appBar: AppBar(
