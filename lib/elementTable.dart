@@ -30,7 +30,7 @@ class _ElementTableState extends State<ElementTable> {
             DataColumn(label: Text('Element ID')),
             DataColumn(label: Text('Part Number')),
             DataColumn(label: Text('Erection Seq')),
-            if(!widget.isOffloading)DataColumn(label: Text('Actions')),
+            DataColumn(label: Text('Actions')),
           ],
           rows: widget.selectedElements
               .map((row) => DataRow(cells: [

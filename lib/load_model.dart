@@ -1,3 +1,5 @@
+import 'element_model.dart';
+
 class LoadData {
   late final String loadID;
   late final String projectId;
@@ -32,6 +34,7 @@ class LoadData {
   String CustomerId = "";
   String CustNum="0";
 
+  List<ElementData> elements = []; // Add this line to store the list of elements
 
   LoadData({
     required this.loadID,
@@ -67,6 +70,7 @@ class LoadData {
     this.CustomerId = "",
     this.CustNum = "0",
 
+    this.elements = const [], // Add this to the constructor parameters
   });
 
   factory LoadData.fromJson(Map<String, dynamic> json) {
@@ -102,6 +106,7 @@ class LoadData {
       SO: json['Character07'],
       CustomerId: json['Character04'],
       CustNum: json['Number12'] == null ? '0' : json['Number12'].toString()// Assuming this is the project or SO identifier
+      elements: [], // Initialize empty list when creating from JSON
     );
   }
 
