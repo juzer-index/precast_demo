@@ -20,19 +20,17 @@ class ProjectSearch extends StatefulWidget {
 
   @override
   _ProjectSearchState createState() => _ProjectSearchState();
+
 }
 class _ProjectSearchState extends State<ProjectSearch> {
+
   bool isSearching = false;
-  bool isLoadingProjects = false; // <-- Add loading state
   Map<String,dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
-  TextEditingController SalesOrderController = TextEditingController();
+ TextEditingController SalesOrderController = TextEditingController();
   TextEditingController _customerShipcontroller = TextEditingController();
   List<dynamic> salesOrderList = [];
   Future<void> getProjectList(dynamic tenantConfigP) async {
-    setState(() {
-      isLoadingProjects = true;
-    });
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
     try {
@@ -47,18 +45,11 @@ class _ProjectSearchState extends State<ProjectSearch> {
         setState(() {
           fetchedProjectData = json.decode(response.body);
           fetchedProjectValue = fetchedProjectData['value'];
-          isLoadingProjects = false;
         });
       } else {
-        setState(() {
-          isLoadingProjects = false;
-        });
         throw Exception('Failed to load Project');
       }
     } on Exception catch (e) {
-      setState(() {
-        isLoadingProjects = false;
-      });
       debugPrint(e.toString());
     }
   }
@@ -88,14 +79,6 @@ class _ProjectSearchState extends State<ProjectSearch> {
     return null;
 
   }
-
-  @override
-  void initState() {
-    super.initState();
-    final tenantConfigP = context.read<tenantConfigProvider>().tenantConfig;
-    getProjectList(tenantConfigP);
-  }
-
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
@@ -138,21 +121,23 @@ class _ProjectSearchState extends State<ProjectSearch> {
                 onChanged: (value) async {
                   setState(() {
                       context.read<ArchitectureProvider>().Project =
-                          fetchedProjectValue
-                              .firstWhere((project) =>
-                                  project['ProjectID'] == value)['ProjectID'];
-                      context.read<ArchitectureProvider>().updateCust(
-                          fetchedProjectValue
-                              .firstWhere((project) =>
-                                  project['ProjectID'] == value)['ConCustNum']);
-                    });
-                    try {
-                      var data = await APIV2Helper.getResults(
-                          '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api'
-                          '/v1/'
-                          'BaqSvc/IIT_Project_SO/?Project=${value.toString()}',
-                          {
-                            "username": context
+                      fetchedProjectValue
+                          .firstWhere((project) =>
+                      project[
+                      'ProjectID'] ==
+                      value)['ProjectID'];
+                      context.read<ArchitectureProvider>().updateCust(fetchedProjectValue
+                          .firstWhere((project) =>
+                      project['ProjectID'] ==
+                      value)['ConCustNum']);
+                  });
+                      try {
+                        var data = await APIV2Helper.getResults(
+                            '${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api'
+                                '/v1/'
+                                'BaqSvc/IIT_Project_SO/?Project=${value.toString()}',
+
+                            {"username": context
                                 .read<tenantConfigProvider>()
                                 .tenantConfig['userID'],
                               "password": context

@@ -17,15 +17,12 @@ class IndexSearchBar extends StatefulWidget {
 class _IndexSearchBarState extends State<IndexSearchBar> {
   final TextEditingController _controller = TextEditingController();
   bool isSearching = false;
- @override
-  void initState() {
-    super.initState();
 
-    _controller.text = widget.value;
-  }
   @override
   Widget build(BuildContext context) {
-
+    if(widget.value.isNotEmpty){
+      _controller.text = widget.value;
+    }
     return Container(
       padding: EdgeInsets.all(10),
       child: Row(

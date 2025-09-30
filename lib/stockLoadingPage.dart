@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'sideBarMenu.dart';
+
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
 
 import 'Models/EpicorError.dart';
@@ -22,6 +22,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
+
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
@@ -38,24 +39,27 @@ class StockLoading extends StatefulWidget {
   late final bool isUpdate;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
-  dynamic tenantConfig;
   final String historyLoadID;
   late bool LinesOriented;
   late List<ElementData> passedElements;
   late int custNum;
 
+
    StockLoading(
       {super.key,
-        required this.initialTabIndex,
-        this.isUpdate=false,
-        this.loadDataList=const [],
-        this.addLoadData=null,
-        this.historyLoadID = '',
-        this.LinesOriented = false,
-        this.passedElements=const [],
-        this.custNum=0,
+      required this.initialTabIndex,
+       this.isUpdate=false,
+       this.loadDataList=const [],
+       this.addLoadData=null,
+      this.historyLoadID = '',
+      this.LinesOriented = false,
+      this.passedElements=const [],
+      this.custNum=0,
+
       }
-   );
+
+       );
+
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
@@ -78,8 +82,10 @@ class _StockLoadingState extends State<StockLoading>
   TextEditingController fromWarehouseController = TextEditingController();
   TextEditingController toWarehouseController = TextEditingController();
   TextEditingController toWarehouseNameController = TextEditingController();
+
   TextEditingController toBinController = TextEditingController();
   TextEditingController toBinNameController = TextEditingController();
+
   TextEditingController? poNumberController = TextEditingController();
   TextEditingController? poLineController = TextEditingController();
   TextEditingController? commentsController = TextEditingController();
@@ -90,13 +96,16 @@ class _StockLoadingState extends State<StockLoading>
   String resourceId = '';
   LoadData? currentLoad;
   int childCount = 1;
+
   Map<String, dynamic> fetchedProjectData = {};
   List<dynamic> fetchedProjectValue = [];
   bool back = false;
   Map<String, dynamic> fetchedWarehouseData = {};
   List<dynamic> fetchedWarehouseValue = [];
+
   Map<String, dynamic> fetchedBinData = {};
   List<dynamic> fetchedBinValue = [];
+
   TextEditingController truckIdController = TextEditingController();
   TextEditingController resourceIdController = TextEditingController();
   TextEditingController driverNameController = TextEditingController();
@@ -118,30 +127,39 @@ class _StockLoadingState extends State<StockLoading>
   bool toBinLoading = false;
   Map<String, dynamic> loadData = {};
   List<dynamic> loadValue = [];
+
   Map<String, dynamic> elementData = {};
   List<dynamic> elementValue = [];
   bool canGetBack = false;
   Map<String, dynamic> partData = {};
   List<dynamic> partValue = [];
+
   Map<String, dynamic> foremanData = {};
   List<dynamic> foremanValue = [];
+
   LoadData? offloadData;
   bool projectOrSO = true;
 
   //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
+
   //var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
   //var resourceURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
+
   Map<String, dynamic> truckData = {};
   List<dynamic> truckValue = [];
   Map<String, dynamic> resourceData = {};
   List<dynamic>? resourceValue = [];
   List<dynamic> matchingResources = [];
+
   Map<String, dynamic> fetchedDriverData = {};
   List<dynamic> fetchedDriverValue = [];
+
   bool isTruckChanged = false;
+
   bool isLoaded = false;
   List<dynamic> deletedSavedElements = [];
   Map<String,dynamic> LineStatus = {};
+
   late int lastLoad = 50;
   late int lastCustShip = 0;
   late int custNum = 0;
@@ -150,6 +168,8 @@ class _StockLoadingState extends State<StockLoading>
   late final String nextLoad;
   late  bool CreateLoadLoading = false;
   late bool SaveLinesLoading = false;
+
+
 // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
   late final Future dataLoaded;
    String ErrorMessage="";
@@ -158,6 +178,7 @@ class _StockLoadingState extends State<StockLoading>
   int archLabelIndex = 0;
   @override
   void initState() {
+
     _tabController =
         TabController(length: 3, vsync: this); // Change 3 to the number of tabs
     _tabController.index = widget.initialTabIndex;
@@ -226,42 +247,9 @@ class _StockLoadingState extends State<StockLoading>
     super.dispose();
   }
 
-  List<LoadData> loads = [];
-  void addLoadData(LoadData load) {
-    setState(() {
-      for (int i = 0; i < loads.length; i++) {
-        if (loads[i].loadID == load.loadID) {
-          loads.removeAt(i);
-          break;
-        }
-      }
-    });
-    setState(() {
-      loads.add(load);
-    });
-  }
-
-  // Calculate total loaded volume
-  double getTotalLoadedVolume() {
-    double total = 0;
-    for (var element in (widget.LinesOriented ? widget.passedElements : selectedElements)) {
-      total += (element.volume) * (element.selectedQty);
-    }
-    return total;
-  }
-
-  // Update loadedController whenever selectedElements changes
-  void updateLoadedController() {
-    loadedController.text = getTotalLoadedVolume().toStringAsFixed(2);
-  }
-
-  // Add a controller for site address if not already present
-  TextEditingController siteAddress = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
-    final width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -315,10 +303,7 @@ class _StockLoadingState extends State<StockLoading>
         length: 3,
         initialIndex: widget.initialTabIndex,
         child: Scaffold(
-          drawer: width > 600
-              ? null
-              : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
-          backgroundColor: const Color(0xffF0F0F0),
+          backgroundColor: Color(0xffF0F0F0),
           appBar: AppBar(
             backgroundColor: Theme.of(context).primaryColor,
             title: Center(
@@ -343,12 +328,6 @@ class _StockLoadingState extends State<StockLoading>
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.home, color: Colors.white),
-                onPressed: () {
-                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                },
-              ),
               PopupMenuButton(itemBuilder: (BuildContext context) {
                 return [
                   if (widget.isUpdate)
@@ -450,412 +429,392 @@ class _StockLoadingState extends State<StockLoading>
                         ],
                       );
                     }
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (width > 600)
-                                SizedBox(
-                                  width: MediaQuery.of(context).size.width * 0.2,
-                                  child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
-                                ),
-                              Expanded(
-                                child: Column(
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TabBarView(controller: _tabController, children: widget.LinesOriented ? ([
+                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
+                          SingleChildScrollView(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Column(
                                   children: [
-                                    Container(
-                                      color: Theme.of(context).primaryColor,
-                                      child: TabBar(
-                                        controller: _tabController,
-                                        tabs: widget.LinesOriented
-                                            ? [
-                                                Tab(text: 'Line'),
-                                                Tab(text: 'Details'),
-                                                Tab(text: 'Summary'),
-                                              ]
-                                            : [
-                                                Tab(text: 'Details'),
-                                                Tab(text: 'Line'),
-                                                Tab(text: 'Summary'),
-                                              ],
+                                    Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Text(
+                                        'Part Search Form',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                            color:
+                                            Theme.of(context).canvasColor),
                                       ),
                                     ),
-                                    Expanded(
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).indicatorColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                       child: Padding(
-                                        padding: width > 600
-                                            ? const EdgeInsets.fromLTRB(100, 10, 100, 10)
-                                            : const EdgeInsets.all(8),
-                                        child: TabBarView(
-                                          controller: _tabController,
-                                          children: widget.LinesOriented
-                                              ? [
-                                                  if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
-                                                    SingleChildScrollView(
-                                                      child: Column(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                        children: [
-                                                          Column(
-                                                            children: [
-                                                              Padding(
-                                                                padding: EdgeInsets.all(8.0),
-                                                                child: Text(
-                                                                  'Part Search Form',
-                                                                  style: TextStyle(
-                                                                      fontWeight: FontWeight.bold,
-                                                                      fontSize: 18,
-                                                                      color:
-                                                                      Theme.of(context).canvasColor),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 10,
-                                                              ),
-                                                              Container(
-                                                                decoration: BoxDecoration(
-                                                                  color: Theme.of(context).indicatorColor,
-                                                                  borderRadius: BorderRadius.circular(10),
-                                                                ),
-                                                                child: Padding(
-                                                                  padding: const EdgeInsets.all(8.0),
-                                                                  child: !widget.LinesOriented? ElementSearchForm(
-                                                                    onElementsSelected:
-                                                                    updateElementInformation,
-                                                                    arrivedElements:
-                                                                    selectedElements.isNotEmpty
-                                                                        ? selectedElements
-                                                                        : [],
-                                                                    isOffloading: false,
-                                                                    Warehouse: fromWarehouseController.text??'',
-                                                                    AddElement: _addElement,
-                                                                    Project: projectIdController.text,
-                                                                    tenantConfig: tenantConfigP,
-                                                                    isInstalling: false,
-                                                                  ) : SizedBox(
-                                                                    height: 50,
-                                                                    child: Center(
-                                                                      child: Text('Lines Oriented',
-                                                                          style: TextStyle(
-                                                                            fontSize:
-                                                                            MediaQuery.of(context)
-                                                                                .size
-                                                                                .height *
-                                                                                0.022,
-                                                                          )),
-                                                                    ),
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: !widget.LinesOriented? ElementSearchForm(
+                                          onElementsSelected:
+                                          updateElementInformation,
+                                          arrivedElements:
+                                          selectedElements.isNotEmpty
+                                              ? selectedElements
+                                              : [],
+                                          isOffloading: false,
+                                          Warehouse: fromWarehouseController.text??'',
+                                          AddElement: _addElement,
+                                          Project: projectIdController.text,
+                                          tenantConfig: tenantConfigP,
+                                          isInstalling: false,
+                                        ) : SizedBox(
+                                          height: 50,
+                                          child: Center(
+                                            child: Text('Lines Oriented',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                          ),
 
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 20,
-                                                          ),
-                                                          Text(
-                                                            'Selected Elements',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Elements',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                ElementTable(
+                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
+                                  DeletededSaveElements: widget.isUpdate
+                                      ? deletedSavedElements
+                                      : null,
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  'Selected Consumables',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                                PartTable(selectedParts: selectedParts),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _tabController.animateTo(_tabController.index+1);
+                                    });
+                                  },
+                                  child: const Text('Next'),
+                                )
+                              ],
+                            ),
+                          ),
+                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
+                          const Center(
+                            child: Text(
+                                'Please create a load first or Select a load to update'),
+                          ),
+                        //Tab 1 Content
+                        SingleChildScrollView(
+                          child: Form(
+                            key: _formKey,
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text(
+                                      'Load Details',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color:
+                                          Theme.of(context).primaryColor),
+                                    ),
+                                  ),
+                                  if (!widget.isUpdate)
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        controller: loadIDController,
+                                        enabled: false,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load ID"),
+                                      ),
+                                    ),
+                                  if (widget.isUpdate)
+                                    Row(children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            controller: loadIDController,
+                                            decoration: const InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "Load ID"),
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () async {
+                                          //  await makeSureDataLoaded(tenantConfigP);
+                                          // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                          // await fetchElementDataFromURL();
+                                          //await fetchPartDataFromURL();
+                                          await loadLoadAndData(tenantConfigP);
+                                          String projectLoadID =
+                                              loadIDController.text;
+                                          offloadData = getLoadObjectFromJson(
+                                              projectLoadID);
+                                          getElementObjectFromJson(
+                                              projectLoadID);
+                                          getPartObjectFromJson(projectLoadID);
+                                          if (offloadData != null) {
+                                            setState(() {
+                                              projectIdController.text =
+                                                  offloadData!.projectId;
+                                              dateController.text =
+                                                  offloadData!.loadDate;
+                                              toWarehouseController.text =
+                                                  offloadData!.toWarehouse;
+                                              toBinController.text =
+                                                  offloadData!.toBin;
+                                              loadTypeValue =
+                                                  offloadData!.loadType;
+                                              loadConditionValue =
+                                                  offloadData!.loadCondition;
+                                              fromWarehouseController.text =
+                                                  offloadData!.fromWarehouse;
+                                              isLoaded = true;
+                                            });
+                                          } else {
+                                            if (mounted) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Error'),
+                                                    content: const Text(
+                                                        'Load ID not found'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(
+                                                              context);
+                                                        },
+                                                        child: Text('Close',
                                                             style: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 18,
-                                                                color: Theme.of(context).canvasColor),
-                                                          ),
-                                                          Row(
-                                                            children: [
-                                                              ElementTable(
-                                                                selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
-                                                                DeletededSaveElements: widget.isUpdate
-                                                                    ? deletedSavedElements
-                                                                    : null,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 20,
-                                                          ),
-                                                          Text(
-                                                            'Consumables',
-                                                            style: TextStyle(
-                                                                fontWeight: FontWeight.bold,
-                                                                fontSize: 18,
-                                                                color: Theme.of(context).canvasColor),
-                                                          ),
-                                                          PartTable(selectedParts: selectedParts),
-                                                          ElevatedButton(
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                _tabController.animateTo(_tabController.index+1);
-                                                              });
-                                                            },
-                                                            child: const Text('Next'),
-                                                          )
-                                                        ],
+                                                                color: Theme.of(
+                                                                    context)
+                                                                    .canvasColor)),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          }
+                                        },
+                                        icon: const Icon(Icons.search),
+                                      ),
+                                    ]),
+                                  Padding(padding: EdgeInsets.all(8.0),
+                                      child: ToggleButtons(
+                                        onPressed: (projectOrSO) {
+                                          setState(() {
+                                            this.projectOrSO = projectOrSO == 0;
+                                            context.read<ArchitectureProvider>().toggleArchitecure();
+                                          });
+                                        },
+                                          borderRadius: BorderRadius.circular(10),
+                                          fillColor: Theme.of(context).primaryColor,
+                                          color: Theme.of(context).canvasColor,
+                                          selectedColor: Colors.white,
+                                          constraints: const BoxConstraints(
+                                            minHeight: 40.0,
+                                            minWidth: 100.0,
+                                          ),
+                                          borderWidth: 1.0,
+                                          borderColor: Theme.of(context).primaryColor,
+                                          selectedBorderColor: Theme.of(context).primaryColor,
+                                          isSelected: [
+                                            context.watch<ArchitectureProvider>().architecure=='Project',
+                                            context.watch<ArchitectureProvider>().architecure=='SO',
+                                          ],
+                                          children: const [
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Project'),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.all(8.0),
+                                              child: Text('Sales Order'),
+                                            ),
+                                          ],
+                                      )
+                                  ),
+                                  context.watch<ArchitectureProvider>().architecure == 'Project'?
+                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(isUpdate: widget.isUpdate,),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: TextFormField(
+                                            readOnly: true,  // Make the field read-only so it can still respond to taps
+                                            controller: dateController,
+                                            onTap: () async {
+                                              final DateTime? date = await showDatePicker(
+                                                builder: (BuildContext context, Widget? child) {
+                                                  return Theme(
+                                                    data: ThemeData.light().copyWith(
+                                                      colorScheme: ColorScheme.light(
+                                                        primary: Theme.of(context).primaryColor,
+                                                        background: Colors.white,
+                                                        secondary: Theme.of(context).primaryColor,
+                                                        outline: Colors.cyanAccent,
                                                       ),
                                                     ),
-                                                  if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
-                                                    const Center(
-                                                      child: Text(
-                                                          'Please create a load first or Select a load to update'),
-                                                    ),
-                                                  //Tab 1 Content
-                                                  SingleChildScrollView(
-                                                    child: Form(
-                                                      key: _formKey,
-                                                      child: Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Padding(
-                                                              padding: EdgeInsets.all(8.0),
-                                                              child: Text(
-                                                                'Load Details',
-                                                                style: TextStyle(
-                                                                    fontWeight: FontWeight.bold,
-                                                                    fontSize: 18,
-                                                                    color:
-                                                                    Theme.of(context).primaryColor),
-                                                              ),
-                                                            ),
-                                                            if (!widget.isUpdate)
-                                                              Padding(
-                                                                padding: const EdgeInsets.all(8.0),
-                                                                child: TextFormField(
-                                                                  controller: loadIDController,
-                                                                  enabled: false,
-                                                                  decoration: const InputDecoration(
-                                                                      border: OutlineInputBorder(),
-                                                                      labelText: "Load ID"),
-                                                                ),
-                                                              ),
-                                                            if (widget.isUpdate)
-                                                              Row(children: [
-                                                                Expanded(
-                                                                  child: Padding(
-                                                                    padding: const EdgeInsets.all(8.0),
-                                                                    child: TextFormField(
-                                                                      controller: loadIDController,
-                                                                      decoration: const InputDecoration(
-                                                                          border: OutlineInputBorder(),
-                                                                          labelText: "Load ID"),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                IconButton(
-                                                                  onPressed: () async {
-                                                                    //  await makeSureDataLoaded(tenantConfigP);
-                                                                    // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
-                                                                    // await fetchElementDataFromURL();
-                                                                    //await fetchPartDataFromURL();
-                                                                    await loadLoadAndData(tenantConfigP);
-                                                                    String projectLoadID =
-                                                                        loadIDController.text;
-                                                                    offloadData = getLoadObjectFromJson(
-                                                                        projectLoadID);
-                                                                    getElementObjectFromJson(
-                                                                        projectLoadID);
-                                                                    getPartObjectFromJson(projectLoadID);
-                                                                    if (offloadData != null) {
-                                                                      setState(() {
-                                                                        projectIdController.text =
-                                                                            offloadData!.projectId;
-                                                                        dateController.text =
-                                                                            offloadData!.loadDate;
-                                                                        toWarehouseController.text =
-                                                                            offloadData!.toWarehouse;
-                                                                        toBinController.text =
-                                                                            offloadData!.toBin;
-                                                                        loadTypeValue =
-                                                                            offloadData!.loadType;
-                                                                        loadConditionValue =
-                                                                            offloadData!.loadCondition;
-                                                                        fromWarehouseController.text =
-                                                                            offloadData!.fromWarehouse;
-                                                                        isLoaded = true;
-                                                                      });
-                                                                    } else {
-                                                                      if (mounted) {
-                                                                        showDialog(
-                                                                          context: context,
-                                                                          builder: (context) {
-                                                                            return AlertDialog(
-                                                                              title: const Text('Error'),
-                                                                              content: const Text(
-                                                                                  'Load ID not found'),
-                                                                              actions: [
-                                                                                TextButton(
-                                                                                  onPressed: () {
-                                                                                    Navigator.pop(
-                                                                                        context);
-                                                                                  },
-                                                                                  child: Text('Close',
-                                                                                      style: TextStyle(
-                                                                                          color: Theme.of(
-                                                                                              context)
-                                                                                              .canvasColor)),
-                                                                                ),
-                                                                              ],
-                                                                            );
-                                                                          },
-                                                                        );
-                                                                      }
-                                                                    }
-                                                                  },
-                                                                  icon: const Icon(Icons.search),
-                                                                ),
-                                                              ]),
-                                                            Padding(padding: EdgeInsets.all(8.0),
-                                                                child: ToggleSwitch(
-                                                                  minWidth: 150,
-                                                                  initialLabelIndex: archLabelIndex,
-                                                                  totalSwitches: 2,
-                                                                  labels: ['Stand-alone SO','Project based' ],
-                                                                  onToggle: (index) {
-                                                                    context.read<ArchitectureProvider>().toggleArchitecure();
-                                                                    setState(() {
-                                                                      archLabelIndex = index??0;
-                                                                    });
-                                                                  },
-                                                                )
-                                                            ),
-                                                            context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                                            ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(),
-                                                            Row(
-                                                              children: [
-                                                                Expanded(
-                                                                  child: Padding(
-                                                                    padding: const EdgeInsets.all(8.0),
-                                                                    child: TextFormField(
-                                                                      readOnly: true,  // Make the field read-only so it can still respond to taps
-                                                                      controller: dateController,
-                                                                      onTap: () async {
-                                                                        final DateTime? date = await showDatePicker(
-                                                                          builder: (BuildContext context, Widget? child) {
-                                                                            return Theme(
-                                                                              data: ThemeData.light().copyWith(
-                                                                                colorScheme: ColorScheme.light(
-                                                                                  primary: Theme.of(context).primaryColor,
-                                                                                  background: Colors.white,
-                                                                                  secondary: Theme.of(context).primaryColor,
-                                                                                  outline: Colors.cyanAccent,
-                                                                                ),
-                                                                              ),
-                                                                              child: child!,
-                                                                            );
-                                                                          },
-                                                                          context: context,
-                                                                          initialDate: DateTime.now(),
-                                                                          firstDate: DateTime(2018),
-                                                                          lastDate: DateTime(2030),
-                                                                        );
-                                                                        if (date != null) {
-                                                                          setState(() {
-                                                                            dateController.text = "${date.day}/${date.month}/${date.year}";
-                                                                            _selectedDate = DateFormat('yyyy-MM-dd').format(date);
-                                                                          });
-                                                                        }
-                                                                      },
-                                                                      decoration: const InputDecoration(
-                                                                        border: OutlineInputBorder(),
-                                                                        labelText: "Load Date",
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                Expanded(
-                                                                    child: Padding(
-                                                                      padding: const EdgeInsets.all(8.0),
-                                                                      child: TextFormField(
-                                                                        enabled: !widget.isUpdate,
-                                                                        onTap: () async {
-                                                                          final TimeOfDay? time =
-                                                                          await showTimePicker(
-                                                                              context: context,
-                                                                              initialTime:
-                                                                              TimeOfDay.now(),
-                                                                              builder: (context, child) {
-                                                                                return Theme(
-                                                                                  data: Theme.of(context)
-                                                                                      .copyWith(
-                                                                                    colorScheme:
-                                                                                    ColorScheme.light(
-                                                                                      primary: Theme.of(
-                                                                                          context)
-                                                                                          .primaryColor,
-                                                                                      onPrimary:
-                                                                                      Colors.white,
-                                                                                      secondary: Theme.of(
-                                                                                          context)
-                                                                                          .primaryColor,
-                                                                                    ),
-                                                                                  ),
-                                                                                  child: child!,
-                                                                                );
-                                                                              });
-                                                                          if (time != null) {
-                                                                            setState(() {
-                                                                              loadTimeController.text =
-                                                                              "${time.hour}:${time.minute}";
-                                                                            });
-                                                                          }
-                                                                        },
-                                                                        controller: loadTimeController,
-                                                                        decoration: const InputDecoration(
-                                                                            border: OutlineInputBorder(),
-                                                                            labelText: "Load Time"),
-                                                                      ),
-                                                                    )),
-                                                              ],
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                Expanded(
-                                                                  child: Padding(
-                                                                    padding: const EdgeInsets.all(8.0),
-                                                                    child: DropdownSearch(
-                                                                      selectedItem:
-                                                                      fromWarehouseController.text,
-                                                                      enabled: true,
-                                                                      popupProps: const PopupProps
-                                                                          .modalBottomSheet(
-                                                                        showSearchBox: true,
-                                                                        searchFieldProps: TextFieldProps(
-                                                                          decoration: InputDecoration(
-                                                                            suffixIcon:
-                                                                            Icon(Icons.search),
-                                                                            border: OutlineInputBorder(),
-                                                                            labelText: "Search",
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      autoValidateMode: AutovalidateMode
-                                                                          .onUserInteraction,
-                                                                      dropdownDecoratorProps:
-                                                                      const DropDownDecoratorProps(
-                                                                        dropdownSearchDecoration:
-                                                                        InputDecoration(
-                                                                          border: OutlineInputBorder(),
-                                                                          labelText: "From Warehouse",
-                                                                        ),
-                                                                      ),
-                                                                      items: fetchedWarehouseValue.map((warehouse) =>
-                                                                      warehouse['Description'])
-                                                                          .toList(),
-                                                                      onChanged: (value) {
-                                                                        setState(() {
-                                                                          fromWarehouseController
-                                                                              .text = fetchedWarehouseValue
-                                                                              .firstWhere(
-                                                                                  (warehouse) =>
-                                                                              warehouse[
-                                                                              'Description'] ==
-                                                                                  value)[
-                                                                          'WarehouseCode'];
-                                                                        });
-                                                                      },
-                                                                    ),
-                                                                  ),
-                                                                ),
+                                                    child: child!,
+                                                  );
+                                                },
+                                                context: context,
+                                                initialDate: DateTime.now(),
+                                                firstDate: DateTime(2018),
+                                                lastDate: DateTime(2030),
+                                              );
+                                              if (date != null) {
+                                                setState(() {
+                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                });
+                                              }
+                                            },
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Date",
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              enabled: !widget.isUpdate,
+                                              onTap: () async {
+                                                final TimeOfDay? time =
+                                                await showTimePicker(
+                                                    context: context,
+                                                    initialTime:
+                                                    TimeOfDay.now(),
+                                                    builder: (context, child) {
+                                                      return Theme(
+                                                        data: Theme.of(context)
+                                                            .copyWith(
+                                                          colorScheme:
+                                                          ColorScheme.light(
+                                                            primary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                            onPrimary:
+                                                            Colors.white,
+                                                            secondary: Theme.of(
+                                                                context)
+                                                                .primaryColor,
+                                                          ),
+                                                        ),
+                                                        child: child!,
+                                                      );
+                                                    });
+                                                if (time != null) {
+                                                  setState(() {
+                                                    loadTimeController.text =
+                                                    "${time.hour}:${time.minute}";
+                                                  });
+                                                }
+                                              },
+                                              controller: loadTimeController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Load Time"),
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: DropdownSearch(
+                                            selectedItem:
+                                            fromWarehouseController.text,
+                                            enabled: true,
+                                            popupProps: const PopupProps
+                                                .modalBottomSheet(
+                                              showSearchBox: true,
+                                              searchFieldProps: TextFieldProps(
+                                                decoration: InputDecoration(
+                                                  suffixIcon:
+                                                  Icon(Icons.search),
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "Search",
+                                                ),
+                                              ),
+                                            ),
+                                            autoValidateMode: AutovalidateMode
+                                                .onUserInteraction,
+                                            dropdownDecoratorProps:
+                                            const DropDownDecoratorProps(
+                                              dropdownSearchDecoration:
+                                              InputDecoration(
+                                                border: OutlineInputBorder(),
+                                                labelText: "From Warehouse",
+                                              ),
+                                            ),
+                                            items: fetchedWarehouseValue.map((warehouse) =>
+                                            warehouse['Description'])
+                                                .toList(),
+                                            onChanged: (value) {
+                                              setState(() {
+                                                fromWarehouseController
+                                                    .text = fetchedWarehouseValue
+                                                    .firstWhere(
+                                                        (warehouse) =>
+                                                    warehouse[
+                                                    'Description'] ==
+                                                        value)[
+                                                'WarehouseCode'];
+                                              });
+                                            },
+                                          ),
+                                        ),
+                                      ),
 
                                     ],
                                   ),
@@ -2150,7 +2109,7 @@ class _StockLoadingState extends State<StockLoading>
                                               ? selectedElements
                                               : [],
                                           isOffloading: false,
-                                          Warehouse: fromWarehouseController.text??'',
+                                          Warehouse: fromWarehouseController.text,
                                           AddElement: _addElement,
                                           Project: projectIdController.text,
                                           tenantConfig: tenantConfigP,
@@ -2523,26 +2482,17 @@ class _StockLoadingState extends State<StockLoading>
                                     )
                                         :const Text(
                                       'Load Lines',
-                                    )):SizedBox(),
+                                    ))
+                                    // :SizedBox(),
                               ],
                             ),
                           ),
                         ),
                       ]
 
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     );
-                  }
-                ),
+                  }),
         ),
       ),
     );
@@ -2562,7 +2512,6 @@ class _StockLoadingState extends State<StockLoading>
   void _addElement(ElementData element) {
     setState(() {
       selectedElements.add(element);
-      updateLoadedController();
     });
   }
 
@@ -2802,7 +2751,6 @@ class _StockLoadingState extends State<StockLoading>
     setState(() {
       selectedElements = selectedElementsFromForm;
       selectedParts = selectedPartsFromForm;
-      updateLoadedController();
     });
   }
 
@@ -3085,6 +3033,7 @@ class _StockLoadingState extends State<StockLoading>
     try {
       CustomerShipment customerShipment = new CustomerShipment(
         PackNum: lastCustShip+1,
+
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
@@ -3156,7 +3105,6 @@ class _StockLoadingState extends State<StockLoading>
             && CustShipHeadresponse.statusCode >= 200 &&
             CustShipHeadresponse.statusCode < 300
         ) {
-          debugPrint(response.body);
           setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
@@ -3252,13 +3200,6 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
-    updateLoadedController();
-
-    // Parse capacity and loaded values for comparison
-    double capacity = double.tryParse(capacityController.text) ?? 0;
-    double loaded = double.tryParse(loadedController.text) ?? 0;
-    bool isOverloaded = loaded > capacity && capacity > 0;
-
     return Column(
       children: [
         Row(
@@ -3499,40 +3440,18 @@ class _StockLoadingState extends State<StockLoading>
                     child: TextFormField(
                       controller: loadedController,
                       enabled: false,
-                      decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: const OutlineInputBorder(),
-                        labelText: "Loaded",
-                        suffixIcon: isOverloaded
-                            ? Tooltip(
-                                message: "Overloaded",
-                                child: Icon(Icons.warning, color: Colors.red),
-                              )
-                            : null,
-                      ),
-                      style: isOverloaded
-                          ? const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)
-                          : null,
+                      decoration: const InputDecoration(
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: OutlineInputBorder(),
+                          labelText: "Loaded"),
                     ),
                   ),
                 ),
               ],
             ),
-            if (isOverloaded)
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.warning, color: Colors.red, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Warning: Truck is overloaded!",
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
+
+
           ],
         ),
         const SizedBox(height: 20),

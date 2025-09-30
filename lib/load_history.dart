@@ -2,9 +2,6 @@ import 'load_model.dart';
 import 'package:flutter/material.dart';
 import 'indexAppBar.dart';
 import 'stockLoadingPage.dart';
-import 'sideBarMenu.dart';
-import 'package:provider/provider.dart';
-import 'load_model.dart';
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
 
@@ -44,33 +41,33 @@ class LoadTableSource extends DataTableSource{
                          isUpdate: true,
                          loadDataList: loads,
                          addLoadData: addLoadData,
-                         historyLoadID: loads[index].loadID,
+                         historyLoadID: l.loadID,
                     )));
                  },
-             child: Text(loads[index].loadID),
+             child: Text(l.loadID),
 
            ),
          ),
-         DataCell(Text(loads[index].projectId)),
-          DataCell(Text(loads[index].loadDate)),
-          DataCell(Text(loads[index].fromWarehouse)),
-          DataCell(Text(loads[index].toWarehouse)),
-          DataCell(Text(loads[index].toBin)),
-          DataCell(Text(loads[index].loadType)),
-          DataCell(Text(loads[index].loadCondition)),
-          DataCell(Text(loads[index].loadStatus)),
-          DataCell(Text(loads[index].truckId)),
-          DataCell(Text(loads[index].resourceId)),
-          DataCell(Text(loads[index].plateNumber)),
-          DataCell(Text(loads[index].driverName)),
-          DataCell(Text(loads[index].driverNumber)),
-          DataCell(Text(loads[index].resourceCapacity.toString() ?? '')),
-          DataCell(Text(loads[index].resourceLoaded.toString() ?? '')),
-          DataCell(Text(loads[index].resourceLength.toString() ?? '')),
-          DataCell(Text(loads[index].resourceWidth.toString() ?? '')),
-          DataCell(Text(loads[index].resourceHeight.toString() ?? '')),
-          DataCell(Text(loads[index].resourceVolume.toString() ?? '')),
-          DataCell(Text(loads[index].foremanId.toString() ?? '')),
+         DataCell(Text(l.projectId)),
+          DataCell(Text(l.loadDate)),
+          DataCell(Text(l.fromWarehouse)),
+          DataCell(Text(l.toWarehouse)),
+          DataCell(Text(l.toBin)),
+          DataCell(Text(l.loadType)),
+          DataCell(Text(l.loadCondition)),
+          DataCell(Text(l.loadStatus)),
+          DataCell(Text(l.truckId)),
+          DataCell(Text(l.resourceId)),
+          DataCell(Text(l.plateNumber)),
+          DataCell(Text(l.driverName)),
+          DataCell(Text(l.driverNumber)),
+          DataCell(Text(l.resourceCapacity?.toString() ?? '')),
+          DataCell(Text(l.resourceLoaded?.toString() ?? '')),
+          DataCell(Text(l.resourceLength?.toString() ?? '')),
+          DataCell(Text(l.resourceWidth?.toString() ?? '')),
+          DataCell(Text(l.resourceHeight?.toString() ?? '')),
+          DataCell(Text(l.resourceVolume?.toString() ?? '')),
+          DataCell(Text(l.foremanId?.toString() ?? '')),
 
 
 
@@ -83,25 +80,10 @@ class LoadTableSource extends DataTableSource{
   @override
   int get rowCount => loads.length;
   @override
-  int get selectedRowCount => loads.length;
+  int get selectedRowCount => 0; // no selection
 
 }
 class _LoadHistoryState extends State<LoadHistory> {
-
-  List<LoadData> loads = [];
-  void addLoadData(LoadData load) {
-    setState(() {
-      for (int i = 0; i < loads.length; i++) {
-        if (loads[i].loadID == load.loadID) {
-          loads.removeAt(i);
-          break;
-        }
-      }
-    });
-    setState(() {
-      loads.add(load);
-    });
-  }
 
   _LoadHistoryState() ;
   final GlobalKey<PaginatedDataTableState> dataTableKey = GlobalKey();
@@ -110,21 +92,10 @@ class _LoadHistoryState extends State<LoadHistory> {
   Widget build(BuildContext context){
     final sessionLoads = widget.loads; // ensure we use the passed updated list
     final hasLoads = sessionLoads.isNotEmpty;
-    final width = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
-        drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
-        body: Row(
-            children: [
-        width > 600
-        ? SizedBox(
-        width: MediaQuery.of(context).size.width * 0.2,
-        child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
-        : const SizedBox(),
-        Expanded(
-        child: Padding(
+      body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: hasLoads
             ? Column(
@@ -178,9 +149,6 @@ class _LoadHistoryState extends State<LoadHistory> {
                 ),
               ),
       ),
-    ),
-      ],
-    ),
     );
   }
 }

@@ -14,9 +14,6 @@ import './Widgets/SearchBar.dart';
 import 'Widgets/SalesOrderPop.dart';
 import 'dart:math';
 import 'load_model.dart'; // ADDED
-import 'sideBarMenu.dart';
-import 'indexAppBar.dart';
-
 class DispatchSchedule extends StatefulWidget {
   // ADDED: session loads & callback
   final List<LoadData> sessionLoads;
@@ -26,8 +23,6 @@ class DispatchSchedule extends StatefulWidget {
     required this.sessionLoads,
     required this.addLoadData,
   }) : super(key: key);
-  dynamic tenantConfig;
-
 
   @override
   _DispatchScheduleState createState() => _DispatchScheduleState();
@@ -110,22 +105,6 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
     }
   }
 
-
-  List<LoadData> loads = [];
-  void addLoadData(LoadData load) {
-    setState(() {
-      for (int i = 0; i < loads.length; i++) {
-        if (loads[i].loadID == load.loadID) {
-          loads.removeAt(i);
-          break;
-        }
-      }
-    });
-    setState(() {
-      loads.add(load);
-    });
-  }
-
   @override
   void initState() {
     super.initState();
@@ -147,9 +126,6 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
       getData(value,false);
     }
     return Scaffold(
-      drawer: width > 600
-          ? null
-          : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Handle floating action button press
@@ -200,22 +176,14 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
          label: const Text('Create Load'),
 
       ),
-      appBar: IndexAppBar(
-        title: ('Dispatch Schedule'),
+      appBar: AppBar(
+        title: const Text('Dispatch Schedule'),
       ),
       body:
            Container(
         color: Theme.of(context).shadowColor,
-        child: Row(
-          children: [
-            width > 600
-                ? SizedBox(
-                width: MediaQuery.of(context).size.width * 0.2,
-                child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
-                : const SizedBox(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
+        child: SingleChildScrollView(
+          child: Column(
 
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -269,60 +237,59 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
 
 
 
-                            }on NotFoundException catch(e){
-                              setState(() {
-                                isLoading = false;
-                              });
-                              showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-                                title: Text("Error"),
-                                content: Text(e.toString()),
-                              ));
-                            };
-                          },
-                          advanceSearch: true,
-                          value: _salesOrderController.text,
-                          onAdvanceSearch: (){
-                            showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
+                      }on NotFoundException catch(e){
+                        setState(() {
+                          isLoading = false;
+                        });
+                        showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                          title: Text("Error"),
+                          content: Text(e.toString()),
+                        ));
+                      };
+                    },
+                    advanceSearch: true,
+                    value: _salesOrderController.text,
+                    onAdvanceSearch: (){
+                      showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
 
-                            );
-                          },
+                      );
+                    },
 
-                        ),
-                                           )
+                  ),
+                                     )
 
-                      ],
-                    ),
-                    GestureDetector(
-                      child: SizedBox(
-                        height: height * 0.9,
-                        width: width * 0.78,
+                ],
+              ),
+              GestureDetector(
+                child: SizedBox(
+                  height: height * 0.9,
+                  child: Column(
+                    children: [
+                      SingleChildScrollView(
+                        clipBehavior: Clip.hardEdge,
+                        scrollDirection: Axis.vertical,
                         child: Column(
                           children: [
                             SingleChildScrollView(
-                              clipBehavior: Clip.hardEdge,
-                              scrollDirection: Axis.vertical,
-                              child: Column(
-                                children: [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Center(
-                                        child: Container(
-                                          padding: const EdgeInsets.all(8.0),
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).indicatorColor,
-                                            borderRadius: BorderRadius.circular(8.0),
-                                          ),
-                                          child:isLoading?SizedBox(
-                                              height: height*0.6,
-                                              width: width*0.95,
-                                              child: Center(child: CircularProgressIndicator())) : _salesOrderController.text.isEmpty? Center(
-                                            child: SizedBox(
-                                                height: height*0.6,
-                                                width: width*0.95,
-                                                child: Center(child: Text("Please select a sales order"))))
-                                              :Container(
+                              scrollDirection: Axis.horizontal,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).indicatorColor,
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child:isLoading?SizedBox(
+                                        height: height*0.6,
+                                        width: width*0.95,
+                                        child: Center(child: CircularProgressIndicator())) : _salesOrderController.text.isEmpty? Center(
+                                      child: SizedBox(
+                                          height: height*0.6,
+                                          width: width*0.95,
+                                          child: Center(child: Text("Please select a sales order"))))
+                                        :Container(
 
                                       child: Column(
                                         children: [
@@ -364,32 +331,32 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                             ],
                                             onRowTap: (index) {
 
-                                                  },
-                                                ),
-                                                   ],
-                                            ),
+                                            },
                                           ),
-                                        ),
+                                             ],
                                       ),
                                     ),
                                   ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [ Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.all(8.0),
-                                        decoration: BoxDecoration(
+                                ),
+                              ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [ Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
 
-                                          borderRadius: BorderRadius.circular(8.0),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            IconButton(onPressed:(){
-                                              if(page>1){
-                                                setState(() {
-                                                  page--;
-                                                });
-                                              }
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      IconButton(onPressed:(){
+                                        if(page>1){
+                                          setState(() {
+                                            page--;
+                                          });
+                                        }
 
 
                                       } , icon: const Icon(Icons.arrow_back_ios_new)),
@@ -409,30 +376,27 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                           await getData(_salesOrderController.text,true);
 
 
-                                              }
-                                            } , icon: const Icon(Icons.arrow_forward_ios)):IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey,)
+                                        }
+                                      } , icon: const Icon(Icons.arrow_forward_ios)):IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey,)
 
 
                                       ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
+                          ],
                             ),
                           ],
                         ),
                       ),
-                    ),
-
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+
+            ],
+          ),
         ),
 
       ),

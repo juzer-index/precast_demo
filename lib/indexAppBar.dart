@@ -8,10 +8,10 @@ class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
     return AppBar(
       backgroundColor: Theme.of(context).primaryColor,
-      title: Row(
+      title: Center(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(title, style: const TextStyle(color: Colors.white)),
@@ -24,18 +24,7 @@ class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
             // )
           ],
         ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 20, 0),
-          child: IconButton(
-            icon: const Icon(Icons.home, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-            },
-                ),
-        ),
-      ],
-      centerTitle: true,
+      ),
     );
   }
 
