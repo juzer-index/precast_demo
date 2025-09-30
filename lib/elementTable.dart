@@ -27,7 +27,7 @@ class _ElementTableState extends State<ElementTable> {
         child: DataTable(
           columns:  [
             if(widget.isOffloading)DataColumn(label: Text('Received')),
-            DataColumn(label: Text('Element ID')),
+            DataColumn(label: Text('Structure ID')),
             DataColumn(label: Text('Part Number')),
             DataColumn(label: Text('Erection Seq')),
             if(!widget.isOffloading)DataColumn(label: Text('Actions')),

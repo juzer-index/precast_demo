@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'sideBarMenu.dart';
 import 'dart:math';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +12,8 @@ import 'package:provider/provider.dart';
 import 'detailsPage.dart';
 import 'Providers/tenantConfig.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'load_model.dart';
+
 class ElementDataSource extends ChangeNotifier {
   List<dynamic> partElementList = [];
 
@@ -156,9 +158,7 @@ class _ElementMasterState extends State<ElementMaster> {
 
 
 
-  // Barcode? elementResult;
   String elementResultCode = '';
-  // QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
   bool isScanned = false;
@@ -286,90 +286,113 @@ class _ElementMasterState extends State<ElementMaster> {
     }
   }
 
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
+
 
 
   @override
   Widget build(BuildContext context) {
-    final  tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
+    final tenantConfigP = context.watch<tenantConfigProvider>()?.tenantConfig;
+    final width = MediaQuery.of(context).size.width;
 
-    return projects.length>0?Scaffold(
-      backgroundColor: Theme.of(context).shadowColor,
-      appBar: const IndexAppBar(title: 'Element Tracker',),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(
-                   // width: MediaQuery.of(context).size.width,
-                   // height: MediaQuery.of(context).size.height * 0.12,
-                    child: Card(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10)),
-                      ),
-                      elevation: 1,
-                      color: Theme.of(context).indicatorColor,
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    onTap: () {
-                                      setState(() {
-                                        elementIdController.clear();
-                                        currentPageIndex= 0;
-                                      });
-                                    },
-                                    controller: partNumController,
-                                    decoration:  InputDecoration(
-                                      fillColor: Colors.white,
-                                        filled: true,
-                                        border: UnderlineInputBorder(
-                                          borderSide: BorderSide(color: Theme.of(context).indicatorColor),
+    return projects.length > 0
+
+        ? Scaffold(
+            backgroundColor: Theme.of(context).shadowColor,
+            appBar: const IndexAppBar(title: 'Element Tracker'),
+            drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+            body: Row(
+              children: [
+              width > 600
+              ? SizedBox(
+              width: MediaQuery.of(context).size.width * 0.2,
+              child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+              : const SizedBox(),
+            Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                   // Detect desktop screens
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          child: Card(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(10)),
+                            ),
+                            elevation: 1,
+                            color: Theme.of(context).indicatorColor,
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          onTap: () {
+                                            setState(() {
+                                              elementIdController.clear();
+                                              currentPageIndex = 0;
+                                            });
+                                          },
+                                          controller: partNumController,
+                                          decoration: InputDecoration(
+                                              fillColor: Colors.white,
+                                              filled: true,
+                                              border: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Theme.of(context).indicatorColor),
+                                              ),
+                                              labelText: "Part Num"),
                                         ),
-                                        labelText: "Part Num"),
-
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    onTap: () {
-                                      setState(() {
-                                        partNumController.clear();
-                                      });
-                                    },
-                                    controller: elementIdController,
-                                    decoration:  InputDecoration(
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        border: UnderlineInputBorder(
-                                          borderSide: BorderSide(color: Theme.of(context).indicatorColor),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          onTap: () {
+                                            setState(() {
+                                              partNumController.clear();
+                                            });
+                                          },
+                                          controller: elementIdController,
+                                          decoration: InputDecoration(
+                                              fillColor: Colors.white,
+                                              filled: true,
+                                              border: UnderlineInputBorder(
+                                                borderSide: BorderSide(color: Theme.of(context).indicatorColor),
+                                              ),
+                                              labelText: "Element ID"),
                                         ),
-                                        labelText: "Element ID"),
-
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: isSearching?
-                                       const CircularProgressIndicator()
-                                     :IconButton(
-                                        onPressed: () async {
-                                          setState(() {
-                                            isSearching = true;
-                                          });
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: isSearching
+                                          ? const CircularProgressIndicator()
+                                          : IconButton(
+                                              onPressed: () async {
+                                                setState(() {
+                                                  isSearching = true;
+                                                });
 
                                           partElementList.clear();
                                           filteredElementList.clear();
