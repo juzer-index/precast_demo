@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../sideBarMenu.dart';
+import '../load_model.dart';
 
 class CheckSession {
   final bool isCheckedIn;
@@ -16,7 +17,10 @@ class CheckSession {
 class CheckInOutPage extends StatefulWidget {
   final CheckSession? initial;
 
-  const CheckInOutPage({super.key, this.initial});
+  final dynamic tenantConfig;
+
+  const CheckInOutPage({super.key, this.initial, required this.tenantConfig});
+
 
   @override
   State<CheckInOutPage> createState() => _CheckInOutPageState();
@@ -28,6 +32,21 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
   late bool _isCheckedIn;
   DateTime? _checkInTime;
   DateTime? _checkOutTime;
+
+  List<LoadData> loads = [];
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
 
   @override
   void initState() {
@@ -139,14 +158,14 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
         ],
       ),
       // Mobile/tablet: drawer. Desktop/web: Row like homepage.
-      drawer: isWide ? null : sideBarMenu(context), // <-- EXACT homepage-style call
+      drawer: isWide ? null : SideBarMenu(context, loads, addLoadData, widget.tenantConfig), // <-- EXACT homepage-style call
       body: isWide
           ? Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),
-            child: sideBarMenu(context), // <-- EXACT homepage-style call
+            child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig), // <-- EXACT homepage-style call
           ),
           const VerticalDivider(width: 1),
           Expanded(child: content),

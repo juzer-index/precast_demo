@@ -22,7 +22,7 @@ class DispatchSchedule extends StatefulWidget {
   // ADDED: session loads & callback
   final List<LoadData> sessionLoads;
   final Function(LoadData) addLoadData;
-  const DispatchSchedule({
+  DispatchSchedule({
     Key? key,
     required this.sessionLoads,
     required this.addLoadData,

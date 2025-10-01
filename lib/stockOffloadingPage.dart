@@ -1400,10 +1400,17 @@ class _StockOffloadingState extends State<StockOffloading>
                                   }
                                 },
                                 child: const Text('Offload Items'),
+                              )
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
-                      ],
+                            ),
+                          ]),
+                      )],
+                      ),
                     ),
-                  ),
-                ])));
+    );}
   }
-}

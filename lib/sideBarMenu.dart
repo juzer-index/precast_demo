@@ -256,7 +256,7 @@ Drawer SideBarMenu(BuildContext context, List<LoadData>? loads, dynamic addLoadD
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DispatchSchedule(),
+                        builder: (context) => DispatchSchedule(sessionLoads: [], addLoadData: (LoadData ) {  },),
                       ),
                     );
                   }),

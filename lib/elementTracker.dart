@@ -601,13 +601,15 @@ class _ElementMasterState extends State<ElementMaster> {
                         ),
                       ),
 
-                ],
-              ),
             ],
           ),
-        ),
-      ),
-    ) :Scaffold(
+        );
+                },
+              ),
+            ),
+          ),
+        ],
+    ) ):Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       body: const Center(
         child: CircularProgressIndicator(),

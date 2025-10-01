@@ -406,31 +406,6 @@ class _StockLoadingState extends State<StockLoading>
                 ];
               })
             ],
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: widget.LinesOriented?[
-              Tab(
-                text: 'Line',
-              ),
-              Tab(
-                text: 'Details',
-              ),
-
-              Tab(
-                text: 'Summary',
-              ),
-              ]:[Tab(
-                text: 'Details',
-              ),
-                Tab(
-                  text: 'Line',
-                ),
-
-                Tab(
-                  text: 'Summary',
-                ),
-              ],
-            ),
           ),
           body: isPrinting
               ? const Center(
@@ -491,7 +466,7 @@ class _StockLoadingState extends State<StockLoading>
                                           controller: _tabController,
                                           children: widget.LinesOriented
                                               ? [
-                                                  if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
+                                                  if (isLoaded || widget.LinesOriented || widget.isUpdate)
                                                     SingleChildScrollView(
                                                       child: Column(
                                                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -544,6 +519,7 @@ class _StockLoadingState extends State<StockLoading>
                                                                                 0.022,
                                                                           )),
                                                                     ),
+
 
                                         ),
                                       ),
@@ -1357,86 +1333,86 @@ class _StockLoadingState extends State<StockLoading>
                                                                     debugPrint(
                                                                         selectedElements[e].toString());
                                                                     try {
-                                                                      await updateUD104A(ElementData.fromJson({
+                                                                      final  ElementData element=ElementData.fromJson({
                                                                         "Company":
                                                                         "${tenantConfigP['company']}",
 
-                                              "ChildKey1":
-                                              (e+1).toString(),
-                                              "Key1": loadIDController.text,
-                                              "Character01":
-                                              selectedElements[e].partId,
-                                              "Character02":
-                                              selectedElements[e].elementId,
-                                              "Character03":
-                                              fromWarehouseController.text,
-                                              "Character04":
-                                              selectedElements[e].fromBin,
-                                              "Character07":
-                                              toWarehouseController.text,
-                                              "Character05": toBinController.text,
-                                              "Number01": selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  : '0',
-                                              "Number03": selectedElements[e]
-                                                  .weight
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].weight.toString()
-                                                  : '0',
-                                              "Number04": selectedElements[e]
-                                                  .area
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].area.toString()
-                                                  : '0',
-                                              "Number05": selectedElements[e]
-                                                  .volume
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].volume.toString()
-                                                  : '0',
-                                              "Number06": selectedElements[e]
-                                                  .erectionSeq
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .erectionSeq.toString()
-                                                  : '0',
-                                              "ShortChar07":
-                                              selectedElements[e].UOM,
-                                              "CheckBox05": false,
-                                              "CheckBox01": true,
-                                              "CheckBox02": false,
-                                              "CheckBox03": false,
-                                              "CheckBox07": false,
-                                              "CheckBox13": false,
-                                              "Character08":
-                                              selectedElements[e].Revision,
-                                              "Character09":
-                                              selectedElements[e].UOMClass
-                                            });
-                                            await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
-                                            updateInTransit(
-                                                selectedElements[e].partId,
-                                                selectedElements[e].elementId,
-                                                tenantConfigP);
-                                            childCount++;
-                                            LineStatus[selectedElements[e].elementId]='Success';
+                                                                        "ChildKey1":
+                                                                        (e+1).toString(),
+                                                                        "Key1": loadIDController.text,
+                                                                        "Character01":
+                                                                        selectedElements[e].partId,
+                                                                        "Character02":
+                                                                        selectedElements[e].elementId,
+                                                                        "Character03":
+                                                                        fromWarehouseController.text,
+                                                                        "Character04":
+                                                                        selectedElements[e].fromBin,
+                                                                        "Character07":
+                                                                        toWarehouseController.text,
+                                                                        "Character05": toBinController.text,
+                                                                        "Number01": selectedElements[e]
+                                                                            .selectedQty
+                                                                            .toString()
+                                                                            .isNotEmpty
+                                                                            ? selectedElements[e]
+                                                                            .selectedQty
+                                                                            .toString()
+                                                                            : '0',
+                                                                        "Number03": selectedElements[e]
+                                                                            .weight
+                                                                            .toString()
+                                                                            .isNotEmpty
+                                                                            ? selectedElements[e].weight.toString()
+                                                                            : '0',
+                                                                        "Number04": selectedElements[e]
+                                                                            .area
+                                                                            .toString()
+                                                                            .isNotEmpty
+                                                                            ? selectedElements[e].area.toString()
+                                                                            : '0',
+                                                                        "Number05": selectedElements[e]
+                                                                            .volume
+                                                                            .toString()
+                                                                            .isNotEmpty
+                                                                            ? selectedElements[e].volume.toString()
+                                                                            : '0',
+                                                                        "Number06": selectedElements[e]
+                                                                            .erectionSeq
+                                                                            .toString()
+                                                                            .isNotEmpty
+                                                                            ? selectedElements[e]
+                                                                            .erectionSeq.toString()
+                                                                            : '0',
+                                                                        "ShortChar07":
+                                                                        selectedElements[e].UOM,
+                                                                        "CheckBox05": false,
+                                                                        "CheckBox01": true,
+                                                                        "CheckBox02": false,
+                                                                        "CheckBox03": false,
+                                                                        "CheckBox07": false,
+                                                                        "CheckBox13": false,
+                                                                        "Character08":
+                                                                        selectedElements[e].Revision,
+                                                                        "Character09":
+                                                                        selectedElements[e].UOMClass
+                                                                      });
+                                                                      await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
+                                                                      updateInTransit(
+                                                                          selectedElements[e].partId,
+                                                                          selectedElements[e].elementId,
+                                                                          tenantConfigP);
+                                                                      childCount++;
+                                                                      LineStatus[selectedElements[e].elementId]='Success';
 
-                                          } on HttpException  catch (error) {
+                                                                    } on HttpException  catch (error) {
 
-                                            setState(() {
-                                              LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
-                                            });
+                                                                      setState(() {
+                                                                        LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
+                                                                        });
 
-                                          }
-                                        }
+                                                                    }
+                                                                  }
                                         for (int i = 0;
                                         i < deletedSavedElements.length;
                                         i++) {
@@ -1518,7 +1494,7 @@ class _StockLoadingState extends State<StockLoading>
                             ),
                           ),
                         ),
-                      ]) : [
+                      ] : [
                         //Tab 1 Content
                         SingleChildScrollView(
                           child: Form(
@@ -1713,8 +1689,8 @@ class _StockLoadingState extends State<StockLoading>
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: TextFormField(
-                    enabled: !widget.isUpdate,
-                    onTap: () async {
+                                              enabled: !widget.isUpdate,
+                                              onTap: () async {
                                                 final TimeOfDay? time =
                                                 await showTimePicker(
                                                     context: context,
@@ -2126,7 +2102,7 @@ class _StockLoadingState extends State<StockLoading>
                                           ),
                                         )
 
-                                                                      : const Text('Create Load')),
+                                            : const Text('Create Load')),
                                                             const SizedBox(height: 20),
                                                           ],
                                                         ),
@@ -2187,6 +2163,7 @@ class _StockLoadingState extends State<StockLoading>
                                                                                 0.022,
                                                                           )),
                                                                     ),
+
 
                                         ),
                                       ),

@@ -4,6 +4,7 @@ import '../../sideBarMenu.dart';
 import '../../themeData.dart';
 import '../../loadTracker.dart';
 import '../../load_history.dart';
+import '../../load_model.dart';
 
 class DriverHomePage extends StatefulWidget {
   final int driverId;
@@ -25,9 +26,24 @@ class DriverHomePage extends StatefulWidget {
 
 class _DriverHomePageState extends State<DriverHomePage> {
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+  List<LoadData> loads = [];
 
   // Mirror check-in/out state from secondary page
   CheckSession _session = const CheckSession(isCheckedIn: false);
+
+  void addLoadData(LoadData load) {
+    setState(() {
+      for (int i = 0; i < loads.length; i++) {
+        if (loads[i].loadID == load.loadID) {
+          loads.removeAt(i);
+          break;
+        }
+      }
+    });
+    setState(() {
+      loads.add(load);
+    });
+  }
 
   String _fmtTime(DateTime? t) {
     if (t == null) return '--:--';
@@ -123,7 +139,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
                       final result = await Navigator.push<CheckSession>(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => CheckInOutPage(initial: _session),
+                          builder: (_) => CheckInOutPage(initial: _session, tenantConfig: widget.tenantConfig),
                         ),
                       );
                       if (result != null && mounted) {
@@ -175,7 +191,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
         ],
       ),
       // Mobile/tablet: use drawer. Desktop/web: Row layout (like homepage).
-      drawer: isWide ? null : sideBarMenu(context),
+      drawer: isWide ? null : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       body: isWide
           ? Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +199,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
           // Sidebar fixed on the left
           ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 260, maxWidth: 300),
-            child: sideBarMenu(context),
+            child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
           ),
           const VerticalDivider(width: 1),
           // Main content
