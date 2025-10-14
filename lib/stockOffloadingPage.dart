@@ -1283,7 +1283,7 @@ class _StockOffloadingState extends State<StockOffloading>
     element.isRecieved )
         .toList();
                                                       for (var v = 0;
-                                                          v < selectedElements.length;
+                                                          v < checkedElements.length;
                                                           v++) {
                                                         await updateUD104A({
                                                           "CheckBox01": true,
@@ -1306,7 +1306,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                                           v++) {
                                                         await updateUD104A({
                                                           "Key1": loadIDController.text,
-                                                          "Character01": arrivedParts[v].partNum,
+                                                          "Character01": checkedParts[v].partNum,
                                                           "Company":
                                                               '${widget.tenantConfig['company']}',
                                                           "CheckBox01": true,
@@ -1414,3 +1414,4 @@ class _StockOffloadingState extends State<StockOffloading>
                     ),
     );}
   }
+

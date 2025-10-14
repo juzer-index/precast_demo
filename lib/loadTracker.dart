@@ -23,6 +23,19 @@ class _LoadTrackState extends State<LoadTrack> {
   // Map controller for flutter_map
   final MapController _mapController = MapController();
 
+  // Helper: format any incoming date string to YYYY-MM-DD (date only)
+  String _formatDateOnly(String raw) {
+    if (raw.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(raw).toLocal();
+      String two(int n) => n < 10 ? '0$n' : '$n';
+      return '${dt.year}-${two(dt.month)}-${two(dt.day)}';
+    } catch (_) {
+      // Fallback: if it looks like "YYYY-MM-DD ...", take first 10 chars
+      return raw.length >= 10 ? raw.substring(0, 10) : raw;
+    }
+  }
+
   // Coordinates storage
   List<LatLng> polylineCoordinates = [];
   List<Polyline> _polylines = [];
@@ -49,6 +62,8 @@ class _LoadTrackState extends State<LoadTrack> {
   final TextEditingController siteAddress = TextEditingController();      // Will show Address1 (To)
   final TextEditingController fromWarehouseController = TextEditingController();    // Will keep showing From code/name if desired
   final TextEditingController customerSiteController = TextEditingController();
+  // NEW: status controller to show load status next to date
+  final TextEditingController loadStatusController = TextEditingController();
 
   // NEW: controllers for coordinates row (third row)
   final TextEditingController longitudeController = TextEditingController(); // To location longitude
@@ -304,6 +319,7 @@ class _LoadTrackState extends State<LoadTrack> {
   void dispose() {
     loadIDController.dispose();
     loadDateController.dispose();
+    loadStatusController.dispose();
     siteAddress.dispose();
     fromWarehouseController.dispose();
     customerSiteController.dispose();
@@ -365,7 +381,9 @@ class _LoadTrackState extends State<LoadTrack> {
                             if (loadInfo != null) {
                               setState(() {
                                 loadDateController.text =
-                                    loadInfo!.loadDate;
+                                    _formatDateOnly(loadInfo!.loadDate);
+                                loadStatusController.text =
+                                    (loadInfo!.loadStatus ?? '').toString();
                                 // fromWarehouseController will be set inside getSiteList
                                 // toWarehouseController will be Address1 set in getSiteList
                                 customerSiteController.text =
@@ -381,21 +399,46 @@ class _LoadTrackState extends State<LoadTrack> {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: loadDateController,
-                      enabled: false,
-                      decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: Theme.of(context).canvasColor),
+                  // NEW: Load Date + Status in the same row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: loadDateController,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).canvasColor),
+                              ),
+                              label: const Text('Load Date'),
+                            ),
+                          ),
                         ),
-                        label: const Text('Load Date'),
                       ),
-                    ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            controller: loadStatusController,
+                            enabled: false,
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).canvasColor),
+                              ),
+                              label: const Text('Load Status'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   // SECOND ROW: Left = From (name/code), Right = Address1 (To)
                   Row(

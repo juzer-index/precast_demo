@@ -69,14 +69,11 @@ class _HomePageState extends State<HomePage> {
         title: 'Home Page',
       ),
 
-      drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+      drawer: width>600? SizedBox(width: MediaQuery.of(context).size.width * 0.2,
+             child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
+                   :SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
       body: Row(
         children: [
-          width > 600
-              ? SizedBox(
-                width: MediaQuery.of(context).size.width * 0.2,
-              child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
-              : const SizedBox(),
           Expanded(
             child: SingleChildScrollView(
               child: Padding(

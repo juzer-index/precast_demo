@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'UserScreens/Driver/DriverHomePage.dart';
+import 'UserScreens/checkInOut.dart';
 import 'load_model.dart';
 import 'elementTracker.dart';
 import 'loginPage.dart';
@@ -180,7 +182,7 @@ Drawer SideBarMenu(BuildContext context, List<LoadData>? loads, dynamic addLoadD
                             tenantConfig: tenantConfig,
                           )));
             }),
-        if (width > 600)
+        if (width > 100)
           Column(
             children: [
               ListTile(
@@ -271,6 +273,36 @@ Drawer SideBarMenu(BuildContext context, List<LoadData>? loads, dynamic addLoadD
                       context,
                       MaterialPageRoute(
                         builder: (context) => LoadTrack(
+                          tenantConfig: tenantConfig,
+                        ),
+                      ),
+                    );
+                  }),
+              ListTile(
+                  leading: Icon(
+                    Icons.man,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  title: const Text('Driver Home Page'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DriverHomePage(driverId: 1, tenantConfig: tenantConfig, activeLoad: 15, prevLoads: 35),
+                      ),
+                    );
+                  }),
+              ListTile(
+                  leading: Icon(
+                    Icons.timelapse,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  title: const Text('Check in / check out'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CheckInOutPage(
                           tenantConfig: tenantConfig,
                         ),
                       ),

@@ -117,20 +117,50 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
           setState(
             () {
               partValue = partData['value'];
+              // Filter to only elements with status "Casted" using the specific database field
+              List<dynamic> filtered = partValue.where((e) {
+                if (e is! Map) return false;
+                final dynamic raw = e['PartLot_ElementStatus_c'];
+                if (raw == null) return false; // require explicit status to be safe
+                final String status = raw.toString().trim().toLowerCase();
+                return status == 'casted';
+              }).toList();
+
               if (widget.isInstalling) {
                 setState(() {
                   isElement = true;
-                  elementValue = partValue;
-                  elements =
-                      elementValue.map((e) => e['PartLot_LotNum']).toList();
+                  elementValue = filtered;
+                  if (elementValue.isEmpty) {
+                    isElement = false;
+                    Future.microtask(() => showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('No Results'),
+                            content: const Text('No elements found with status Casted.'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: Text('OK',
+                                      style: TextStyle(color: Theme.of(context).canvasColor)))
+                            ],
+                          ),
+                        ));
+                  } else {
+                    elements =
+                        elementValue.map((e) => e['PartLot_LotNum']).toList();
+                  }
                   isLoading = false;
                 });
               } else {
-                if (partValue[0]['Part_IsElementPart_c'] == true) {
+                // For non-installing flow, if any rows are Casted, treat as elements
+                debugPrint('Total rows: \'${partValue.length}\', casted rows: \'${filtered.length}\'');
+                if (filtered.isNotEmpty) {
                   isElement = true;
-                  elementValue = partValue;
-                  elements =
-                      elementValue.map((e) => e['PartLot_LotNum']).toList();
+                  elementValue = filtered;
+                  elements = elementValue
+                      .map((e) => e['PartLot_LotNum'])
+                      .where((v) => v != null)
+                      .toList();
                   isLoading = false;
                 } else {
                   isElement = false;
