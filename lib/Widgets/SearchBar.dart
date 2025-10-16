@@ -23,6 +23,15 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
 
     _controller.text = widget.value;
   }
+
+  @override
+  void didUpdateWidget(covariant IndexSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync text field when external value changes (e.g., user selects a Sales Order)
+    if (oldWidget.value != widget.value && !isSearching) {
+      _controller.text = widget.value;
+    }
+  }
   @override
   Widget build(BuildContext context) {
 
