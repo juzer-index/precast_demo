@@ -114,68 +114,89 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                 );
               });
         } else {
-          setState(
-            () {
-              partValue = partData['value'];
-              // Filter to only elements with status "Casted" using the specific database field
-              List<dynamic> filtered = partValue.where((e) {
-                if (e is! Map) return false;
-                final dynamic raw = e['PartLot_ElementStatus_c'];
-                if (raw == null) return false; // require explicit status to be safe
-                final String status = raw.toString().trim().toLowerCase();
-                return status == 'casted';
-              }).toList();
+          setState(() {
+            partValue = partData['value'];
+          });
 
-              if (widget.isInstalling) {
-                setState(() {
-                  isElement = true;
-                  elementValue = filtered;
-                  if (elementValue.isEmpty) {
-                    isElement = false;
-                    Future.microtask(() => showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            title: const Text('No Results'),
-                            content: const Text('No elements found with status Casted.'),
-                            actions: [
-                              TextButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  child: Text('OK',
-                                      style: TextStyle(color: Theme.of(context).canvasColor)))
-                            ],
-                          ),
-                        ));
-                  } else {
-                    elements =
-                        elementValue.map((e) => e['PartLot_LotNum']).toList();
-                  }
-                  isLoading = false;
-                });
-              } else {
-                // For non-installing flow, if any rows are Casted, treat as elements
-                debugPrint('Total rows: \'${partValue.length}\', casted rows: \'${filtered.length}\'');
-                if (filtered.isNotEmpty) {
-                  isElement = true;
-                  elementValue = filtered;
-                  elements = elementValue
-                      .map((e) => e['PartLot_LotNum'])
-                      .where((v) => v != null)
-                      .toList();
-                  isLoading = false;
-                } else {
-                  isElement = false;
-                  elementDescriptionController.text =
-                      partValue[0]['Part_PartDescription'];
-                  uomController.text = partValue[0]['Part_IUM'];
-                  onHandQtyController.text = partValue[0]
-                          ['Calculated_Calculated_OnhandQty']
-                      .toString();
-                  fromBin.text = partValue[0]['PartBin_BinNum'];
-                  isLoading = false;
-                }
-              }
-            },
-          );
+          // List<dynamic> filtered = partValue.where((e) {
+          //   // if (e is! Map) return false;
+          //   final dynamic raw = e['PartLot_ElementStatus_c'];
+          //   if (raw == null) return false; // require explicit status to be safe
+          //   final String status = raw.toString().trim().toLowerCase();
+          //   return status == 'casted';
+          // }).toList();
+           // if(filtered.isEmpty){
+           //   showDialog(
+           //       context: context,
+           //       builder: (BuildContext context) {
+           //          return AlertDialog(
+           //            title: const Text('No Results'),
+           //            content: const Text('No elements found with status Casted.'),
+           //            actions: [
+           //              TextButton(
+           //                  onPressed: () => Navigator.pop(context),
+           //                  child: Text('OK',
+           //                      style: TextStyle(color: Theme.of(context).canvasColor)))
+           //            ],
+           //          );
+           //       }
+           //    );
+           //   throw Exception('No elements found with status Casted');
+           //
+           // }
+
+
+
+          if (widget.isInstalling) {
+            setState(() {
+              isElement = true;
+              elementValue = partValue;
+              elements =
+                  elementValue.map((e) => e['PartLot_LotNum']).toList();
+              // elementValue = filtered;
+              // if (elementValue.isEmpty) {
+              //   isElement = false;
+              //   Future.microtask(() => showDialog(
+              //         context: context,
+              //         builder: (ctx) => AlertDialog(
+              //           title: const Text('No Results'),
+              //           content: const Text('No elements found with status Casted.'),
+              //           actions: [
+              //             TextButton(
+              //                 onPressed: () => Navigator.pop(ctx),
+              //                 child: Text('OK',
+              //                     style: TextStyle(color: Theme.of(context).canvasColor)))
+              //           ],
+              //         ),
+              //       ));
+              // } else {
+              //   elements =
+              //       elementValue.map((e) => e['PartLot_LotNum']).toList();
+              // }
+              isLoading = false;
+            });
+          } else {
+            if (partValue[0]['Part_IsElementPart_c'] == true) {
+              // For non-installing flow, if any rows are Casted, treat as elements
+            // debugPrint('Total rows: \'${partValue.length}\', casted rows: \'${filtered.length}\'');
+            // if (filtered.isNotEmpty) {
+              isElement = true;
+              elementValue = partValue;
+              elements =
+                  elementValue.map((e) => e['PartLot_LotNum']).toList();
+              isLoading = false;
+            } else {
+              isElement = false;
+              elementDescriptionController.text =
+                  partValue[0]['Part_PartDescription'];
+              uomController.text = partValue[0]['Part_IUM'];
+              onHandQtyController.text = partValue[0]
+                      ['Calculated_Calculated_OnhandQty']
+                  .toString();
+              fromBin.text = partValue[0]['PartBin_BinNum'];
+              isLoading = false;
+            }
+          }
         }
 
         debugPrint(partValue.length.toString());
