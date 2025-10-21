@@ -153,7 +153,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
            };
           },
           advanceSearch: true,
-            value: context.watch<ArchitectureProvider>().SO.toString(),
+            value: context.watch<ArchitectureProvider>().SO == 0
+                ? ''
+                : context.watch<ArchitectureProvider>().SO.toString(),
             onAdvanceSearch: (){
              showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
 

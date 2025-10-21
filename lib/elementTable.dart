@@ -41,8 +41,9 @@ class _ElementTableState extends State<ElementTable> {
                 onChanged: (bool? newValue) {
                   setState(() {
                     widget.selectedElements[widget.selectedElements.indexOf(row)].isRecieved = newValue ?? false;
-
-                    widget.onElementsChanged!(widget.selectedElements);
+                    if (widget.onElementsChanged != null) {
+                      widget.onElementsChanged!(widget.selectedElements);
+                    }
                   });
                 },
               ),
@@ -56,7 +57,9 @@ class _ElementTableState extends State<ElementTable> {
                 onPressed: () {
                   setState(() {
                     widget.selectedElements.remove(row);
-                    widget.onElementsChanged!(widget.selectedElements);
+                    if (widget.onElementsChanged != null) {
+                      widget.onElementsChanged!(widget.selectedElements);
+                    }
                   });
                 },
               ),
