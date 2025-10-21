@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'part_model.dart';
 import 'element_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'Providers/ArchitectureProvider.dart';
 
 
 class ElementSearchForm extends StatefulWidget {
@@ -72,6 +75,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
   bool isElement = false;
   bool isLoading = false;
   bool selectable = false;
+  bool castedFilterFeatureFlag=false;
   // bool isConsumable = false;
 
   // late Future _dataFuture;
@@ -118,13 +122,13 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
             () {
               partValue = partData['value'];
               // Filter to only elements with status "Casted" using the specific database field
-              List<dynamic> filtered = partValue.where((e) {
+              List<dynamic> filtered = castedFilterFeatureFlag? partValue.where((e) {
                 if (e is! Map) return false;
                 final dynamic raw = e['PartLot_ElementStatus_c'];
                 if (raw == null) return false; // require explicit status to be safe
                 final String status = raw.toString().trim().toLowerCase();
                 return status == 'casted';
-              }).toList();
+              }).toList(): partValue;
 
               if (widget.isInstalling) {
                 setState(() {
@@ -382,7 +386,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                               isLoading = false;
                             });
 
-                            /*   if(partValue[0]['Part_IsElementPart_c'] == true){
+                              if(partValue[0]['Part_IsElementPart_c'] == true){
                               isElement = true;
                               await getLotForElements();
 
@@ -390,7 +394,7 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                             else{
                               isElement = false;
                               await getConsumableDetails(elementNumberController.text);
-                            }*/
+                            }
                           }
                         }
                         if (widget.isOffloading) {
@@ -875,132 +879,169 @@ class _ElementSearchFormState extends State<ElementSearchForm> {
                 onPressed: !selectable
                     ? () => null
                     : () {
-                        String key = '';
-                        if (widget.isOffloading) {
-                          key = widget.arrivedElements!
-                              .where((element) =>
-                                  element.elementId == lotNoController.text)
-                              .first
-                              .ChildKey1;
-                        }
-                        if (isElement &&
-                            totalElements
-                                .where((element) =>
-                                    element.elementId == lotNoController.text)
-                                .isEmpty &&
-                            lotNoController.text.isNotEmpty) {
-                          setState(() {
-                            selectedElements.add(ElementData(
+                  // check if the parts in the sales order contains the part number
+                   if( context.read<ArchitectureProvider>().Lines!.map((e) => e['OrderDtl_PartNum'].toString().toLowerCase()).toList().contains(elementNumberController.text.toLowerCase()) ) {
+                     String key = '';
+                     if (widget.isOffloading) {
+                       key = widget.arrivedElements!
+                           .where((element) =>
+                       element.elementId == lotNoController.text)
+                           .first
+                           .ChildKey1;
+                     }
+                     if (isElement &&
+                         totalElements
+                             .where((element) =>
+                         element.elementId == lotNoController.text)
+                             .isEmpty &&
+                         lotNoController.text.isNotEmpty) {
+                       setState(() {
+                         selectedElements.add(ElementData(
 
-                              Company: widget.tenantConfig['company'],
-                              partId: elementNumberController.text,
-                              elementId: lotNoController.text,
-                              elementDesc: elementDescriptionController.text,
-                              erectionSeq: num.tryParse(erectionSeqController.text)??0.0,
-                              erectionDate: estErectionDateController.text,
-                              UOM: uomController.text,
-                              weight: double.tryParse(weightController.text)??0.0,
-                              area: double.tryParse(areaController.text)??0.0,
-                              volume: double.tryParse(volumeController.text)??0.0,
-                              quantity: int.tryParse(onHandQtyController.text)??0,
-                              selectedQty: int.tryParse(selectedQtyController.text)??0,
-                              ChildKey1: widget.isOffloading
-                                  ? key.toString()
-                                  : '${specifyMaxChildKey() + 1}',
-                              fromBin: fromBin.text,
-                              Warehouse: widget.Warehouse,
-                              Revision: "", /// to be done
-                              UOMClass: "",
-                            ));
+                           Company: widget.tenantConfig['company'],
+                           partId: elementNumberController.text,
+                           elementId: lotNoController.text,
+                           elementDesc: elementDescriptionController.text,
+                           erectionSeq: num.tryParse(
+                               erectionSeqController.text) ?? 0.0,
+                           erectionDate: estErectionDateController.text,
+                           UOM: uomController.text,
+                           weight: double.tryParse(weightController.text) ??
+                               0.0,
+                           area: double.tryParse(areaController.text) ?? 0.0,
+                           volume: double.tryParse(volumeController.text) ??
+                               0.0,
+                           quantity: int.tryParse(onHandQtyController.text) ??
+                               0,
+                           selectedQty: int.tryParse(
+                               selectedQtyController.text) ?? 0,
+                           ChildKey1: widget.isOffloading // the logic behind the lines
+                               ? key.toString()
+                               : '${specifyMaxChildKey() + 1}',
+                           fromBin: fromBin.text,
+                           Warehouse: widget.Warehouse,
+                           Revision: "",
+
+                           /// to be done
+                           UOMClass: "",
+                         ));
+                       });
+                     }
+                     if (!isElement) {
+                       if (int.parse(onHandQtyController.text) <
+                           int.parse(selectedQtyController.text)) {
+                         showDialog(
+                             context: context,
+                             builder: (BuildContext context) {
+                               return AlertDialog(
+                                 title: const Text('Error'),
+                                 content: const Text(
+                                     'Selected quantity cannot be greater than on hand quantity'),
+                                 actions: <Widget>[
+                                   TextButton(
+                                     onPressed: () {
+                                       Navigator.of(context).pop();
+                                     },
+                                     child: Text('OK',
+                                         style: TextStyle(
+                                             color: Theme
+                                                 .of(context)
+                                                 .canvasColor)),
+                                   ),
+                                 ],
+                               );
+                             });
+                       }
+                       if (selectedQtyController.text == '') {
+                         showDialog(
+                             context: context,
+                             builder: (BuildContext context) {
+                               return AlertDialog(
+                                 title: const Text('Error'),
+                                 content: const Text(
+                                     'Selected quantity cannot be empty'),
+                                 actions: <Widget>[
+                                   TextButton(
+                                     onPressed: () {
+                                       Navigator.of(context).pop();
+                                     },
+                                     child: Text('OK',
+                                         style: TextStyle(
+                                             color: Theme
+                                                 .of(context)
+                                                 .canvasColor)),
+                                   ),
+                                 ],
+                               );
+                             });
+                       } else {
+                         if (selectedParts.contains(PartData(
+                             partNum: elementNumberController.text,
+                             partDesc: elementDescriptionController.text,
+                             uom: uomController.text,
+                             qty: selectedQtyController.text))) {
+                           showDialog(
+                               context: context,
+                               builder: (BuildContext context) {
+                                 return AlertDialog(
+                                   title: const Text('Error'),
+                                   content:
+                                   const Text('Part already selected'),
+                                   actions: <Widget>[
+                                     TextButton(
+                                       onPressed: () {
+                                         Navigator.of(context).pop();
+                                       },
+                                       child: Text('OK',
+                                           style: TextStyle(
+                                               color: Theme
+                                                   .of(context)
+                                                   .canvasColor)),
+                                     ),
+                                   ],
+                                 );
+                               });
+                         } else {
+                           selectedParts.add(PartData(
+                               partNum: elementNumberController.text,
+                               partDesc: elementDescriptionController.text,
+                               uom: uomController.text,
+                               qty: selectedQtyController.text));
+                         }
+                       }
+                     }
+                     totalElements += selectedElements;
+                     setState(() {
+                       selectedElements.clear();
+                     });
+
+                     widget.onElementsSelected(
+                         totalElements, selectedParts);
+                   }else{
+                     // show error dialog part not in sales order
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text('Error'),
+                              content: const Text(
+                                  'Part not found in Sales Order'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text('OK',
+                                      style: TextStyle(
+                                          color: Theme
+                                              .of(context)
+                                              .canvasColor)),
+                                ),
+                              ],
+                            );
                           });
-                        }
-                        if (!isElement) {
-                          if (int.parse(onHandQtyController.text) <
-                              int.parse(selectedQtyController.text)) {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Error'),
-                                    content: const Text(
-                                        'Selected quantity cannot be greater than on hand quantity'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text('OK',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .canvasColor)),
-                                      ),
-                                    ],
-                                  );
-                                });
-                          }
-                          if (selectedQtyController.text == '') {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Error'),
-                                    content: const Text(
-                                        'Selected quantity cannot be empty'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text('OK',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .canvasColor)),
-                                      ),
-                                    ],
-                                  );
-                                });
-                          } else {
-                            if (selectedParts.contains(PartData(
-                                partNum: elementNumberController.text,
-                                partDesc: elementDescriptionController.text,
-                                uom: uomController.text,
-                                qty: selectedQtyController.text))) {
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Error'),
-                                      content:
-                                          const Text('Part already selected'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text('OK',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .canvasColor)),
-                                        ),
-                                      ],
-                                    );
-                                  });
-                            } else {
-                              selectedParts.add(PartData(
-                                  partNum: elementNumberController.text,
-                                  partDesc: elementDescriptionController.text,
-                                  uom: uomController.text,
-                                  qty: selectedQtyController.text));
-                            }
-                          }
-                        }
-                        totalElements += selectedElements;
-                        setState(() {
-                          selectedElements.clear();
-                        });
+                   }
 
-                        widget.onElementsSelected(
-                            totalElements, selectedParts);
                       },
                 child: const Text('Select'),
                 style: !selectable

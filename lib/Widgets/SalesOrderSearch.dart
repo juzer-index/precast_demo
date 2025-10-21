@@ -33,7 +33,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
       var data = await APIV2Helper.getResults(
           '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
               '/v1/'
-              'Erp.BO.SalesOrderSvc/OrderDtls?\$filter=OrderNum eq $OrderNum&\$select=OrderLine '
+              'BaqSvc/IIT_OrderDtl/?OrderNum=$OrderNum'
               ' ',
           {
             'username': tenantConfig['userID'],
@@ -80,7 +80,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   @override
   @override
   void initState() {
-    // TODO: implement initState
+
     if(context.read<ArchitectureProvider>().SO!=0){
       getCustomerShipments(context.read<ArchitectureProvider>().SO).then((value) {
         setState(() {
@@ -97,19 +97,18 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   onSalesOrderSelected(dynamic item) async {
     int salesOrder= int.parse((item as Map<String,dynamic>)['OrderNum'].toString());
 
-    setState(() {
-      context.read<ArchitectureProvider>().updateSO(int.parse((item)['OrderNum'].toString()));
+       context.read<ArchitectureProvider>().updateSO(int.parse((item)['OrderNum'].toString()));
       context.read<ArchitectureProvider>().updateCust((item)['CustNum']);
       context.read<ArchitectureProvider>().updateCustId((item)['Customer']);
-    });
 
-    dynamic data = await Future.wait([getCustomerShipments(salesOrder)]);
 
-    setState(() {
+    dynamic data = await Future.wait([getCustomerShipments(salesOrder),getSalesOrderLines((item)['OrderNum'])]);
 
-      context.read<ArchitectureProvider>().setShipments(data[0]);
 
-    });
+   if(mounted) {
+     context.read<ArchitectureProvider>().setShipments(data[0]);
+     context.read<ArchitectureProvider>().setLines(data[1]);
+   }
   }
     return
       Column(
@@ -122,7 +121,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
              var data = await APIV2Helper.getResults(
                  '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
                      '/v1/'
-                     'BaqSvc/IIT_Cust_SO/\$filter=OrderHed_OrderNum eq $term',
+                     'BaqSvc/IIT_Cust_SO/?\$filter=OrderHed_OrderNum eq $term',
 
                  {"username": context
                      .read<tenantConfigProvider>()
@@ -131,18 +130,21 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
                        .read<tenantConfigProvider>()
                        .tenantConfig['password']}
                  , entity: "Sales Order");
-             if(data.isNotEmpty){
+             if(data.isNotEmpty && mounted){
                context.read<ArchitectureProvider>().updateSO(data[0]['OrderHed_OrderNum'].toInt());
                 context.read<ArchitectureProvider>().updateCust(data[0]['Customer_CustNum']);
                 context.read<ArchitectureProvider>().updateCustId(data[0]['Customer_CustID']);
              }
-             dynamic Shipments = await Future.wait([getCustomerShipments(data[0]['OrderHed_OrderNum'].toInt())]);
+             dynamic res = await Future.wait([getCustomerShipments(data[0]['OrderHed_OrderNum'].toInt()),getSalesOrderLines(data[0]['OrderHed_OrderNum'].toInt())]);
 
-             setState(() {
 
-               context.read<ArchitectureProvider>().setShipments(Shipments[0]);
 
-             });
+             if(mounted) {
+               context.read<ArchitectureProvider>().setShipments(res[0]);
+               context.read<ArchitectureProvider>().setLines(res[1]);
+             }
+
+
            }on NotFoundException catch(e){
              showDialog(context: context, builder: (BuildContext context) => AlertDialog(
                title: Text("Error"),
@@ -188,7 +190,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
                  ),
                  items: context.watch<ArchitectureProvider>().customerShipments?.map((e) => e['ShipTo_ShipToNum']).toList() ?? [],
                  onChanged: (value) {
-                   setState(() {
+                   if(mounted) setState(() {
                      context.read<ArchitectureProvider>().updateShipment(value);
                      _customerShipcontroller.text = value;
                    });

@@ -22,6 +22,7 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
     super.initState();
 
     _controller.text = widget.value;
+
   }
   @override
   Widget build(BuildContext context) {
@@ -58,14 +59,18 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
                 return;
               }
            try {
-             setState(() {
-                isSearching = true;
-             });
-             await widget.onSearch(_controller.text);
+                if(mounted) {
+                  setState
+                    (() {
+                    isSearching = true;
+                  });
+                  await widget.onSearch(_controller.text);
 
-             setState(() {
-                isSearching = false;
-             });
+                  setState(() {
+
+                    isSearching = false;
+                  });
+                }
             }
             on NotFoundException catch (e) {
                 setState(() {
@@ -88,12 +93,13 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
 
                  }
             catch (e) {
+                if(mounted)
               setState(() {
                 isSearching = false;
                 _controller.clear();
               });
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()),));
-
+              debugPrint(e.toString());
             }
             },
           ): CircularProgressIndicator(),

@@ -1416,7 +1416,7 @@ class _StockLoadingState extends State<StockLoading>
                     TextButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        context.read<loadStateProvider>().setLinesLoaded(true);
+                       if(mounted) context.read<loadStateProvider>().setLinesLoaded(true);
                       },
                       child: const Text('OK'),
                     ),
@@ -3035,6 +3035,27 @@ class _StockLoadingState extends State<StockLoading>
     }
   }
 
+
+
+    int specifytheOrderLine(String partNum){
+    List<dynamic> orderLines = context.read<ArchitectureProvider>().Lines;
+      List<dynamic> linesQty = context.read<ArchitectureProvider>().linesQty;
+      for (var orderLine in orderLines) {
+        if (orderLine["OrderDtl_PartNum"] == partNum) {
+          var matches = linesQty.where((lineQty) => lineQty['LineNum'] == orderLine['OrderDtl_OrderLine']).toList();
+          if (matches.isEmpty) continue;
+          var qtyLine = matches.first;
+          if (qtyLine['QtyToShip'] <= 0) {
+            continue;
+          }
+          context.read<ArchitectureProvider>().DecrementLineQty(qtyLine['LineNum']);
+          return int.parse(qtyLine['LineNum'].toString());
+
+        }
+      }
+      throw Exception("All order lines for part $partNum are fully shipped.");
+    }
+
   Future<void> updateUD104A(
       ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
     try {
@@ -3043,7 +3064,8 @@ class _StockLoadingState extends State<StockLoading>
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
-        OrderLine: int.parse(UD104AData.ChildKey1),
+        OrderLine: specifytheOrderLine(UD104AData.partId), // changing the order line to map to the first line that matches the sales Order ,,
+
         OrderNum: context.read<ArchitectureProvider>().SO,
         OrderRelNum: 1,
        RevisionNum: UD104AData.Revision,
@@ -3112,7 +3134,7 @@ class _StockLoadingState extends State<StockLoading>
             CustShipHeadresponse.statusCode < 300
         ) {
           debugPrint(response.body);
-          setState(() {
+          if(mounted)setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
           });
