@@ -33,6 +33,7 @@ import 'utils/APIProviderV2.dart';
 import './element_model.dart';
 import'./Models/CustomerShipment.dart';
 import '../Providers/LoadStateProvider.dart';
+import 'Providers/LoadHistoryProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   late final bool isUpdate;
@@ -2545,9 +2546,15 @@ class _StockLoadingState extends State<StockLoading>
 
   // ADD: central helper to register current load in parent session list
   void _pushCurrentLoadToSession() {
-    if (currentLoad != null && widget.addLoadData != null) {
+    if (currentLoad != null) {
       try {
-        widget.addLoadData(currentLoad);
+        // Use the global LoadHistoryProvider
+        context.read<LoadHistoryProvider>().addLoad(currentLoad!);
+
+        // Also call the widget callback if provided for backward compatibility
+        if (widget.addLoadData != null) {
+          widget.addLoadData(currentLoad);
+        }
       } catch (_) {}
     }
   }

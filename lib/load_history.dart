@@ -5,6 +5,8 @@ import 'stockLoadingPage.dart';
 import 'sideBarMenu.dart';
 import 'package:provider/provider.dart';
 import 'load_model.dart';
+import 'Providers/LoadHistoryProvider.dart';
+
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
 
@@ -108,7 +110,8 @@ class _LoadHistoryState extends State<LoadHistory> {
   @override
   // TODO: implement widget
   Widget build(BuildContext context){
-    final sessionLoads = widget.loads; // ensure we use the passed updated list
+    // Fetch loads from the global provider instead of just using widget.loads
+    final sessionLoads = context.watch<LoadHistoryProvider>().sessionLoads;
     final hasLoads = sessionLoads.isNotEmpty;
     final width = MediaQuery.of(context).size.width;
 

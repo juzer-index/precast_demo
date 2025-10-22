@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io' as io show HttpOverrides, SecurityContext, HttpClient;
 import 'package:flutter/foundation.dart'; // for kIsWeb
 import '../Providers/LoadStateProvider.dart';
+import 'Providers/LoadHistoryProvider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -33,6 +34,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => ArchitectureProvider()),
         ChangeNotifierProvider(create: (context) => LoadProvider()),
         ChangeNotifierProvider(create: (context) => loadStateProvider()),
+        ChangeNotifierProvider(create: (context) => LoadHistoryProvider()),
       ],
       child: const MyApp(),
     ),
