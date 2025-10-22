@@ -530,14 +530,6 @@ class _StockLoadingState extends State<StockLoading>
                                                   ElementTable(
                                                     selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
                                                     DeletededSaveElements: widget.isUpdate ? deletedSavedElements : null,
-                                                    onElementsChanged: (list) {
-                                                      setState(() {
-                                                        if (!widget.LinesOriented) {
-                                                          selectedElements = list;
-                                                        }
-                                                        updateLoadedController();
-                                                      });
-                                                    },
                                                   ),
                                                   const SizedBox(
                                                     height: 20,
@@ -1267,16 +1259,7 @@ class _StockLoadingState extends State<StockLoading>
                                 ),
                               ),
                               ElementTable(
-                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements,
-                                  onElementsChanged: (list) {
-                                    setState(() {
-                                      if (!widget.LinesOriented) {
-                                        selectedElements = list;
-                                      }
-                                      updateLoadedController();
-                                    });
-                                  }
-                              ),
+                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
@@ -1291,7 +1274,6 @@ class _StockLoadingState extends State<StockLoading>
                               const SizedBox(
                                 height: 20,
                               ),
-                               !context.watch<loadStateProvider>().linesLoaded?
                               ElevatedButton(
 
                                   onPressed: () async {
@@ -1307,7 +1289,7 @@ class _StockLoadingState extends State<StockLoading>
                                         debugPrint(
                                             selectedElements[e].toString());
                                         try {
-                                          await updateUD104A(ElementData.fromJson({
+                                          final  ElementData element=ElementData.fromJson({
                                             "Company":
                                             "${tenantConfigP['company']}",
 
@@ -1370,7 +1352,8 @@ class _StockLoadingState extends State<StockLoading>
                                             selectedElements[e].Revision,
                                             "Character09":
                                             selectedElements[e].UOMClass
-                                          }), tenantConfigP ,last: e==selectedElements.length-1);
+                                          });
+                                          await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
                                           updateInTransit(
                                               selectedElements[e].partId,
                                               selectedElements[e].elementId,
@@ -1382,90 +1365,91 @@ class _StockLoadingState extends State<StockLoading>
 
                                           setState(() {
                                             LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
-                                          });
+                                            });
 
                                         }
                                       }
-                                      for (int i = 0;
-                                      i < deletedSavedElements.length;
-                                      i++) {
-                                        try {
-                                          await deleteUD104A(
-                                              deletedSavedElements[i],
-                                              tenantConfigP);
-                                          LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
-                                        } catch (e) {
-                                          setState(() {
-                                            LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
-                                          });
-                                        }
-                                      }
-                                      for (var p = 0;
-                                      p < selectedParts.length;
-                                      p++) {
-                                        debugPrint(selectedParts[p].toString());
-                                        await updateUD104A(ElementData.fromJson({
-                                          "ChildKey1":
-                                          (p + 1).toString(),
-                                          "Company":
-                                          "${tenantConfigP['company']}",
-                                          "Key1": loadIDController.text,
-                                          "Character01":
-                                          selectedParts[p].partNum,
-                                          "Character02":
-                                          selectedParts[p].partDesc,
-                                          "Character03":
-                                          toWarehouseController.text,
-                                          "Character04": toBinController.text,
-                                          "Number01": selectedParts[p].qty,
-                                          "ShortChar07": selectedParts[p].uom,
-                                          "CheckBox13": true,
-                                        }), tenantConfigP);
-                                      }
-                                      if (mounted) {
-                                        String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
-                                        showDialog(context: context, builder:
-                                            (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Result'),
-                                            content: Text(resultMessage),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          );
-                                        }
-                                        );
-                                      }}
-                                    setState(() {
-                                      SaveLinesLoading = false;
-                                       context.read<loadStateProvider>().setLinesLoaded(true);
-                                    });
-                                  },
-                                  child: SaveLinesLoading?
-                                  Padding(
+            for (int i = 0;
+            i < deletedSavedElements.length;
+            i++) {
+              try {
+                await deleteUD104A(
+                    deletedSavedElements[i],
+                    tenantConfigP);
+                LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
+              } catch (e) {
+                setState(() {
+                  LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
+                });
+              }
+            }
+            for (var p = 0;
+            p < selectedParts.length;
+            p++) {
+              debugPrint(selectedParts[p].toString());
+              await updateUD104A(ElementData.fromJson({
+                "ChildKey1":
+                (p + 1).toString(),
+                "Company":
+                "${tenantConfigP['company']}",
+                "Key1": loadIDController.text,
+                "Character01":
+                selectedParts[p].partNum,
+                "Character02":
+                selectedParts[p].partDesc,
+                "Character03":
+                toWarehouseController.text,
+                "Character04": toBinController.text,
+                "Number01": selectedParts[p].qty,
+                "ShortChar07": selectedParts[p].uom,
+                "CheckBox13": true,
+              }), tenantConfigP);
+            }
 
-                                    padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
-                                    child: Container(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                            Theme.of(context).shadowColor),
-                                      ),
-                                    ),
-                                  )
-                                      :const Text(
-                                    'Load Lines',
-                                  )):SizedBox(),
-                            ],
-                          ),
-                        ),
-                      ),
+            if (mounted) {
+              String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+              showDialog(context: context, builder:
+                  (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Result'),
+                  content: Text(resultMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                       if(mounted) context.read<loadStateProvider>().setLinesLoaded(true);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              }
+              );
+            }}
+          setState(() {
+            SaveLinesLoading = false;
+          });
+        },
+        child: SaveLinesLoading?
+        Padding(
+
+          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+          child: Container(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).shadowColor),
+            ),
+          ),
+        )
+            :const Text(
+          'Load Lines',
+        )),
+  ],
+),
+),
+),
                     ] : [
                       //Tab 1 Content
                       SingleChildScrollView(
@@ -2009,7 +1993,7 @@ class _StockLoadingState extends State<StockLoading>
                                               "Character08":context.read<ArchitectureProvider>().selectedShipment,
 
 
-                                              "Character09": resourceId,
+                                              "Character09": resourceIdController.text,
                                               "Character10": context.read<ArchitectureProvider>().Project.toString(),
                                               "Character06": fromWarehouseController.text,
                                               //  "Createdby_c": entryPersonController?.text.toString().trim(),
@@ -2157,15 +2141,9 @@ class _StockLoadingState extends State<StockLoading>
                               ),
                               ElementTable(
                                 selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
-                                DeletededSaveElements: widget.isUpdate ? deletedSavedElements : null,
-                                onElementsChanged: (list) {
-                                  setState(() {
-                                    if (!widget.LinesOriented) {
-                                      selectedElements = list;
-                                    }
-                                    updateLoadedController();
-                                  });
-                                },
+                                DeletededSaveElements: widget.isUpdate
+                                    ? deletedSavedElements
+                                    : null,
                               ),
                               const SizedBox(
                                 height: 20,
@@ -2315,16 +2293,7 @@ class _StockLoadingState extends State<StockLoading>
                                 ),
                               ),
                               ElementTable(
-                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements,
-                                  onElementsChanged: (list) {
-                                    setState(() {
-                                      if (!widget.LinesOriented) {
-                                        selectedElements = list;
-                                      }
-                                      updateLoadedController();
-                                    });
-                                  }
-                              ),
+                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: Text(
@@ -2514,13 +2483,20 @@ class _StockLoadingState extends State<StockLoading>
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                )
-                        )]))]))]);
-                }
+                    ]
 
-                ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }),
         ),
       ),
     );
@@ -3066,6 +3042,27 @@ class _StockLoadingState extends State<StockLoading>
     }
   }
 
+
+
+    int specifytheOrderLine(String partNum){
+    List<dynamic> orderLines = context.read<ArchitectureProvider>().Lines;
+      List<dynamic> linesQty = context.read<ArchitectureProvider>().linesQty;
+      for (var orderLine in orderLines) {
+        if (orderLine["OrderDtl_PartNum"] == partNum) {
+          var matches = linesQty.where((lineQty) => lineQty['LineNum'] == orderLine['OrderDtl_OrderLine']).toList();
+          if (matches.isEmpty) continue;
+          var qtyLine = matches.first;
+          if (qtyLine['QtyToShip'] <= 0) {
+            continue;
+          }
+          context.read<ArchitectureProvider>().DecrementLineQty(qtyLine['LineNum']);
+          return int.parse(qtyLine['LineNum'].toString());
+
+        }
+      }
+      throw Exception("All order lines for part $partNum are fully shipped.");
+    }
+
   Future<void> updateUD104A(
       ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
     try {
@@ -3074,7 +3071,8 @@ class _StockLoadingState extends State<StockLoading>
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
-        OrderLine: int.parse(UD104AData.ChildKey1),
+        OrderLine: specifytheOrderLine(UD104AData.partId), // changing the order line to map to the first line that matches the sales Order ,,
+
         OrderNum: context.read<ArchitectureProvider>().SO,
         OrderRelNum: 1,
        RevisionNum: UD104AData.Revision,
@@ -3143,7 +3141,7 @@ class _StockLoadingState extends State<StockLoading>
             CustShipHeadresponse.statusCode < 300
         ) {
           debugPrint(response.body);
-          setState(() {
+          if(mounted)setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
           });
