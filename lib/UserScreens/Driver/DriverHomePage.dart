@@ -1,10 +1,12 @@
+import 'package:GoCastTrack/indexAppBar.dart';
 import 'package:flutter/material.dart';
-import '../checkInOut.dart';
+import '../CheckInOut.dart';
 import '../../sideBarMenu.dart';
 import '../../themeData.dart';
 import '../../loadTracker.dart';
 import '../../load_history.dart';
 import '../../load_model.dart';
+import '../../Widgets/Notifications.dart';
 
 class DriverHomePage extends StatefulWidget {
   final int driverId;
@@ -139,7 +141,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
                       final result = await Navigator.push<CheckSession>(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => CheckInOutPage(initial: _session, tenantConfig: widget.tenantConfig),
+                          builder: (context) => CheckInOutPage(initial: _session, tenantConfig: widget.tenantConfig),
                         ),
                       );
                       if (result != null && mounted) {
@@ -164,31 +166,9 @@ class _DriverHomePageState extends State<DriverHomePage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.white,
-      appBar: AppBar(
+      appBar: IndexAppBar(
         // backgroundColor: theme.primaryColor,
-        elevation: 0,
-        leading: isWide
-            ? null
-            : IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          tooltip: 'Menu',
-        ),
-        title: const Text('Driver', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
-            tooltip: 'Notifications',
-            onPressed: () => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('No new notifications'))),
-          ),
-          IconButton(
-            icon: const Icon(Icons.home_rounded, color: Colors.white),
-            tooltip: 'Home',
-            onPressed: () => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('You are on Home'))),
-          ),
-        ],
+        title: 'Driver',
       ),
       // Mobile/tablet: use drawer. Desktop/web: Row layout (like homepage).
       drawer: isWide ? null : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
