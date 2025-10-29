@@ -484,49 +484,48 @@ class _LoadTrackState extends State<LoadTrack> {
                       ),
                     ],
                   ),
-                  // THIRD ROW: UPDATED to show Longitude & Latitude (for the To site)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: longitudeController,
-                            enabled: false,
-                            decoration: InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color:
-                                    Theme.of(context).canvasColor),
-                              ),
-                              label: const Text('Longitude'),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextFormField(
-                            controller: latitudeController,
-                            enabled: false,
-                            decoration: InputDecoration(
-                              fillColor: Colors.white,
-                              filled: true,
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color:
-                                    Theme.of(context).canvasColor),
-                              ),
-                              label: const Text('Latitude'),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: Padding(
+                  //         padding: const EdgeInsets.all(8.0),
+                  //         child: TextFormField(
+                  //           controller: longitudeController,
+                  //           enabled: false,
+                  //           decoration: InputDecoration(
+                  //             fillColor: Colors.white,
+                  //             filled: true,
+                  //             border: OutlineInputBorder(
+                  //               borderSide: BorderSide(
+                  //                   color:
+                  //                   Theme.of(context).canvasColor),
+                  //             ),
+                  //             label: const Text('Longitude'),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Expanded(
+                  //       child: Padding(
+                  //         padding: const EdgeInsets.all(8.0),
+                  //         child: TextFormField(
+                  //           controller: latitudeController,
+                  //           enabled: false,
+                  //           decoration: InputDecoration(
+                  //             fillColor: Colors.white,
+                  //             filled: true,
+                  //             border: OutlineInputBorder(
+                  //               borderSide: BorderSide(
+                  //                   color:
+                  //                   Theme.of(context).canvasColor),
+                  //             ),
+                  //             label: const Text('Latitude'),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Container(
