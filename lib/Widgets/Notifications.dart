@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:GoCastTrack/indexAppBar.dart';
-import '../sideBarMenu.dart';
 import 'Cards/NotificationCard.dart';
-import 'package:GoCastTrack/load_model.dart';
+import 'package:provider/provider.dart';
+import '../Providers/NotificationsProvider.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -13,27 +13,74 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   @override
+  void initState() {
+    super.initState();
+    // Start SQS polling when entering screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationsProvider>().startListening();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Optionally keep listening in background; here we stop when leaving page
+    // context.read<NotificationsProvider>().stopListening();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<NotificationsProvider>();
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: IndexAppBar(
-        title: 'Notifications',
-      ),
-        // drawer: width>600? SizedBox(width: MediaQuery.of(context).size.width * 0.2,
-        //     child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
-        //     :SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-        child: ListView(
-          children: const [
-            NotificationCard(),
-            NotificationCard(),
-            NotificationCard(),
+      appBar: const IndexAppBar(title: 'Notifications'),
+      body: RefreshIndicator(
+        onRefresh: () => provider.startListening(),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                color: Colors.yellow.shade100,
+                child: Text(
+                  'Status: ${provider.status}',
+                  style: const TextStyle(fontFamily: 'monospace'),
+                ),
+              ),
+            ),
+            if (provider.messages.isEmpty)
+              const SliverFillRemaining(
+                child: Center(child: Text('No notifications yet')),
+              )
+            else
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final m = provider.messages[index];
+                    return NotificationCard(
+                      title: m.title,
+                      subtitle: m.body,
+                      onTap: () {},
+                    );
+                  },
+                  childCount: provider.messages.length,
+                ),
+              ),
           ],
         ),
-      )
-
-
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await provider.sendTest('Test from app', 'Hello from Flutter');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Test message published')),
+            );
+          }
+        },
+        label: const Text('Send test'),
+        icon: const Icon(Icons.send),
+      ),
     );
   }
 }

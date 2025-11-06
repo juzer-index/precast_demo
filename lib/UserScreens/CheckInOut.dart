@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../sideBarMenu.dart';
 import '../load_model.dart';
+import 'package:GoCastTrack/Widgets/Notifications.dart';
 
 class CheckSession {
   final bool isCheckedIn;
@@ -147,8 +148,12 @@ class _CheckInOutPageState extends State<CheckInOutPage> {
           IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
             tooltip: 'Notifications',
-            onPressed: () => ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('No new notifications'))),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsPage()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.home_rounded, color: Colors.white),
