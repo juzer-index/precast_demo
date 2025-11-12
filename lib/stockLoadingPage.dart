@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'sideBarMenu.dart';
 import 'package:GoCastTrack/Providers/LoadProvider.dart';
 
 import 'Models/EpicorError.dart';
@@ -22,7 +22,6 @@ import 'package:intl/intl.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
-
 import 'Providers/UserManagement.dart';
 import 'Providers/tenantConfig.dart';
 import 'Widgets/DropDown.dart';
@@ -34,222 +33,226 @@ import 'utils/APIProviderV2.dart';
 import './element_model.dart';
 import'./Models/CustomerShipment.dart';
 import '../Providers/LoadStateProvider.dart';
+import 'Providers/LoadHistoryProvider.dart';
 class StockLoading extends StatefulWidget {
   final int initialTabIndex;
   late final bool isUpdate;
   final List<LoadData> loadDataList;
   final dynamic addLoadData;
+  dynamic tenantConfig;
   final String historyLoadID;
   late bool LinesOriented;
   late List<ElementData> passedElements;
   late int custNum;
 
-
    StockLoading(
-      {super.key,
+    {super.key,
       required this.initialTabIndex,
-       this.isUpdate=false,
-       this.loadDataList=const [],
-       this.addLoadData=null,
+      this.isUpdate=false,
+      this.loadDataList=const [],
+      this.addLoadData=null,
       this.historyLoadID = '',
       this.LinesOriented = false,
       this.passedElements=const [],
       this.custNum=0,
-
-      }
-
-       );
-
+    }
+   );
 
   @override
   State<StockLoading> createState() => _StockLoadingState();
 }
 
 class _StockLoadingState extends State<StockLoading>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  TextEditingController dateController =  TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
-  TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
-  TextEditingController truckController = TextEditingController();
-  TextEditingController loadIDController = TextEditingController();
-  String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-  String loadTypeValue = 'Issue Load';
-  String loadConditionValue = 'Internal Truck';
-  String inputTypeValue = 'Manual';
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final GlobalKey<FormState> _truckKey = GlobalKey<FormState>();
-  TextEditingController projectIdController = TextEditingController();
-  TextEditingController fromWarehouseController = TextEditingController();
-  TextEditingController toWarehouseController = TextEditingController();
-  TextEditingController toWarehouseNameController = TextEditingController();
+  with SingleTickerProviderStateMixin {
+    late TabController _tabController;
+    TextEditingController dateController =  TextEditingController(text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
+    TextEditingController loadTimeController = TextEditingController(text: DateFormat('HH:mm').format(DateTime.now()));
+    TextEditingController truckController = TextEditingController();
+    TextEditingController loadIDController = TextEditingController();
+    String _selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    String loadTypeValue = 'Issue Load';
+    String loadConditionValue = 'Internal Truck';
+    String inputTypeValue = 'Manual';
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> _truckKey = GlobalKey<FormState>();
+    TextEditingController projectIdController = TextEditingController();
+    TextEditingController fromWarehouseController = TextEditingController();
+    TextEditingController toWarehouseController = TextEditingController();
+    TextEditingController toWarehouseNameController = TextEditingController();
+    TextEditingController toBinController = TextEditingController();
+    TextEditingController toBinNameController = TextEditingController();
+    TextEditingController? poNumberController = TextEditingController();
+    TextEditingController? poLineController = TextEditingController();
+    TextEditingController? commentsController = TextEditingController();
+    TextEditingController? entryPersonController = TextEditingController();
+    TextEditingController? deviceIDController = TextEditingController();
+    List<ElementData> selectedElements = [];
+    List<PartData> selectedParts = [];
+    String resourceId = '';
+    LoadData? currentLoad;
+    int childCount = 1;
+    Map<String, dynamic> fetchedProjectData = {};
+    List<dynamic> fetchedProjectValue = [];
+    bool back = false;
+    Map<String, dynamic> fetchedWarehouseData = {};
+    List<dynamic> fetchedWarehouseValue = [];
+    Map<String, dynamic> fetchedBinData = {};
+    List<dynamic> fetchedBinValue = [];
+    TextEditingController truckIdController = TextEditingController();
+    TextEditingController resourceIdController = TextEditingController();
+    TextEditingController driverNameController = TextEditingController();
+    TextEditingController transporterNameController = TextEditingController();
+    TextEditingController plateNumberController = TextEditingController();
+    TextEditingController driverNumberController = TextEditingController();
+    TextEditingController capacityController = TextEditingController();
+    TextEditingController lengthController = TextEditingController();
+    TextEditingController widthController = TextEditingController();
+    TextEditingController heightController = TextEditingController();
+    TextEditingController volumeController = TextEditingController();
+    TextEditingController loadedController = TextEditingController();
+    Map<String, dynamic> truckDetails = {};
+    ResourceDetails? resourceDetails;
+    TextEditingController foremanId = TextEditingController();
+    TextEditingController foremanName = TextEditingController();
+    TextEditingController SalesOrderController = TextEditingController();
+    TextEditingController OrderLineController = TextEditingController();
+    bool toBinLoading = false;
+    Map<String, dynamic> loadData = {};
+    List<dynamic> loadValue = [];
+    Map<String, dynamic> elementData = {};
+    List<dynamic> elementValue = [];
+    bool canGetBack = false;
+    Map<String, dynamic> partData = {};
+    List<dynamic> partValue = [];
+    Map<String, dynamic> foremanData = {};
+    List<dynamic> foremanValue = [];
+    LoadData? offloadData;
+    bool projectOrSO = true;
 
-  TextEditingController toBinController = TextEditingController();
-  TextEditingController toBinNameController = TextEditingController();
-
-  TextEditingController? poNumberController = TextEditingController();
-  TextEditingController? poLineController = TextEditingController();
-  TextEditingController? commentsController = TextEditingController();
-  TextEditingController? entryPersonController = TextEditingController();
-  TextEditingController? deviceIDController = TextEditingController();
-  List<ElementData> selectedElements = [];
-  List<PartData> selectedParts = [];
-  String resourceId = '';
-  LoadData? currentLoad;
-  int childCount = 1;
-
-  Map<String, dynamic> fetchedProjectData = {};
-  List<dynamic> fetchedProjectValue = [];
-  bool back = false;
-  Map<String, dynamic> fetchedWarehouseData = {};
-  List<dynamic> fetchedWarehouseValue = [];
-
-  Map<String, dynamic> fetchedBinData = {};
-  List<dynamic> fetchedBinValue = [];
-
-  TextEditingController truckIdController = TextEditingController();
-  TextEditingController resourceIdController = TextEditingController();
-  TextEditingController driverNameController = TextEditingController();
-  TextEditingController transporterNameController = TextEditingController();
-  TextEditingController plateNumberController = TextEditingController();
-  TextEditingController driverNumberController = TextEditingController();
-  TextEditingController capacityController = TextEditingController();
-  TextEditingController lengthController = TextEditingController();
-  TextEditingController widthController = TextEditingController();
-  TextEditingController heightController = TextEditingController();
-  TextEditingController volumeController = TextEditingController();
-  TextEditingController loadedController = TextEditingController();
-  Map<String, dynamic> truckDetails = {};
-  ResourceDetails? resourceDetails;
-  TextEditingController foremanId = TextEditingController();
-  TextEditingController foremanName = TextEditingController();
-  TextEditingController SalesOrderController = TextEditingController();
-  TextEditingController OrderLineController = TextEditingController();
-  bool toBinLoading = false;
-  Map<String, dynamic> loadData = {};
-  List<dynamic> loadValue = [];
-
-  Map<String, dynamic> elementData = {};
-  List<dynamic> elementValue = [];
-  bool canGetBack = false;
-  Map<String, dynamic> partData = {};
-  List<dynamic> partValue = [];
-
-  Map<String, dynamic> foremanData = {};
-  List<dynamic> foremanValue = [];
-
-  LoadData? offloadData;
-  bool projectOrSO = true;
-
-  //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
-
-  //var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
-  //var resourceURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
-
-  Map<String, dynamic> truckData = {};
-  List<dynamic> truckValue = [];
-  Map<String, dynamic> resourceData = {};
-  List<dynamic>? resourceValue = [];
-  List<dynamic> matchingResources = [];
-
-  Map<String, dynamic> fetchedDriverData = {};
-  List<dynamic> fetchedDriverValue = [];
-
-  bool isTruckChanged = false;
-
-  bool isLoaded = false;
-  List<dynamic> deletedSavedElements = [];
-  Map<String,dynamic> LineStatus = {};
-
-  late int lastLoad = 50;
-  late int lastCustShip = 0;
-  late int custNum = 0;
-  late final int l1;
-  late final int l2;
-  late final String nextLoad;
-  late  bool CreateLoadLoading = false;
-  late bool SaveLinesLoading = false;
-
-
-// final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
-  late final Future dataLoaded;
-   String ErrorMessage="";
-  bool isPrinting = false;
-  int pdfCount = 0;
-  int archLabelIndex = 0;
-  @override
-  void initState() {
-
-    _tabController =
-        TabController(length: 3, vsync: this); // Change 3 to the number of tabs
-    _tabController.index = widget.initialTabIndex;
-    setState(() {
-      context.read<ArchitectureProvider>().init();
-      context.read<ArchitectureProvider>().setArchitecure('SO');
-    });
-
-    if(widget.LinesOriented){
-    fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
-    SalesOrderController.text = widget.passedElements[0].SO.toString();
-    context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
-    selectedElements = widget.passedElements;
-    setState(() {
-      context.read<ArchitectureProvider>().custNum = widget.custNum;
-    });
-
-    }
-    if (!widget.isUpdate) {
-      context.read<LoadProvider>().clearLoad();
-      dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
-
-      entryPersonController?.text =
-          context.read<UserManagementProvider>().userManagement!.firstName!;
-    } else if (widget.isUpdate && widget.historyLoadID != '') {
+    //final detailsURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD104Svc/UD104As');
+    //var truckURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102s');
+    //var resourceURL = Uri.parse('${tenantConfigP['httpVerbKey']}://${tenantConfigP['appPoolHost']}/${tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As');
+    Map<String, dynamic> truckData = {};
+    List<dynamic> truckValue = [];
+    Map<String, dynamic> resourceData = {};
+    List<dynamic>? resourceValue = [];
+    List<dynamic> matchingResources = [];
+    Map<String, dynamic> fetchedDriverData = {};
+    List<dynamic> fetchedDriverValue = [];
+    bool isTruckChanged = false;
+    bool isLoaded = false;
+    List<dynamic> deletedSavedElements = [];
+    Map<String,dynamic> LineStatus = {};
+    late int lastLoad = 50;
+    late int lastCustShip = 0;
+    late int custNum = 0;
+    late final int l1;
+    late final int l2;
+    late final String nextLoad;
+    late  bool CreateLoadLoading = false;
+    late bool SaveLinesLoading = false;
+  // final basicAuth = 'Basic ${base64Encode(utf8.encode('${tenantConfigP['userID']}:${tenantConfigP['password']}'))}';
+    late final Future dataLoaded;
+     String ErrorMessage="";
+    bool isPrinting = false;
+    int pdfCount = 0;
+    int archLabelIndex=0;
+    @override
+    void initState() {
+      _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
+      _tabController.index = widget.initialTabIndex;
       setState(() {
-        loadIDController.text = widget.historyLoadID;
+        context.read<ArchitectureProvider>().init();
+        context.read<ArchitectureProvider>().setArchitecure('SO');
       });
 
-      dataLoaded = fetchLoadDataFromURL(widget.historyLoadID,
-              context.read<tenantConfigProvider>().tenantConfig)
-          .then((value) => {
-
-                offloadData = getLoadObjectFromJson(widget.historyLoadID),
-                getElementObjectFromJson(widget.historyLoadID),
-                getPartObjectFromJson(widget.historyLoadID),
-                setState(() {
-                  projectIdController.text = offloadData!.projectId;
-                  dateController.text = offloadData!.loadDate;
-                  toWarehouseController.text = offloadData!.toWarehouse;
-                  toBinController.text = offloadData!.toBin;
-                  loadTypeValue = offloadData!.loadType;
-                  loadConditionValue = offloadData!.loadCondition;
-                  fromWarehouseController.text = offloadData!.fromWarehouse;
-                  isLoaded = true;
-                }),
-              });
+      if(widget.LinesOriented){
+        fromWarehouseController.text = widget.passedElements[0].Warehouse??'';
+        SalesOrderController.text = widget.passedElements[0].SO.toString();
+        context.read<ArchitectureProvider>().SO = widget.passedElements[0].SO;
+        selectedElements = widget.passedElements;
+        setState(() {
+          context.read<ArchitectureProvider>().custNum = widget.custNum;
+        });
+      }
+      if (!widget.isUpdate) {
+        context.read<LoadProvider>().clearLoad();
+        dataLoaded =makeSureDataLoaded(context.read<tenantConfigProvider>().tenantConfig);
+        entryPersonController?.text = context.read<UserManagementProvider>().userManagement!.firstName!;
+      } else if (widget.isUpdate && widget.historyLoadID != '') {
+        setState(() {
+          loadIDController.text = widget.historyLoadID;
+        });
+        dataLoaded = fetchLoadDataFromURL(widget.historyLoadID, context.read<tenantConfigProvider>().tenantConfig).then((value) => {
+          offloadData = getLoadObjectFromJson(widget.historyLoadID),
+          getElementObjectFromJson(widget.historyLoadID),
+          getPartObjectFromJson(widget.historyLoadID),
+          setState(() {
+            projectIdController.text = offloadData!.projectId;
+            dateController.text = offloadData!.loadDate;
+            toWarehouseController.text = offloadData!.toWarehouse;
+            toBinController.text = offloadData!.toBin;
+            loadTypeValue = offloadData!.loadType;
+            loadConditionValue = offloadData!.loadCondition;
+            fromWarehouseController.text = offloadData!.fromWarehouse;
+            isLoaded = true;
+          }),
+        });
+      } else {
+        dataLoaded = Future.value(true);
+        setState(() {
+          isLoaded = true;
+        });
+      }
+      setState(() {
+        context.read<loadStateProvider>().clearCurrentLoad();
+      });
+      context.read<loadStateProvider>().currentLoad= widget.historyLoadID;
+      super.initState();
     }
 
-    else {
-      dataLoaded = Future.value(true);
+    @override
+    void dispose() {
+      _tabController.dispose();
+      super.dispose();
+    }
+
+    List<LoadData> loads = [];
+    void addLoadData(LoadData load) {
       setState(() {
-        isLoaded = true;
+        for (int i = 0; i < loads.length; i++) {
+          if (loads[i].loadID == load.loadID) {
+            loads.removeAt(i);
+            break;
+          }
+        }
+      });
+      setState(() {
+        loads.add(load);
       });
     }
-    setState(() {
-      context.read<loadStateProvider>().clearCurrentLoad();
-    });
-    context.read<loadStateProvider>().currentLoad= widget.historyLoadID;
-    super.initState();
-  }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+    // Calculate total loaded volume
+    double getTotalLoadedVolume() {
+      double total = 0;
+      for (var element in (widget.LinesOriented ? widget.passedElements : selectedElements)) {
+        total += (element.volume) * (element.selectedQty);
+      }
+      return total;
+    }
+
+    // Update loadedController whenever selectedElements changes
+    void updateLoadedController() {
+      loadedController.text = getTotalLoadedVolume().toStringAsFixed(2);
+    }
+
+  // Add a controller for site address if not already present
+  TextEditingController siteAddress = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final tenantConfigP = context.watch<tenantConfigProvider>().tenantConfig;
+    final width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -266,35 +269,34 @@ class _StockLoadingState extends State<StockLoading>
               // Init
               AlertDialog dialog = AlertDialog(
                 title: const Text("Are you sure you want to exit?",
-                    style: TextStyle(color: Colors.red)),
+                  style: TextStyle(color: Colors.red)),
                 content: const Text("All unsaved data will be lost"),
                 actions: [
                   TextButton(
-                      child: Text("Yes",
-                          style:
-                              TextStyle(color: Theme.of(context).canvasColor)),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-                      }),
-                  TextButton(
-                      child: Text("No",
-                          style:
-                              TextStyle(color: Theme.of(context).canvasColor)),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      }),
+                    child: Text("Yes",
+                      style:
+                        TextStyle(color: Theme.of(context).canvasColor)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    }),
+                TextButton(
+                  child: Text("No",
+                    style:
+                      TextStyle(color: Theme.of(context).canvasColor)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  }),
                 ],
               );
-
               // Show the dialog
               showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return dialog;
-                  });
+                context: context,
+                builder: (BuildContext context) {
+                  return dialog;
+                }
+              );
             }
-
             showAlertDialog(context);
           }
         }
@@ -303,7 +305,10 @@ class _StockLoadingState extends State<StockLoading>
         length: 3,
         initialIndex: widget.initialTabIndex,
         child: Scaffold(
-          backgroundColor: Color(0xffF0F0F0),
+          drawer: width > 600
+            ? null
+            : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+          backgroundColor: const Color(0xffF0F0F0),
           appBar: AppBar(
             backgroundColor: Theme.of(context).primaryColor,
             title: Center(
@@ -313,10 +318,10 @@ class _StockLoadingState extends State<StockLoading>
                   const SizedBox(),
                   if (widget.isUpdate)
                     const Text('Edit Load',
-                        style: TextStyle(color: Colors.white)),
+                      style: TextStyle(color: Colors.white)),
                   if (!widget.isUpdate)
                     const Text('Stock Loading',
-                        style: TextStyle(color: Colors.white)),
+                      style: TextStyle(color: Colors.white)),
                   // ClipOval(
                   //   child: Image.network(
                   //     '${tenantConfigP['httpVerbKey']}://media.licdn.com/dms/image/D4D03AQFpmZgzpRLrhg/profile-displayphoto-shrink_800_800/0/1692612499698?e=1711584000&v=beta&t=Ho-Wta1Gpc-aiWZMJrsni_83CG16TQeq_gtbIJBM7aI',
@@ -328,6 +333,12 @@ class _StockLoadingState extends State<StockLoading>
               ),
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.home, color: Colors.white),
+                onPressed: () {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                },
+              ),
               PopupMenuButton(itemBuilder: (BuildContext context) {
                 return [
                   if (widget.isUpdate)
@@ -337,14 +348,16 @@ class _StockLoadingState extends State<StockLoading>
                         leading: const Icon(Icons.edit_calendar),
                         onTap: () {
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => StockLoading(
-                                        initialTabIndex: 0,
-                                        isUpdate: false,
-                                        loadDataList: widget.loadDataList,
-                                        addLoadData: widget.addLoadData,
-                                      )));
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => StockLoading(
+                                initialTabIndex: 0,
+                                isUpdate: false,
+                                loadDataList: widget.loadDataList,
+                                addLoadData: widget.addLoadData,
+                              )
+                            )
+                          );
                         },
                       ),
                     ),
@@ -366,1870 +379,1265 @@ class _StockLoadingState extends State<StockLoading>
                         },
                       ),
                     ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      title: const Text('Offload'),
-                      leading: const Icon(Icons.playlist_remove),
-                      onTap: () {
-                        Navigator.push(
+                    PopupMenuItem(
+                      child: ListTile(
+                        title: const Text('Offload'),
+                        leading: const Icon(Icons.playlist_remove),
+                        onTap: () {
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => StockOffloading(
-                                      initialTabIndex: 0,
-                                      tenantConfig: tenantConfigP,
-                                    )));
-                      },
+                              builder: (context) => StockOffloading(
+                                initialTabIndex: 0,
+                                tenantConfig: tenantConfigP,
+                              )
+                            )
+                          );
+                        },
+                      ),
                     ),
-                  ),
                 ];
               })
             ],
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: widget.LinesOriented?[
-              Tab(
-                text: 'Line',
-              ),
-              Tab(
-                text: 'Details',
-              ),
-
-              Tab(
-                text: 'Summary',
-              ),
-              ]:[Tab(
-                text: 'Details',
-              ),
-                Tab(
-                  text: 'Line',
-                ),
-
-                Tab(
-                  text: 'Summary',
-                ),
-              ],
-            ),
           ),
           body: isPrinting
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
+            ? const Center(
+              child: CircularProgressIndicator(),
+              )
               : FutureBuilder(
-                  future: dataLoaded,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Stack(
-                        children: [
-                          Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Theme.of(context).primaryColor),
-                            ), // Show spinner when disabled
-                          ),
-                        ],
-                      );
-                    }
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TabBarView(controller: _tabController, children: widget.LinesOriented ? ([
-                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
-                          SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Part Search Form',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color:
-                                            Theme.of(context).canvasColor),
+                future: dataLoaded,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Stack(
+                      children: [
+                        Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor),
+                          ), // Show spinner when disabled
+                        ),
+                      ],
+                    );
+                  }
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (width > 600)
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.2,
+                                child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+                              ),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Container(
+                                    color: Theme.of(context).primaryColor,
+                                    child: TabBar(
+                                      controller: _tabController,
+                                      tabs: widget.LinesOriented
+                                      ? [
+                                        Tab(text: 'Line'),
+                                        Tab(text: 'Details'),
+                                        Tab(text: 'Summary'),
+                                        ]
+                                      : [
+                                        Tab(text: 'Details'),
+                                        Tab(text: 'Line'),
+                                        Tab(text: 'Summary'),
+                                        ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: width > 600
+                                      ? const EdgeInsets.fromLTRB(100, 10, 100, 10)
+                                      : const EdgeInsets.all(8),
+                                      child: TabBarView(
+                                        controller: _tabController,
+                                        children: widget.LinesOriented
+                                        ? [
+                                          if (isLoaded || widget.LinesOriented || widget.isUpdate)
+                                            SingleChildScrollView(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                children: [
+                                                  Column(
+                                                    children: [
+                                                      Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text(
+                                                          'Part Search Form',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
+                                                            color:
+                                                            Theme.of(context).canvasColor),
+                                                        ),
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Container(
+                                                        decoration: BoxDecoration(
+                                                          color: Theme.of(context).indicatorColor,
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: !widget.LinesOriented? ElementSearchForm(
+                                                            onElementsSelected:
+                                                            updateElementInformation,
+                                                            arrivedElements:
+                                                            selectedElements.isNotEmpty
+                                                            ? selectedElements
+                                                            : [],
+                                                            isOffloading: false,
+                                                            Warehouse: fromWarehouseController.text??'',
+                                                            AddElement: _addElement,
+                                                            Project: projectIdController.text,
+                                                            tenantConfig: tenantConfigP,
+                                                            isInstalling: false,
+                                                          ) : SizedBox(
+                                                            height: 50,
+                                                            child: Center(
+                                                              child: Text('Lines Oriented',
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                  MediaQuery.of(context).size.height * 0.022,
+                                                                )),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 20,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  Text(
+                                                    'Selected Elements',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: Theme.of(context).canvasColor),
+                                                  ),
+                                                  ElementTable(
+                                                    selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
+                                                    DeletededSaveElements: widget.isUpdate ? deletedSavedElements : null,
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  Text(
+                                                    'Selected Consumables',
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: Theme.of(context).canvasColor),
+                                                  ),
+                                                  PartTable(selectedParts: selectedParts),
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _tabController.animateTo(_tabController.index+1);
+                                                      });
+                                                    },
+                                                    child: const Text('Next'),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
+                                            const Center(
+                                              child: Text(
+                                                'Please create a load first or Select a load to update'),
+                                            ),
+                                            //Tab 1 Content
+                                            SingleChildScrollView(
+                                              child: Form(
+                                                key: _formKey,
+                                                child: Center(
+                                                  child: Column(
+                                                    children: [
+                                                      Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text(
+                                                          'Load Details',
+                                                          style: TextStyle(
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 18,
+                                                            color:
+                                                            Theme.of(context).primaryColor),
+                                                        ),
+                                                      ),
+                                                      if (!widget.isUpdate)
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: TextFormField(
+                                                            controller: loadIDController,
+                                                            enabled: false,
+                                                            decoration: const InputDecoration(
+                                                              border: OutlineInputBorder(),
+                                                              labelText: "Load ID"),
+                                                          ),
+                                                        ),
+                                                      if (widget.isUpdate)
+                                                        Row(children: [
+                                                          Expanded(
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextFormField(
+                                                                controller: loadIDController,
+                                                                decoration: const InputDecoration(
+                                                                  border: OutlineInputBorder(),
+                                                                  labelText: "Load ID"),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          IconButton(
+                                                            onPressed: () async {
+                                                              //  await makeSureDataLoaded(tenantConfigP);
+                                                              // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                                              // await fetchElementDataFromURL();
+                                                              //await fetchPartDataFromURL();
+                                                              await loadLoadAndData(tenantConfigP);
+                                                              String projectLoadID = loadIDController.text;
+                                                              offloadData = getLoadObjectFromJson(projectLoadID);
+                                                              getElementObjectFromJson(projectLoadID);
+                                                              getPartObjectFromJson(projectLoadID);
+                                                              if (offloadData != null) {
+                                                                setState(() {
+                                                                  projectIdController.text = offloadData!.projectId;
+                                                                  dateController.text = offloadData!.loadDate;
+                                                                  toWarehouseController.text = offloadData!.toWarehouse;
+                                                                  toBinController.text = offloadData!.toBin;
+                                                                  loadTypeValue = offloadData!.loadType;
+                                                                  loadConditionValue = offloadData!.loadCondition;
+                                                                  fromWarehouseController.text = offloadData!.fromWarehouse;
+                                                                  isLoaded = true;
+                                                                });
+                                                              } else {
+                                                                if (mounted) {
+                                                                  showDialog(
+                                                                    context: context,
+                                                                    builder: (context) {
+                                                                      return AlertDialog(
+                                                                        title: const Text('Error'),
+                                                                        content: const Text('Load ID not found'),
+                                                                        actions: [
+                                                                          TextButton(
+                                                                            onPressed: () {
+                                                                              Navigator.pop(context);
+                                                                            },
+                                                                            child: Text('Close',
+                                                                              style: TextStyle(
+                                                                                color: Theme.of(context).canvasColor
+                                                                              )
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      );
+                                                                    },
+                                                                  );
+                                                                }
+                                                              }
+                                                            },
+                                                            icon: const Icon(Icons.search),
+                                                          ),
+                                                        ]),
+                                                      Padding(padding: EdgeInsets.all(8.0),
+                                                        child: ToggleButtons(
+                                                          onPressed: (projectOrSO) {
+                                                            setState(() {
+                                                              this.projectOrSO = projectOrSO == 0;
+                                                              context.read<ArchitectureProvider>().toggleArchitecure();
+                                                            });
+                                                          },
+                                                          borderRadius: BorderRadius.circular(10),
+                                                          fillColor: Theme.of(context).primaryColor,
+                                                          color: Theme.of(context).canvasColor,
+                                                          selectedColor: Colors.white,
+                                                          constraints: const BoxConstraints(
+                                                            minHeight: 40.0,
+                                                            minWidth: 100.0,
+                                                          ),
+                                                          borderWidth: 1.0,
+                                                          borderColor: Theme.of(context).primaryColor,
+                                                          selectedBorderColor: Theme.of(context).primaryColor,
+                                                          isSelected: [
+                                                            context.watch<ArchitectureProvider>().architecure=='Project',
+                                                            context.watch<ArchitectureProvider>().architecure=='SO',
+                                                          ],
+                                                          children: const [
+                                                            Padding(
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Project'),
+                                                            ),
+                                                            Padding(
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text('Sales Order'),
+                                                            ),
+                                                          ],
+                                                        )
+                                                      ),
+                                                      context.watch<ArchitectureProvider>().architecure == 'Project'? ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(isUpdate: widget.isUpdate,),
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextFormField(
+                                                                readOnly: true,  // Make the field read-only so it can still respond to taps
+                                                                controller: dateController,
+                                                                onTap: () async {
+                                                                  final DateTime? date = await showDatePicker(
+                                                                    builder: (BuildContext context, Widget? child) {
+                                                                      return Theme(
+                                                                        data: ThemeData.light().copyWith(
+                                                                          colorScheme: ColorScheme.light(
+                                                                            primary: Theme.of(context).primaryColor,
+                                                                            background: Colors.white,
+                                                                            secondary: Theme.of(context).primaryColor,
+                                                                            outline: Colors.cyanAccent,
+                                                                          ),
+                                                                        ),
+                                                                        child: child!,
+                                                                      );
+                                                                    },
+                                                                    context: context,
+                                                                    initialDate: DateTime.now(),
+                                                                    firstDate: DateTime(2018),
+                                                                    lastDate: DateTime(2030),
+                                                                  );
+                                                                  if (date != null) {
+                                                                    setState(() {
+                                                                      dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                                      _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                                                    });
+                                                                  }
+                                                                },
+                                                                decoration: const InputDecoration(
+                                                                border: OutlineInputBorder(),
+                                                                labelText: "Load Date",
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Expanded(
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: TextFormField(
+                                                                enabled: !widget.isUpdate,
+                                                                onTap: () async {
+                                                                  final TimeOfDay? time =
+                                                                  await showTimePicker(
+                                                                    context: context,
+                                                                    initialTime: TimeOfDay.now(),
+                                                                    builder: (context, child) {
+                                                                      return Theme(
+                                                                        data: Theme.of(context).copyWith(
+                                                                          colorScheme: ColorScheme.light(
+                                                                            primary: Theme.of(context).primaryColor,
+                                                                            onPrimary:
+                                                                            Colors.white,
+                                                                            secondary: Theme.of(context).primaryColor,
+                                                                          ),
+                                                                        ),
+                                                                        child: child!,
+                                                                      );
+                                                                    }
+                                                                  );
+                                                                  if (time != null) {
+                                                                    setState(() {loadTimeController.text = "${time.hour}:${time.minute}";});
+                                                                  }
+                                                                },
+                                                                controller: loadTimeController,
+                                                                decoration: const InputDecoration(
+                                                                  border: OutlineInputBorder(),
+                                                                  labelText: "Load Time"),
+                                                              ),
+                                                            )
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: Padding(
+                                                              padding: const EdgeInsets.all(8.0),
+                                                              child: DropdownSearch(
+                                                                selectedItem: fromWarehouseController.text,
+                                                                enabled: true,
+                                                                popupProps: const PopupProps.modalBottomSheet(
+                                                                  showSearchBox: true,
+                                                                  searchFieldProps: TextFieldProps(
+                                                                    decoration: InputDecoration(
+                                                                      suffixIcon:
+                                                                      Icon(Icons.search),
+                                                                      border: OutlineInputBorder(),
+                                                                      labelText: "Search",
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                autoValidateMode: AutovalidateMode.onUserInteraction,
+                                                                dropdownDecoratorProps: const DropDownDecoratorProps(
+                                                                  dropdownSearchDecoration: InputDecoration(
+                                                                    border: OutlineInputBorder(),
+                                                                    labelText: "From Warehouse",
+                                                                  ),
+                                                                ),
+                                                                items: fetchedWarehouseValue.map((warehouse) =>
+                                                                warehouse['Description'])
+                                                                  .toList(),
+                                                                onChanged: (value) {
+                                                                  setState(() {
+                                                                    fromWarehouseController.text = fetchedWarehouseValue.firstWhere(
+                                                                      (warehouse) =>
+                                                                      warehouse[
+                                                                        'Description'
+                                                                      ] == value)[
+                                                                        'WarehouseCode'
+                                                                      ];
+                                                                  });
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      if (loadConditionValue == 'External')
+                                                        Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: TextFormField(
+                                                                  controller: poNumberController,
+                                                                  decoration: const InputDecoration(
+                                                                    border: OutlineInputBorder(),
+                                                                    labelText: "PO Num"),
+                                                                ),
+                                                              )),
+                                                            Expanded(
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: TextFormField(
+                                                                  controller: poLineController,
+                                                                  decoration: const InputDecoration(
+                                                                    border: OutlineInputBorder(),
+                                                                    labelText: "PO Line"),
+                                                                ),
+                                                              )
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                          children: [
+                                                            Expanded(
+                                                              child: Column(children: [
+                                                                Padding(
+                                                                  padding: EdgeInsets.all(8.0),
+                                                                  child: Text(
+                                                                    'Load Type',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold,
+                                                                        fontSize: 18,
+                                                                        color: Theme.of(context)
+                                                                            .canvasColor),
+                                                                  ),
+                                                                ),
+                                                                RadioListTile(
+                                                                  title: Text('Return Trip',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                        MediaQuery.of(context)
+                                                                            .size
+                                                                            .height *
+                                                                            0.022,
+                                                                      )),
+                                                                  value: 'Return',
+                                                                  groupValue: loadTypeValue,
+                                                                  onChanged: (value) {
+                                                                    setState(() {
+                                                                      loadTypeValue =
+                                                                          value.toString();
+                                                                    });
+                                                                  },
+                                                                ),
+                                                                RadioListTile(
+                                                                  title: Text('Delivery Trip',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                        MediaQuery.of(context)
+                                                                            .size
+                                                                            .height *
+                                                                            0.022,
+                                                                      )),
+                                                                  value: 'Issue Load',
+                                                                  groupValue: loadTypeValue,
+                                                                  onChanged: (value) {
+                                                                    setState(() {
+                                                                      loadTypeValue =
+                                                                          value.toString();
+                                                                    });
+                                                                  },
+                                                                ),
+                                                              ]),
+                                                            ),
+                                                            Expanded(
+                                                              child: Column(children: [
+                                                                Padding(
+                                                                  padding: EdgeInsets.all(8.0),
+                                                                  child: Text(
+                                                                    'Truck Type',
+                                                                    style: TextStyle(
+                                                                        fontWeight: FontWeight.bold,
+                                                                        fontSize: 18,
+                                                                        color: Theme.of(context)
+                                                                            .canvasColor),
+                                                                  ),
+                                                                ),
+                                                                RadioListTile(
+                                                                  title: Text('External',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                        MediaQuery.of(context)
+                                                                            .size
+                                                                            .height *
+                                                                            0.022,
+                                                                      )),
+                                                                  value: 'External',
+                                                                  groupValue: loadConditionValue,
+                                                                  onChanged: (value) {
+                                                                    setState(() {
+                                                                      loadConditionValue =
+                                                                          value.toString();
+                                                                    });
+                                                                  },
+                                                                ),
+                                                                RadioListTile(
+                                                                  title: Text('Internal',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                        MediaQuery.of(context)
+                                                                            .size
+                                                                            .height *
+                                                                            0.022,
+                                                                      )),
+                                                                  value: 'Internal Truck',
+                                                                  groupValue: loadConditionValue,
+                                                                  onChanged: (value) {
+                                                                    setState(() {
+                                                                      loadConditionValue =
+                                                                          value.toString();
+                                                                    });
+                                                                  },
+                                                                )
+                                                              ]),
+                                                            ),
+                                                          ]),
+                                                      Padding(
+                                                        padding: EdgeInsets.all(8.0),
+                                                        child: Text(
+                                                          'Truck Details',
+                                                          style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 18,
+                                                              color: Theme.of(context).canvasColor),
+                                                        ),
+                                                      ),
+                                                      if (!widget.isUpdate)
+                                                        buildTruckDetailsFrom(true),
+                                                      if (widget.isUpdate)
+                                                        TruckDetailsForm(
+                                                          isEdit: true,
+                                                          truckDetails: offloadData,
+                                                        ),
+                                                      const SizedBox(height: 20),
+                                                      if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                                        ElevatedButton(
+                                                          onPressed: () {
+                                                            setState(() {
+                                                              _tabController.animateTo(_tabController.index+1);
+                                                            });
+                                                          },
+                                                          child: const Text('Next'),
+                                                        ),
+                                                      if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                                        ElevatedButton(
+                                                            onPressed: () async {
+                                                              if(!CreateLoadLoading){
+                                                                setState(() {
+                                                                  CreateLoadLoading = true;
+                                                                });
+                                                                if (truckIdController.text.isEmpty ||
+                                                                    resourceIdController
+                                                                        .text.isEmpty ||
+
+                                                                    loadTimeController.text.isEmpty ||
+                                                                    dateController.text.isEmpty
+                                                                ) {
+                                                                  showDialog(
+                                                                      context: context,
+                                                                      builder:
+                                                                          (BuildContext context) {
+                                                                        return AlertDialog(
+                                                                          title: const Text('Error'),
+                                                                          content: const Text(
+                                                                              'Please fill all the required fields'),
+                                                                          actions: [
+                                                                            TextButton(
+                                                                              onPressed: () {
+                                                                                Navigator.of(context)
+                                                                                    .pop();
+                                                                              },
+                                                                              child: const Text('OK'),
+                                                                            ),
+                                                                          ],
+                                                                        );
+                                                                      });
+                                                                } else {
+                                                                  final newLoadId =
+                                                                      'I-${lastLoad + 1}';
+                                                                  final loadDateFormat =
+                                                                      '${_selectedDate}T00:00:00';
+                                                                  debugPrint(projectIdController.text);
+                                                                  await createNewLoad({
+                                                                    "Key1": newLoadId,
+                                                                    "Company":
+                                                                    "${tenantConfigP['company']}",
+                                                                    "ShortChar07":
+                                                                    plateNumberController.text,
+                                                                    "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                                                    "ShortChar01": loadTypeValue,
+                                                                    "ShortChar04": loadConditionValue,
+                                                                    "ShortChar08":
+                                                                    truckIdController.text,
+                                                                    "ShortChar03": "Open",
+
+                                                                    "Number01": loadedController
+                                                                        .text.isNotEmpty
+                                                                        ? loadedController.text
+                                                                        : '0',
+                                                                    "Number02": "0",
+                                                                    "Number03": context.read<ArchitectureProvider>().SO.toString(),
+                                                                    "Number06": capacityController
+                                                                        .text.isNotEmpty
+                                                                        ? capacityController.text
+                                                                        : '0',
+                                                                    "Number07": volumeController
+                                                                        .text.isNotEmpty
+                                                                        ? volumeController.text
+                                                                        : '0',
+                                                                    "Number08": heightController
+                                                                        .text.isNotEmpty
+                                                                        ? heightController.text
+                                                                        : '0',
+                                                                    "Number09": widthController
+                                                                        .text.isNotEmpty
+                                                                        ? widthController.text
+                                                                        : '0',
+                                                                    "Number10": lengthController
+                                                                        .text.isNotEmpty
+                                                                        ? lengthController.text
+                                                                        : '0',
+                                                                    "Number11":
+                                                                    (lastCustShip + 1).toString(),
+                                                                    "Number12": context.read<ArchitectureProvider>().custNum.toString(),
+                                                                    "Date01": loadDateFormat,
+
+                                                                    "Character02":
+                                                                    driverNameController.text,
+                                                                    "Character03":
+                                                                    driverNumberController.text,
+                                                                    "Character04": context.read<ArchitectureProvider>().CustomerId,
+
+                                                                    "Character07":context.read<ArchitectureProvider>().SO.toString(),
+                                                                    "Character08":context.read<ArchitectureProvider>().selectedShipment,
+
+
+                                                                    "Character09": resourceId,
+                                                                    "Character10": context.read<ArchitectureProvider>().Project.toString(),
+                                                                    //  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                                                    //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                                                  }, tenantConfigP);
+                                                                  debugPrint(
+                                                                      toWarehouseNameController.text);
+                                                                  if (isLoaded) {
+                                                                    if (mounted) {
+                                                                      showDialog(
+                                                                          context: context,
+                                                                          builder:
+                                                                              (BuildContext context) {
+                                                                            return AlertDialog(
+                                                                              title: const Text(
+                                                                                  'Success'),
+                                                                              content: Text(
+
+                                                                                  'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
+
+                                                                              actions: [
+                                                                                TextButton(
+                                                                                  onPressed: () {
+                                                                                    Navigator.of(
+                                                                                        context)
+                                                                                        .pop();
+                                                                                    _tabController
+                                                                                        .animateTo(
+                                                                                            _tabController.index + 1);
+                                                                                  },
+                                                                                  child: Text('OK',
+                                                                                      style: TextStyle(
+                                                                                          color: Theme.of(
+                                                                                              context)
+                                                                                              .canvasColor)),
+                                                                                ),
+                                                                              ],
+                                                                            );
+                                                                          });
+                                                                    }
+                                                                    setState(() {
+                                                                      loadIDController.text =
+                                                                          newLoadId;
+                                                                    });
+                                                                  }
+                                                                }
+                                                                setState(() {
+                                                                  CreateLoadLoading = false;
+                                                                });
+                                                              }
+                                                            },
+                                                            child: CreateLoadLoading
+                                                                ? Padding(
+                                                              padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                                              child: Container(
+                                                                height: 20,
+                                                                width: 20,
+                                                                child: const CircularProgressIndicator(
+                                                                  valueColor:
+                                                                  AlwaysStoppedAnimation<Color>(
+                                                                      Colors.white),
+                                                                ),
+                                                              ),
+                                                            )
+
+                                                                : const Text('Create Load')),
+                                                      const SizedBox(height: 20),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            //Tab 2 Content
+
+                      //Tab 3 Content
+                      SingleChildScrollView(
+                        controller: ScrollController(),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Project Details',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: loadIDController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Load ID"),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: projectIdController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Project ID"),
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        enabled: false,
+                                        initialValue: dateController.text,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load Date"),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).indicatorColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                  ),
+                                  Expanded(
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: !widget.LinesOriented? ElementSearchForm(
-                                          onElementsSelected:
-                                          updateElementInformation,
-                                          arrivedElements:
-                                          selectedElements.isNotEmpty
-                                              ? selectedElements
-                                              : [],
-                                          isOffloading: false,
-                                          Warehouse: fromWarehouseController.text??'',
-                                          AddElement: _addElement,
-                                          Project: projectIdController.text,
-                                          tenantConfig: tenantConfigP,
-                                          isInstalling: false,
-                                        ) : SizedBox(
-                                          height: 50,
-                                          child: Center(
-                                            child: Text('Lines Oriented',
-                                                style: TextStyle(
-                                                  fontSize:
-                                                  MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                      0.022,
-                                                )),
-                                          ),
-
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: loadTimeController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Time"),
                                         ),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                  ],
+                                      )),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue:
+                                          fromWarehouseController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "From"),
+                                        ),
+                                      )),
+                                  Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue:
+                                          toWarehouseController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "To"),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Truck Details',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).primaryColor),
                                 ),
-                                const SizedBox(
-                                  height: 20,
+                              ),
+                              if (!widget.isUpdate)
+                                buildTruckDetailsFrom(false),
+                              if (widget.isUpdate)
+                                TruckDetailsForm(
+                                  isEdit: true,
+                                  truckDetails: offloadData,
                                 ),
-                                Text(
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
                                   'Selected Elements',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       color: Theme.of(context).canvasColor),
                                 ),
-                                ElementTable(
-                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
-                                  DeletededSaveElements: widget.isUpdate
-                                      ? deletedSavedElements
-                                      : null,
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  'Selected Consumables',
+                              ),
+                              ElementTable(
+                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Consumables',
                                   style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 18,
                                       color: Theme.of(context).canvasColor),
                                 ),
-                                PartTable(selectedParts: selectedParts),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _tabController.animateTo(_tabController.index+1);
-                                    });
-                                  },
-                                  child: const Text('Next'),
-                                )
-                              ],
-                            ),
-                          ),
-                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
-                          const Center(
-                            child: Text(
-                                'Please create a load first or Select a load to update'),
-                          ),
-                        //Tab 1 Content
-                        SingleChildScrollView(
-                          child: Form(
-                            key: _formKey,
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Load Details',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color:
-                                          Theme.of(context).primaryColor),
-                                    ),
-                                  ),
-                                  if (!widget.isUpdate)
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        controller: loadIDController,
-                                        enabled: false,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Load ID"),
-                                      ),
-                                    ),
-                                  if (widget.isUpdate)
-                                    Row(children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            controller: loadIDController,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load ID"),
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () async {
-                                          //  await makeSureDataLoaded(tenantConfigP);
-                                          // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
-                                          // await fetchElementDataFromURL();
-                                          //await fetchPartDataFromURL();
-                                          await loadLoadAndData(tenantConfigP);
-                                          String projectLoadID =
-                                              loadIDController.text;
-                                          offloadData = getLoadObjectFromJson(
-                                              projectLoadID);
-                                          getElementObjectFromJson(
-                                              projectLoadID);
-                                          getPartObjectFromJson(projectLoadID);
-                                          if (offloadData != null) {
-                                            setState(() {
-                                              projectIdController.text =
-                                                  offloadData!.projectId;
-                                              dateController.text =
-                                                  offloadData!.loadDate;
-                                              toWarehouseController.text =
-                                                  offloadData!.toWarehouse;
-                                              toBinController.text =
-                                                  offloadData!.toBin;
-                                              loadTypeValue =
-                                                  offloadData!.loadType;
-                                              loadConditionValue =
-                                                  offloadData!.loadCondition;
-                                              fromWarehouseController.text =
-                                                  offloadData!.fromWarehouse;
-                                              isLoaded = true;
-                                            });
-                                          } else {
-                                            if (mounted) {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Error'),
-                                                    content: const Text(
-                                                        'Load ID not found'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text('Close',
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                    context)
-                                                                    .canvasColor)),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            }
-                                          }
-                                        },
-                                        icon: const Icon(Icons.search),
-                                      ),
-                                    ]),
-                                  Padding(padding: EdgeInsets.all(8.0),
-                                      child: ToggleButtons(
-                                        onPressed: (projectOrSO) {
-                                          setState(() {
-                                            this.projectOrSO = projectOrSO == 0;
-                                            context.read<ArchitectureProvider>().toggleArchitecure();
-                                          });
-                                        },
-                                          borderRadius: BorderRadius.circular(10),
-                                          fillColor: Theme.of(context).primaryColor,
-                                          color: Theme.of(context).canvasColor,
-                                          selectedColor: Colors.white,
-                                          constraints: const BoxConstraints(
-                                            minHeight: 40.0,
-                                            minWidth: 100.0,
-                                          ),
-                                          borderWidth: 1.0,
-                                          borderColor: Theme.of(context).primaryColor,
-                                          selectedBorderColor: Theme.of(context).primaryColor,
-                                          isSelected: [
-                                            context.watch<ArchitectureProvider>().architecure=='Project',
-                                            context.watch<ArchitectureProvider>().architecure=='SO',
-                                          ],
-                                          children: const [
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text('Project'),
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text('Sales Order'),
-                                            ),
-                                          ],
-                                      )
-                                  ),
-                                  context.watch<ArchitectureProvider>().architecure == 'Project'?
-                                  ProjectSearch(isUpdate: widget.isUpdate):SalesOrderSearch(isUpdate: widget.isUpdate,),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            readOnly: true,  // Make the field read-only so it can still respond to taps
-                                            controller: dateController,
-                                            onTap: () async {
-                                              final DateTime? date = await showDatePicker(
-                                                builder: (BuildContext context, Widget? child) {
-                                                  return Theme(
-                                                    data: ThemeData.light().copyWith(
-                                                      colorScheme: ColorScheme.light(
-                                                        primary: Theme.of(context).primaryColor,
-                                                        background: Colors.white,
-                                                        secondary: Theme.of(context).primaryColor,
-                                                        outline: Colors.cyanAccent,
-                                                      ),
-                                                    ),
-                                                    child: child!,
-                                                  );
-                                                },
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(2018),
-                                                lastDate: DateTime(2030),
-                                              );
-                                              if (date != null) {
-                                                setState(() {
-                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
-                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
-                                                });
-                                              }
-                                            },
-                                            decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Load Date",
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextFormField(
-                                              enabled: !widget.isUpdate,
-                                              onTap: () async {
-                                                final TimeOfDay? time =
-                                                await showTimePicker(
-                                                    context: context,
-                                                    initialTime:
-                                                    TimeOfDay.now(),
-                                                    builder: (context, child) {
-                                                      return Theme(
-                                                        data: Theme.of(context)
-                                                            .copyWith(
-                                                          colorScheme:
-                                                          ColorScheme.light(
-                                                            primary: Theme.of(
-                                                                context)
-                                                                .primaryColor,
-                                                            onPrimary:
-                                                            Colors.white,
-                                                            secondary: Theme.of(
-                                                                context)
-                                                                .primaryColor,
-                                                          ),
-                                                        ),
-                                                        child: child!,
-                                                      );
-                                                    });
-                                                if (time != null) {
-                                                  setState(() {
-                                                    loadTimeController.text =
-                                                    "${time.hour}:${time.minute}";
-                                                  });
-                                                }
-                                              },
-                                              controller: loadTimeController,
-                                              decoration: const InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Load Time"),
-                                            ),
-                                          )),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: DropdownSearch(
-                                            selectedItem:
-                                            fromWarehouseController.text,
-                                            enabled: true,
-                                            popupProps: const PopupProps
-                                                .modalBottomSheet(
-                                              showSearchBox: true,
-                                              searchFieldProps: TextFieldProps(
-                                                decoration: InputDecoration(
-                                                  suffixIcon:
-                                                  Icon(Icons.search),
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Search",
-                                                ),
-                                              ),
-                                            ),
-                                            autoValidateMode: AutovalidateMode
-                                                .onUserInteraction,
-                                            dropdownDecoratorProps:
-                                            const DropDownDecoratorProps(
-                                              dropdownSearchDecoration:
-                                              InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "From Warehouse",
-                                              ),
-                                            ),
-                                            items: fetchedWarehouseValue.map((warehouse) =>
-                                            warehouse['Description'])
-                                                .toList(),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                fromWarehouseController
-                                                    .text = fetchedWarehouseValue
-                                                    .firstWhere(
-                                                        (warehouse) =>
-                                                    warehouse[
-                                                    'Description'] ==
-                                                        value)[
-                                                'WarehouseCode'];
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                      ),
-
-                                    ],
-                                  ),
-
-
-
-                                  if (loadConditionValue == 'External')
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                controller: poNumberController,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "PO Num"),
-                                              ),
-                                            )),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                controller: poLineController,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "PO Line"),
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  Row(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(children: [
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text(
-                                                'Load Type',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                    color: Theme.of(context)
-                                                        .canvasColor),
-                                              ),
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Return Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Return',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Delivery Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Issue Load',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ]),
-                                        ),
-                                        Expanded(
-                                          child: Column(children: [
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text(
-                                                'Truck Type',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                    color: Theme.of(context)
-                                                        .canvasColor),
-                                              ),
-                                            ),
-                                            RadioListTile(
-                                              title: Text('External',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'External',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Internal',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Internal Truck',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            )
-                                          ]),
-                                        ),
-                                      ]),
-                                  Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Truck Details',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                  ),
-                                  if (!widget.isUpdate)
-                                    buildTruckDetailsFrom(true),
-                                  if (widget.isUpdate)
-                                    TruckDetailsForm(
-                                      isEdit: true,
-                                      truckDetails: offloadData,
-                                      tenantConfigP: tenantConfigP,
-                                    ),
-                                  const SizedBox(height: 20),
-                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _tabController.animateTo(_tabController.index+1);
-                                        });
-                                      },
-                                      child: const Text('Next'),
-                                    ),
-                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          if(!CreateLoadLoading){
-                                            setState(() {
-                                              CreateLoadLoading = true;
-                                            });
-                                            if (truckIdController.text.isEmpty ||
-                                                resourceIdController
-                                                    .text.isEmpty ||
-
-                                                loadTimeController.text.isEmpty ||
-                                                dateController.text.isEmpty
-                                            ) {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return AlertDialog(
-                                                      title: const Text('Error'),
-                                                      content: const Text(
-                                                          'Please fill all the required fields'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.of(context)
-                                                                .pop();
-                                                          },
-                                                          child: const Text('OK'),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  });
-                                            } else {
-                                              final newLoadId =
-                                                  'I-${lastLoad + 1}';
-                                              final loadDateFormat =
-                                                  '${_selectedDate}T00:00:00';
-                                              debugPrint(projectIdController.text);
-                                              await createNewLoad({
-                                                "Key1": newLoadId,
-                                                "Company":
-                                                "${tenantConfigP['company']}",
-                                                "ShortChar07":
-                                                plateNumberController.text,
-                                                "ShortChar05":context.read<ArchitectureProvider>().architecure,
-                                                "ShortChar01": loadTypeValue,
-                                                "ShortChar04": loadConditionValue,
-                                                "ShortChar08":
-                                                truckIdController.text,
-                                                "ShortChar03": "Open",
-
-                                                "Number01": loadedController
-                                                    .text.isNotEmpty
-                                                    ? loadedController.text
-                                                    : '0',
-                                                "Number02": "0",
-                                                "Number03": context.read<ArchitectureProvider>().SO.toString(),
-                                                "Number06": capacityController
-                                                    .text.isNotEmpty
-                                                    ? capacityController.text
-                                                    : '0',
-                                                "Number07": volumeController
-                                                    .text.isNotEmpty
-                                                    ? volumeController.text
-                                                    : '0',
-                                                "Number08": heightController
-                                                    .text.isNotEmpty
-                                                    ? heightController.text
-                                                    : '0',
-                                                "Number09": widthController
-                                                    .text.isNotEmpty
-                                                    ? widthController.text
-                                                    : '0',
-                                                "Number10": lengthController
-                                                    .text.isNotEmpty
-                                                    ? lengthController.text
-                                                    : '0',
-                                                "Number11":
-                                                (lastCustShip + 1).toString(),
-                                                "Number12": context.read<ArchitectureProvider>().custNum.toString(),
-                                                "Date01": loadDateFormat,
-
-                                                "Character02":
-                                                driverNameController.text,
-                                                "Character03":
-                                                driverNumberController.text,
-                                                "Character04": context.read<ArchitectureProvider>().CustomerId,
-
-                                                "Character07":context.read<ArchitectureProvider>().SO.toString(),
-                                                "Character08":context.read<ArchitectureProvider>().selectedShipment,
-
-
-                                                "Character09": resourceId,
-                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
-                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                              }, tenantConfigP);
-                                              debugPrint(
-                                                  toWarehouseNameController.text);
-                                              if (isLoaded) {
-                                                if (mounted) {
-                                                  showDialog(
-                                                      context: context,
-                                                      builder:
-                                                          (BuildContext context) {
-                                                        return AlertDialog(
-                                                          title: const Text(
-                                                              'Success'),
-                                                          content: Text(
-
-                                                              'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
-
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                    context)
-                                                                    .pop();
-                                                                _tabController
-                                                                    .animateTo(
-                                                                        _tabController.index + 1);
-                                                              },
-                                                              child: Text('OK',
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                          context)
-                                                                          .canvasColor)),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      });
-                                                }
-                                                setState(() {
-                                                  loadIDController.text =
-                                                      newLoadId;
-                                                });
-                                              }
-                                            }
-                                            setState(() {
-                                              CreateLoadLoading = false;
-                                            });
-                                          }
-                                        },
-                                        child: CreateLoadLoading
-                                            ? Padding(
-                                          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
-                                          child: Container(
-                                            height: 20,
-                                            width: 20,
-                                            child: const CircularProgressIndicator(
-                                              valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  Colors.white),
-                                            ),
-                                          ),
-                                        )
-
-                                            : const Text('Create Load')),
-                                  const SizedBox(height: 20),
-                                ],
                               ),
-                            ),
-                          ),
-                        ),
-                        //Tab 2 Content
+                              PartTable(selectedParts: selectedParts),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              ElevatedButton(
 
-                        //Tab 3 Content
-                        SingleChildScrollView(
-                          controller: ScrollController(),
+                                  onPressed: () async {
+                                    if(!SaveLinesLoading){
+                                      debugPrint(
+                                          selectedElements.length.toString());
+                                      setState(() {
+                                        SaveLinesLoading = true;
+                                      });
+                                      for (var e = 0;
+                                      e < selectedElements.length;
+                                      e++) {
+                                        debugPrint(
+                                            selectedElements[e].toString());
+                                        try {
+                                          final  ElementData element=ElementData.fromJson({
+                                            "Company":
+                                            "${tenantConfigP['company']}",
+
+                                            "ChildKey1":
+                                            (e+1).toString(),
+                                            "Key1": loadIDController.text,
+                                            "Character01":
+                                            selectedElements[e].partId,
+                                            "Character02":
+                                            selectedElements[e].elementId,
+                                            "Character03":
+                                            fromWarehouseController.text,
+                                            "Character04":
+                                            selectedElements[e].fromBin,
+                                            "Character07":
+                                            toWarehouseController.text,
+                                            "Character05": toBinController.text,
+                                            "Number01": selectedElements[e]
+                                                .selectedQty
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e]
+                                                .selectedQty
+                                                .toString()
+                                                : '0',
+                                            "Number03": selectedElements[e]
+                                                .weight
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].weight.toString()
+                                                : '0',
+                                            "Number04": selectedElements[e]
+                                                .area
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].area.toString()
+                                                : '0',
+                                            "Number05": selectedElements[e]
+                                                .volume
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].volume.toString()
+                                                : '0',
+                                            "Number06": selectedElements[e]
+                                                .erectionSeq
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e]
+                                                .erectionSeq.toString()
+                                                : '0',
+                                            "ShortChar07":
+                                            selectedElements[e].UOM,
+                                            "CheckBox05": false,
+                                            "CheckBox01": true,
+                                            "CheckBox02": false,
+                                            "CheckBox03": false,
+                                            "CheckBox07": false,
+                                            "CheckBox13": false,
+                                            "Character08":
+                                            selectedElements[e].Revision,
+                                            "Character09":
+                                            selectedElements[e].UOMClass
+                                          });
+                                          await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
+                                          updateInTransit(
+                                              selectedElements[e].partId,
+                                              selectedElements[e].elementId,
+                                              tenantConfigP);
+                                          childCount++;
+                                          LineStatus[selectedElements[e].elementId]='Success';
+
+                                        } on HttpException  catch (error) {
+
+                                          setState(() {
+                                            LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
+                                            });
+
+                                        }
+                                      }
+            for (int i = 0;
+            i < deletedSavedElements.length;
+            i++) {
+              try {
+                await deleteUD104A(
+                    deletedSavedElements[i],
+                    tenantConfigP);
+                LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
+              } catch (e) {
+                setState(() {
+                  LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
+                });
+              }
+            }
+            for (var p = 0;
+            p < selectedParts.length;
+            p++) {
+              debugPrint(selectedParts[p].toString());
+              await updateUD104A(ElementData.fromJson({
+                "ChildKey1":
+                (p + 1).toString(),
+                "Company":
+                "${tenantConfigP['company']}",
+                "Key1": loadIDController.text,
+                "Character01":
+                selectedParts[p].partNum,
+                "Character02":
+                selectedParts[p].partDesc,
+                "Character03":
+                toWarehouseController.text,
+                "Character04": toBinController.text,
+                "Number01": selectedParts[p].qty,
+                "ShortChar07": selectedParts[p].uom,
+                "CheckBox13": true,
+              }), tenantConfigP);
+            }
+
+            if (mounted) {
+              String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+              showDialog(context: context, builder:
+                  (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('Result'),
+                  content: Text(resultMessage),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                       if(mounted) context.read<loadStateProvider>().setLinesLoaded(true);
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              }
+              );
+            }}
+          setState(() {
+            SaveLinesLoading = false;
+          });
+        },
+        child: SaveLinesLoading?
+        Padding(
+
+          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+          child: Container(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).shadowColor),
+            ),
+          ),
+        )
+            :const Text(
+          'Load Lines',
+        )),
+  ],
+),
+),
+),
+                    ] : [
+                      //Tab 1 Content
+                      SingleChildScrollView(
+                        child: Form(
+                          key: _formKey,
                           child: Center(
                             child: Column(
                               children: [
                                 Padding(
-                                  padding: EdgeInsets.all(8.0),
+                                  padding: const EdgeInsets.all(8.0),
                                   child: Text(
-                                    'Project Details',
+                                    'Load Details',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    enabled: false,
-                                    initialValue: loadIDController.text,
-                                    decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Load ID"),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    enabled: false,
-                                    initialValue: projectIdController.text,
-                                    decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Project ID"),
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: TextFormField(
-                                          enabled: false,
-                                          initialValue: dateController.text,
-                                          decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Load Date"),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: false,
-                                            initialValue: loadTimeController.text,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load Time"),
-                                          ),
-                                        )),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: false,
-                                            initialValue:
-                                            fromWarehouseController.text,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "From"),
-                                          ),
-                                        )),
-                                    Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: false,
-                                            initialValue:
-                                            toWarehouseController.text,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "To"),
-                                          ),
-                                        )),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Truck Details',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).primaryColor),
+                                        color:
+                                        Theme.of(context).primaryColor),
                                   ),
                                 ),
                                 if (!widget.isUpdate)
-                                  buildTruckDetailsFrom(false),
-                                if (widget.isUpdate)
-                                  TruckDetailsForm(
-                                    isEdit: true,
-                                    truckDetails: offloadData,
-                                    tenantConfigP: tenantConfigP,
-                                  ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Selected Elements',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                ElementTable(
-                                    selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Selected Consumables',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                PartTable(selectedParts: selectedParts),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                ElevatedButton(
-                                    onPressed: () async {
-                                      if(!SaveLinesLoading){
-                                        debugPrint(
-                                            selectedElements.length.toString());
-                                        setState(() {
-                                          SaveLinesLoading = true;
-                                        });
-                                        for (var e = 0;
-                                        e < selectedElements.length;
-                                        e++) {
-                                          debugPrint(
-                                              selectedElements[e].toString());
-                                          try {
-                                           final  ElementData element=ElementData.fromJson({
-                                              "Company":
-                                              "${tenantConfigP['company']}",
-
-                                              "ChildKey1":
-                                              (e+1).toString(),
-                                              "Key1": loadIDController.text,
-                                              "Character01":
-                                              selectedElements[e].partId,
-                                              "Character02":
-                                              selectedElements[e].elementId,
-                                              "Character03":
-                                              fromWarehouseController.text,
-                                              "Character04":
-                                              selectedElements[e].fromBin,
-                                              "Character07":
-                                              toWarehouseController.text,
-                                              "Character05": toBinController.text,
-                                              "Number01": selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  : '0',
-                                              "Number03": selectedElements[e]
-                                                  .weight
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].weight.toString()
-                                                  : '0',
-                                              "Number04": selectedElements[e]
-                                                  .area
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].area.toString()
-                                                  : '0',
-                                              "Number05": selectedElements[e]
-                                                  .volume
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].volume.toString()
-                                                  : '0',
-                                              "Number06": selectedElements[e]
-                                                  .erectionSeq
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .erectionSeq.toString()
-                                                  : '0',
-                                              "ShortChar07":
-                                              selectedElements[e].UOM,
-                                              "CheckBox05": false,
-                                              "CheckBox01": true,
-                                              "CheckBox02": false,
-                                              "CheckBox03": false,
-                                              "CheckBox07": false,
-                                              "CheckBox13": false,
-                                              "Character08":
-                                              selectedElements[e].Revision,
-                                              "Character09":
-                                              selectedElements[e].UOMClass
-                                            });
-                                            await updateUD104A(element, tenantConfigP,last: e == selectedElements.length - 1);
-                                            updateInTransit(
-                                                selectedElements[e].partId,
-                                                selectedElements[e].elementId,
-                                                tenantConfigP);
-                                            childCount++;
-                                            LineStatus[selectedElements[e].elementId]='Success';
-
-                                          } on HttpException  catch (error) {
-
-                                            setState(() {
-                                              LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
-                                            });
-
-                                          }
-                                        }
-                                        for (int i = 0;
-                                        i < deletedSavedElements.length;
-                                        i++) {
-                                          try {
-                                            await deleteUD104A(
-                                                deletedSavedElements[i],
-                                                tenantConfigP);
-                                            LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
-                                          } catch (e) {
-                                            setState(() {
-                                              LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
-                                            });
-                                          }
-                                        }
-                                        for (var p = 0;
-                                        p < selectedParts.length;
-                                        p++) {
-                                          debugPrint(selectedParts[p].toString());
-                                          await updateUD104A(ElementData.fromJson({
-                                            "ChildKey1":
-                                            (p + 1).toString(),
-                                            "Company":
-                                            "${tenantConfigP['company']}",
-                                            "Key1": loadIDController.text,
-                                            "Character01":
-                                            selectedParts[p].partNum,
-                                            "Character02":
-                                            selectedParts[p].partDesc,
-                                            "Character03":
-                                            toWarehouseController.text,
-                                            "Character04": toBinController.text,
-                                            "Number01": selectedParts[p].qty,
-                                            "ShortChar07": selectedParts[p].uom,
-                                            "CheckBox13": true,
-                                          }), tenantConfigP);
-                                        }
-                               
-                                        if (mounted) {
-                                          String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
-                                          showDialog(context: context, builder:
-                                              (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text('Result'),
-                                              content: Text(resultMessage),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                    context.read<loadStateProvider>().setLinesLoaded(true);
-                                                  },
-                                                  child: const Text('OK'),
-                                                ),
-                                              ],
-                                            );
-                                          }
-                                          );
-                                        }}
-                                      setState(() {
-                                        SaveLinesLoading = false;
-                                      });
-                                    },
-                                    child: SaveLinesLoading?
-                                    Padding(
-
-                                      padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
-                                      child: Container(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                              Theme.of(context).shadowColor),
-                                        ),
-                                      ),
-                                    )
-                                        :const Text(
-                                      'Load Lines',
-                                    )),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ]) : [
-                        //Tab 1 Content
-                        SingleChildScrollView(
-                          child: Form(
-                            key: _formKey,
-                            child: Center(
-                              child: Column(
-                                children: [
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Load Details',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color:
-                                          Theme.of(context).primaryColor),
+                                    child: TextFormField(
+                                      controller: loadIDController,
+                                      enabled: false,
+                                      decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          labelText: "Load ID"),
                                     ),
                                   ),
-                                  if (!widget.isUpdate)
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: TextFormField(
-                                        controller: loadIDController,
-                                        enabled: false,
-                                        decoration: const InputDecoration(
-                                            border: OutlineInputBorder(),
-                                            labelText: "Load ID"),
-                                      ),
-                                    ),
-                                  if (widget.isUpdate)
-                                    Row(children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            controller: loadIDController,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "Load ID"),
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () async {
-                                          //  await makeSureDataLoaded(tenantConfigP);
-                                          // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
-                                          // await fetchElementDataFromURL();
-                                          //await fetchPartDataFromURL();
-                                          await loadLoadAndData(tenantConfigP);
-                                          String projectLoadID =
-                                              loadIDController.text;
-                                          offloadData = getLoadObjectFromJson(
-                                              projectLoadID);
-                                          getElementObjectFromJson(
-                                              projectLoadID);
-                                          getPartObjectFromJson(projectLoadID);
-                                          if (offloadData != null) {
-                                            debugPrint(offloadData.toString());
-                                            setState(() {
-                                              projectIdController.text =
-                                                  offloadData!.projectId;
-                                              dateController.text =
-                                                  offloadData!.loadDate;
-                                              toWarehouseController.text =
-                                                  offloadData!.toWarehouse;
-                                              toBinController.text =
-                                                  offloadData!.toBin;
-                                              loadTypeValue =
-                                                  offloadData!.loadType;
-                                              loadConditionValue =
-                                                  offloadData!.loadCondition;
-                                              fromWarehouseController.text =
-                                                  offloadData!.fromWarehouse;
-                                              isLoaded = true;
-                                            });
-                                          } else {
-                                            if (mounted) {
-                                              showDialog(
-                                                context: context,
-                                                builder: (context) {
-                                                  return AlertDialog(
-                                                    title: const Text('Error'),
-                                                    content: const Text(
-                                                        'Load ID not found'),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed: () {
-                                                          Navigator.pop(
-                                                              context);
-                                                        },
-                                                        child: Text('Close',
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                    context)
-                                                                    .canvasColor)),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            }
-                                          }
-                                        },
-                                        icon: const Icon(Icons.search),
-                                      ),
-                                    ]),
-                                  ToggleButtons(
-                                    onPressed: (projectOrSO){
-                                      setState(() {
-                                        this.projectOrSO = projectOrSO == 0;
-                                        context.read<ArchitectureProvider>().toggleArchitecure();
-                                      });
-                                    },
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      borderColor: Theme.of(context).primaryColor,
-                                      fillColor: Theme.of(context).primaryColor.withOpacity(0.2),
-                                      selectedBorderColor: Theme.of(context).primaryColor,
-                                      color: Theme.of(context).canvasColor,
-                                      selectedColor: Theme.of(context).primaryColor,
-                                      constraints: const BoxConstraints(
-                                        minHeight: 40.0,
-                                        minWidth: 100.0,
-                                      ),
-                                      direction: Axis.horizontal,
-                                      renderBorder: true,
-                                      textStyle: TextStyle(
-                                          fontSize:
-                                          MediaQuery.of(context).size.height *
-                                              0.0175),
-                                      isSelected: [
-                                        projectOrSO == true,
-                                        projectOrSO == false,
-                                      ],
-                                      children: const [
-                                        Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Text('Stand-alone SO'),
-                                        ),
-                                        Padding(
-                                          padding: EdgeInsets.all(8.0),
-                                          child: Text('Project based'),
-                                        ),
-                                      ],
-                                  ),
-                                  if(projectOrSO)
-                                    SalesOrderSearch(isUpdate: widget.isUpdate,enabled: !widget.isUpdate,)
-                                  else
-                                    ProjectSearch(isUpdate: widget.isUpdate,enabled:!widget.isUpdate),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            readOnly: true,  // Make the field read-only so it can still respond to taps
-                                            controller: dateController,
-                                            onTap: () async {
-                                              final DateTime? date = await showDatePicker(
-                                                builder: (BuildContext context, Widget? child) {
-                                                  return Theme(
-                                                    data: ThemeData.light().copyWith(
-                                                      colorScheme: ColorScheme.light(
-                                                        primary: Theme.of(context).primaryColor,
-                                                        background: Colors.white,
-                                                        secondary: Theme.of(context).primaryColor,
-                                                        outline: Colors.cyanAccent,
-                                                      ),
-                                                    ),
-                                                    child: child!,
-                                                  );
-                                                },
-                                                context: context,
-                                                initialDate: DateTime.now(),
-                                                firstDate: DateTime(2018),
-                                                lastDate: DateTime(2030),
-                                              );
-                                              if (date != null) {
-                                                setState(() {
-                                                  dateController.text = "${date.day}/${date.month}/${date.year}";
-                                                  _selectedDate = DateFormat('yyyy-MM-dd').format(date);
-                                                });
-                                              }
-                                            },
-                                            decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Load Date",
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: TextFormField(
-                                              onTap: () async {
-                                                final TimeOfDay? time =
-                                                await showTimePicker(
-                                                    context: context,
-                                                    initialTime:
-                                                    TimeOfDay.now(),
-                                                    builder: (context, child) {
-                                                      return Theme(
-                                                        data: Theme.of(context)
-                                                            .copyWith(
-                                                          colorScheme:
-                                                          ColorScheme.light(
-                                                            primary: Theme.of(
-                                                                context)
-                                                                .primaryColor,
-                                                            onPrimary:
-                                                            Colors.white,
-                                                            secondary: Theme.of(
-                                                                context)
-                                                                .primaryColor,
-                                                          ),
-                                                        ),
-                                                        child: child!,
-                                                      );
-                                                    });
-                                                if (time != null) {
-                                                  setState(() {
-                                                    loadTimeController.text =
-                                                    "${time.hour}:${time.minute}";
-                                                  });
-                                                }
-                                              },
-                                              controller: loadTimeController,
-                                              decoration: const InputDecoration(
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Load Time"),
-                                            ),
-                                          )),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: DropdownSearch(
-                                            selectedItem:
-                                            fromWarehouseController.text,
-                                            enabled: true,
-                                            popupProps: const PopupProps
-                                                .modalBottomSheet(
-                                              showSearchBox: true,
-                                              searchFieldProps: TextFieldProps(
-                                                decoration: InputDecoration(
-                                                  suffixIcon:
-                                                  Icon(Icons.search),
-                                                  border: OutlineInputBorder(),
-                                                  labelText: "Search",
-                                                ),
-                                              ),
-                                            ),
-                                            autoValidateMode: AutovalidateMode
-                                                .onUserInteraction,
-                                            dropdownDecoratorProps:
-                                            const DropDownDecoratorProps(
-                                              dropdownSearchDecoration:
-                                              InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "From Warehouse",
-                                              ),
-                                            ),
-                                            items: fetchedWarehouseValue.map((warehouse) =>
-                                            warehouse['Description'])
-                                                .toList(),
-                                            onChanged: (value) {
-                                              setState(() {
-                                                fromWarehouseController
-                                                    .text = fetchedWarehouseValue
-                                                    .firstWhere(
-                                                        (warehouse) =>
-                                                    warehouse[
-                                                    'Description'] ==
-                                                        value)[
-                                                'WarehouseCode'];
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                      ),
-
-                                    ],
-                                  ),
-
-
-
-                                  if (loadConditionValue == 'External')
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                controller: poNumberController,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "PO Num"),
-                                              ),
-                                            )),
-                                        Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(8.0),
-                                              child: TextFormField(
-                                                controller: poLineController,
-                                                decoration: const InputDecoration(
-                                                    border: OutlineInputBorder(),
-                                                    labelText: "PO Line"),
-                                              ),
-                                            )),
-                                      ],
-                                    ),
-                                  Row(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(children: [
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text(
-                                                'Load Type',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                    color: Theme.of(context)
-                                                        .canvasColor),
-                                              ),
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Return Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Return',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Delivery Trip',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Issue Load',
-                                              groupValue: loadTypeValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadTypeValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                          ]),
-                                        ),
-                                        Expanded(
-                                          child: Column(children: [
-                                            Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: Text(
-                                                'Truck Type',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 18,
-                                                    color: Theme.of(context)
-                                                        .canvasColor),
-                                              ),
-                                            ),
-                                            RadioListTile(
-                                              title: Text('External',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'External',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            ),
-                                            RadioListTile(
-                                              title: Text('Internal',
-                                                  style: TextStyle(
-                                                    fontSize:
-                                                    MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                        0.022,
-                                                  )),
-                                              value: 'Internal Truck',
-                                              groupValue: loadConditionValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  loadConditionValue =
-                                                      value.toString();
-                                                });
-                                              },
-                                            )
-                                          ]),
-                                        ),
-                                      ]),
-                                  Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text(
-                                      'Truck Details',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Theme.of(context).canvasColor),
-                                    ),
-                                  ),
-                                  if (!widget.isUpdate)
-                                    buildTruckDetailsFrom(true),
-                                  if (widget.isUpdate)
-                                    TruckDetailsForm(
-                                      isEdit: true,
-                                      truckDetails: offloadData,
-                                      tenantConfigP: tenantConfigP,
-                                    ),
-                                  const SizedBox(height: 20),
-                                  if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _tabController.animateTo(_tabController.index+1);
-                                        });
-                                      },
-                                      child: const Text('Next'),
-                                    ),
-                                  if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
-                                    ElevatedButton(
-                                        onPressed: () async {
-                                          if(!CreateLoadLoading){
-                                            setState(() {
-                                              CreateLoadLoading = true;
-                                            });
-                                            if (truckIdController.text.isEmpty ||
-                                                resourceIdController
-                                                    .text.isEmpty ||
-
-                                                loadTimeController.text.isEmpty ||
-                                                dateController.text.isEmpty
-                                            ) {
-                                              showDialog(
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return AlertDialog(
-                                                      title: const Text('Error'),
-                                                      content: const Text(
-                                                          'Please fill all the required fields'),
-                                                      actions: [
-                                                        TextButton(
-                                                          onPressed: () {
-                                                            Navigator.of(context)
-                                                                .pop();
-                                                          },
-                                                          child: const Text('OK'),
-                                                        ),
-                                                      ],
-                                                    );
-                                                  });
-                                            } else {
-                                              final newLoadId =
-                                                  'I-${lastLoad + 1}';
-                                              final loadDateFormat =
-                                                  '${_selectedDate}T00:00:00';
-                                              debugPrint(projectIdController.text);
-                                              await createNewLoad({
-                                                "Key1": newLoadId,
-                                                "Company":
-                                                "${tenantConfigP['company']}",
-                                                "ShortChar07":
-                                                plateNumberController.text,
-                                                "ShortChar05":context.read<ArchitectureProvider>().architecure,
-                                                "ShortChar01": loadTypeValue,
-                                                "ShortChar04": loadConditionValue,
-                                                "ShortChar08":
-                                                truckIdController.text,
-                                                "ShortChar03": "Open",
-
-                                                "Number01": loadedController
-                                                    .text.isNotEmpty
-                                                    ? loadedController.text
-                                                    : '0',
-                                                "Number02": "0",
-                                                "Number03": context.read<ArchitectureProvider>().SO.toString(),
-                                                "Number06": capacityController
-                                                    .text.isNotEmpty
-                                                    ? capacityController.text
-                                                    : '0',
-                                                "Number07": volumeController
-                                                    .text.isNotEmpty
-                                                    ? volumeController.text
-                                                    : '0',
-                                                "Number08": heightController
-                                                    .text.isNotEmpty
-                                                    ? heightController.text
-                                                    : '0',
-                                                "Number09": widthController
-                                                    .text.isNotEmpty
-                                                    ? widthController.text
-                                                    : '0',
-                                                "Number10": lengthController
-                                                    .text.isNotEmpty
-                                                    ? lengthController.text
-                                                    : '0',
-                                                "Number11":
-                                                (lastCustShip + 1).toString(),
-                                                "Number12": context.read<ArchitectureProvider>().custNum.toString(),
-                                                "Date01": loadDateFormat,
-
-                                                "Character02":
-                                                driverNameController.text,
-                                                "Character03":
-                                                driverNumberController.text,
-                                                "Character04": context.read<ArchitectureProvider>().CustomerId,
-
-                                                "Character07":context.read<ArchitectureProvider>().SO.toString(),
-                                                "Character08":context.read<ArchitectureProvider>().selectedShipment,
-
-
-                                                "Character09": resourceIdController.text,
-                                                "Character10": context.read<ArchitectureProvider>().Project.toString(),
-                                                "Character06": fromWarehouseController.text,
-                                                //  "Createdby_c": entryPersonController?.text.toString().trim(),
-                                                //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
-                                              }, tenantConfigP);
-                                              debugPrint(
-                                                 resourceIdController.text);
-                                              if (isLoaded) {
-                                                if (mounted) {
-                                                  showDialog(
-                                                      context: context,
-                                                      builder:
-                                                          (BuildContext context) {
-                                                        return AlertDialog(
-                                                          title: const Text(
-                                                              'Success'),
-                                                          content: Text(
-
-                                                              'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
-
-                                                          actions: [
-                                                            TextButton(
-                                                              onPressed: () {
-                                                                Navigator.of(
-                                                                    context)
-                                                                    .pop();
-                                                                _tabController
-                                                                    .animateTo(1);
-                                                              },
-                                                              child: Text('OK',
-                                                                  style: TextStyle(
-                                                                      color: Theme.of(
-                                                                          context)
-                                                                          .canvasColor)),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      });
-                                                }
-                                                setState(() {
-                                                  loadIDController.text =
-                                                      newLoadId;
-                                                });
-                                              }
-                                            }
-                                            setState(() {
-                                              CreateLoadLoading = false;
-                                            });
-                                          }
-                                        },
-                                        child: CreateLoadLoading
-                                            ? Padding(
-                                          padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
-                                          child: Container(
-                                            height: 20,
-                                            width: 20,
-                                            child: const CircularProgressIndicator(
-                                              valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  Colors.white),
-                                            ),
-                                          ),
-                                        )
-
-                                            : const Text('Create Load')),
-                                  const SizedBox(height: 20),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        //Tab 2 Content
-                        if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
-                          SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Column(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.all(8.0),
-                                      child: Text(
-                                        'Part Search Form',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 18,
-                                            color:
-                                            Theme.of(context).canvasColor),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).indicatorColor,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                if (widget.isUpdate)
+                                  Row(children: [
+                                    Expanded(
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        child: !widget.LinesOriented? ElementSearchForm(
-                                          onElementsSelected:
-                                          updateElementInformation,
-                                          arrivedElements:
-                                          selectedElements.isNotEmpty
-                                              ? selectedElements
-                                              : [],
-                                          isOffloading: false,
-                                          Warehouse: fromWarehouseController.text,
-                                          AddElement: _addElement,
-                                          Project: projectIdController.text,
-                                          tenantConfig: tenantConfigP,
-                                          isInstalling: false,
-                                        ) : SizedBox(
-                                          height: 50,
-                                          child: Center(
-                                            child: Text('Lines Oriented',
-                                                style: TextStyle(
-                                                  fontSize:
-                                                  MediaQuery.of(context)
-                                                      .size
-                                                      .height *
-                                                      0.022,
-                                                )),
-                                          ),
-
+                                        child: TextFormField(
+                                          controller: loadIDController,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load ID"),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(
-                                      height: 20,
+                                    IconButton(
+                                      onPressed: () async {
+                                        //  await makeSureDataLoaded(tenantConfigP);
+                                        // await fetchLoadDataFromURL(loadIDController.text,tenantConfigP);
+                                        // await fetchElementDataFromURL();
+                                        //await fetchPartDataFromURL();
+                                        await loadLoadAndData(tenantConfigP);
+                                        String projectLoadID =
+                                            loadIDController.text;
+                                        offloadData = getLoadObjectFromJson(
+                                            projectLoadID);
+                                        getElementObjectFromJson(
+                                            projectLoadID);
+                                        getPartObjectFromJson(projectLoadID);
+                                        if (offloadData != null) {
+                                          debugPrint(offloadData.toString());
+                                          setState(() {
+                                            projectIdController.text =
+                                                offloadData!.projectId;
+                                            dateController.text =
+                                                offloadData!.loadDate;
+                                            toWarehouseController.text =
+                                                offloadData!.toWarehouse;
+                                            toBinController.text =
+                                                offloadData!.toBin;
+                                            loadTypeValue =
+                                                offloadData!.loadType;
+                                            loadConditionValue =
+                                                offloadData!.loadCondition;
+                                            fromWarehouseController.text =
+                                                offloadData!.fromWarehouse;
+                                            isLoaded = true;
+                                          });
+                                        } else {
+                                          if (mounted) {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  title: const Text('Error'),
+                                                  content: const Text(
+                                                      'Load ID not found'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(
+                                                            context);
+                                                      },
+                                                      child: Text('Close',
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                  context)
+                                                                  .canvasColor)),
+                                                    ),
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.search),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  'Selected Elements',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                                ElementTable(
-                                  selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
-                                  DeletededSaveElements: widget.isUpdate
-                                      ? deletedSavedElements
-                                      : null,
-                                ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Text(
-                                  'Selected Consumables',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Theme.of(context).canvasColor),
-                                ),
-                                PartTable(selectedParts: selectedParts),
-                                ElevatedButton(
-                                  onPressed: () {
+                                  ]),
+                                ToggleButtons(
+                                  onPressed: (projectOrSO){
                                     setState(() {
-                                      _tabController.animateTo(_tabController.index+1);
+                                      this.projectOrSO = projectOrSO == 0;
+                                      context.read<ArchitectureProvider>().toggleArchitecure();
                                     });
                                   },
-                                  child: const Text('Next'),
-                                )
-                              ],
-                            ),
-                          ),
-                        if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
-                          const Center(
-                            child: Text(
-                                'Please create a load first or Select a load to update'),
-                          ),
-                        //Tab 3 Content
-                        SingleChildScrollView(
-                          controller: ScrollController(),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Project Details',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderColor: Theme.of(context).primaryColor,
+                                    fillColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                                    selectedBorderColor: Theme.of(context).primaryColor,
+                                    color: Theme.of(context).canvasColor,
+                                    selectedColor: Theme.of(context).primaryColor,
+                                    constraints: const BoxConstraints(
+                                      minHeight: 40.0,
+                                      minWidth: 100.0,
+                                    ),
+                                    direction: Axis.horizontal,
+                                    renderBorder: true,
+                                    textStyle: TextStyle(
+                                        fontSize:
+                                        MediaQuery.of(context).size.height *
+                                            0.0175),
+                                    isSelected: [
+                                      projectOrSO == true,
+                                      projectOrSO == false,
+                                    ],
+                                    children: const [
+                                      Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Stand-alone SO'),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.all(8.0),
+                                        child: Text('Project based'),
+                                      ),
+                                    ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    enabled: false,
-                                    initialValue: loadIDController.text,
-                                    decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Load ID"),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: TextFormField(
-                                    enabled: false,
-                                    initialValue: projectIdController.text,
-                                    decoration: const InputDecoration(
-                                        border: OutlineInputBorder(),
-                                        labelText: "Project ID"),
-                                  ),
-                                ),
+                                if(projectOrSO)
+                                  SalesOrderSearch(isUpdate: widget.isUpdate,enabled: !widget.isUpdate,)
+                                else
+                                  ProjectSearch(isUpdate: widget.isUpdate,enabled:!widget.isUpdate),
                                 Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceEvenly,
                                   children: [
                                     Expanded(
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: TextFormField(
-                                          enabled: false,
-                                          initialValue: dateController.text,
+                                          readOnly: true,  // Make the field read-only so it can still respond to taps
+                                          controller: dateController,
+                                          onTap: () async {
+                                            final DateTime? date = await showDatePicker(
+                                              builder: (BuildContext context, Widget? child) {
+                                                return Theme(
+                                                  data: ThemeData.light().copyWith(
+                                                    colorScheme: ColorScheme.light(
+                                                      primary: Theme.of(context).primaryColor,
+                                                      background: Colors.white,
+                                                      secondary: Theme.of(context).primaryColor,
+                                                      outline: Colors.cyanAccent,
+                                                    ),
+                                                  ),
+                                                  child: child!,
+                                                );
+                                              },
+                                              context: context,
+                                              initialDate: DateTime.now(),
+                                              firstDate: DateTime(2018),
+                                              lastDate: DateTime(2030),
+                                            );
+                                            if (date != null) {
+                                              setState(() {
+                                                dateController.text = "${date.day}/${date.month}/${date.year}";
+                                                _selectedDate = DateFormat('yyyy-MM-dd').format(date);
+                                              });
+                                            }
+                                          },
                                           decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              labelText: "Load Date"),
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load Date",
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -2237,8 +1645,40 @@ class _StockLoadingState extends State<StockLoading>
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: TextFormField(
-                                            enabled: false,
-                                            initialValue: loadTimeController.text,
+                                            enabled: !widget.isUpdate,
+                                            onTap: () async {
+                                              final TimeOfDay? time =
+                                              await showTimePicker(
+                                                  context: context,
+                                                  initialTime:
+                                                  TimeOfDay.now(),
+                                                  builder: (context, child) {
+                                                    return Theme(
+                                                      data: Theme.of(context)
+                                                          .copyWith(
+                                                        colorScheme:
+                                                        ColorScheme.light(
+                                                          primary: Theme.of(
+                                                              context)
+                                                              .primaryColor,
+                                                          onPrimary:
+                                                          Colors.white,
+                                                          secondary: Theme.of(
+                                                              context)
+                                                              .primaryColor,
+                                                        ),
+                                                      ),
+                                                      child: child!,
+                                                    );
+                                                  });
+                                              if (time != null) {
+                                                setState(() {
+                                                  loadTimeController.text =
+                                                  "${time.hour}:${time.minute}";
+                                                });
+                                              }
+                                            },
+                                            controller: loadTimeController,
                                             decoration: const InputDecoration(
                                                 border: OutlineInputBorder(),
                                                 labelText: "Load Time"),
@@ -2249,31 +1689,190 @@ class _StockLoadingState extends State<StockLoading>
                                 Row(
                                   children: [
                                     Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: false,
-                                            initialValue:
-                                            fromWarehouseController.text,
-                                            decoration: const InputDecoration(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: DropdownSearch(
+                                          selectedItem:
+                                          fromWarehouseController.text,
+                                          enabled: true,
+                                          popupProps: const PopupProps
+                                              .modalBottomSheet(
+                                            showSearchBox: true,
+                                            searchFieldProps: TextFieldProps(
+                                              decoration: InputDecoration(
+                                                suffixIcon:
+                                                Icon(Icons.search),
                                                 border: OutlineInputBorder(),
-                                                labelText: "From"),
+                                                labelText: "Search",
+                                              ),
+                                            ),
                                           ),
-                                        )),
-                                    Expanded(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: TextFormField(
-                                            enabled: false,
-                                            initialValue:
-                                            toWarehouseController.text,
-                                            decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                labelText: "To"),
+                                          autoValidateMode: AutovalidateMode
+                                              .onUserInteraction,
+                                          dropdownDecoratorProps:
+                                          const DropDownDecoratorProps(
+                                            dropdownSearchDecoration:
+                                            InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "From Warehouse",
+                                            ),
                                           ),
-                                        )),
+                                          items: fetchedWarehouseValue.map((warehouse) =>
+                                          warehouse['Description'])
+                                              .toList(),
+                                          onChanged: (value) {
+                                            setState(() {
+                                              fromWarehouseController
+                                                  .text = fetchedWarehouseValue
+                                                  .firstWhere(
+                                                      (warehouse) =>
+                                                  warehouse[
+                                                  'Description'] ==
+                                                      value)[
+                                              'WarehouseCode'];
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
+
                                   ],
                                 ),
+
+
+
+                                if (loadConditionValue == 'External')
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: poNumberController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "PO Num"),
+                                            ),
+                                          )),
+                                      Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: TextFormField(
+                                              controller: poLineController,
+                                              decoration: const InputDecoration(
+                                                  border: OutlineInputBorder(),
+                                                  labelText: "PO Line"),
+                                            ),
+                                          )),
+                                    ],
+                                  ),
+                                Row(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(children: [
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Load Type',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: Theme.of(context)
+                                                      .canvasColor),
+                                            ),
+                                          ),
+                                          RadioListTile(
+                                            title: Text('Return Trip',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                            value: 'Return',
+                                            groupValue: loadTypeValue,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                loadTypeValue =
+                                                    value.toString();
+                                              });
+                                            },
+                                          ),
+                                          RadioListTile(
+                                            title: Text('Delivery Trip',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                            value: 'Issue Load',
+                                            groupValue: loadTypeValue,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                loadTypeValue =
+                                                    value.toString();
+                                              });
+                                            },
+                                          ),
+                                        ]),
+                                      ),
+                                      Expanded(
+                                        child: Column(children: [
+                                          Padding(
+                                            padding: EdgeInsets.all(8.0),
+                                            child: Text(
+                                              'Truck Type',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                  color: Theme.of(context)
+                                                      .canvasColor),
+                                            ),
+                                          ),
+                                          RadioListTile(
+                                            title: Text('External',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                            value: 'External',
+                                            groupValue: loadConditionValue,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                loadConditionValue =
+                                                    value.toString();
+                                              });
+                                            },
+                                          ),
+                                          RadioListTile(
+                                            title: Text('Internal',
+                                                style: TextStyle(
+                                                  fontSize:
+                                                  MediaQuery.of(context)
+                                                      .size
+                                                      .height *
+                                                      0.022,
+                                                )),
+                                            value: 'Internal Truck',
+                                            groupValue: loadConditionValue,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                loadConditionValue =
+                                                    value.toString();
+                                              });
+                                            },
+                                          )
+                                        ]),
+                                      ),
+                                    ]),
                                 Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Text(
@@ -2281,222 +1880,623 @@ class _StockLoadingState extends State<StockLoading>
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
-                                        color: Theme.of(context).primaryColor),
+                                        color: Theme.of(context).canvasColor),
                                   ),
                                 ),
                                 if (!widget.isUpdate)
-                                  buildTruckDetailsFrom(false),
+                                  buildTruckDetailsFrom(true),
                                 if (widget.isUpdate)
                                   TruckDetailsForm(
                                     isEdit: true,
                                     truckDetails: offloadData,
-                                    tenantConfigP: tenantConfigP,
                                   ),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Selected Elements',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                ElementTable(
-                                    selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
-                                Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Selected Consumables',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                        color: Theme.of(context).canvasColor),
-                                  ),
-                                ),
-                                PartTable(selectedParts: selectedParts),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                ElevatedButton(
-                                    onPressed: () async {
-                                      if(!SaveLinesLoading){
-                                        debugPrint(
-                                            selectedElements.length.toString());
-                                        setState(() {
-                                          SaveLinesLoading = true;
-                                        });
-                                        for (var e = 0;
-                                        e < selectedElements.length;
-                                        e++) {
-                                          debugPrint(
-                                              selectedElements[e].toString());
-                                          try {
-                                            await updateUD104A(ElementData.fromJson({
-                                              "Company":
-                                              "${tenantConfigP['company']}",
-
-                                              "ChildKey1":
-                                              (e+1).toString(),
-                                              "Key1": loadIDController.text,
-                                              "Character01":
-                                              selectedElements[e].partId,
-                                              "Character02":
-                                              selectedElements[e].elementId,
-                                              "Character03":
-                                              fromWarehouseController.text,
-                                              "Character04":
-                                              selectedElements[e].fromBin,
-                                              "Character07":
-                                              toWarehouseController.text,
-                                              "Character05": toBinController.text,
-                                              "Number01": selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .selectedQty
-                                                  .toString()
-                                                  : '0',
-                                              "Number03": selectedElements[e]
-                                                  .weight
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].weight.toString()
-                                                  : '0',
-                                              "Number04": selectedElements[e]
-                                                  .area
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].area.toString()
-                                                  : '0',
-                                              "Number05": selectedElements[e]
-                                                  .volume
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e].volume.toString()
-                                                  : '0',
-                                              "Number06": selectedElements[e]
-                                                  .erectionSeq
-                                                  .toString()
-                                                  .isNotEmpty
-                                                  ? selectedElements[e]
-                                                  .erectionSeq.toString()
-                                                  : '0',
-                                              "ShortChar07":
-                                              selectedElements[e].UOM,
-                                              "CheckBox05": false,
-                                              "CheckBox01": true,
-                                              "CheckBox02": false,
-                                              "CheckBox03": false,
-                                              "CheckBox07": false,
-                                              "CheckBox13": false,
-                                              "Character08":
-                                              selectedElements[e].Revision,
-                                              "Character09":
-                                              selectedElements[e].UOMClass
-                                            }), tenantConfigP ,last: e==selectedElements.length-1);
-                                            updateInTransit(
-                                                selectedElements[e].partId,
-                                                selectedElements[e].elementId,
-                                                tenantConfigP);
-                                            childCount++;
-                                            LineStatus[selectedElements[e].elementId]='Success';
-
-                                          } on HttpException  catch (error) {
-
-                                            setState(() {
-                                              LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
-                                            });
-
-                                          }
-                                        }
-                                        for (int i = 0;
-                                        i < deletedSavedElements.length;
-                                        i++) {
-                                          try {
-                                            await deleteUD104A(
-                                                deletedSavedElements[i],
-                                                tenantConfigP);
-                                            LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
-                                          } catch (e) {
-                                            setState(() {
-                                              LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
-                                            });
-                                          }
-                                        }
-                                        for (var p = 0;
-                                        p < selectedParts.length;
-                                        p++) {
-                                          debugPrint(selectedParts[p].toString());
-                                          await updateUD104A(ElementData.fromJson({
-                                            "ChildKey1":
-                                            (p + 1).toString(),
-                                            "Company":
-                                            "${tenantConfigP['company']}",
-                                            "Key1": loadIDController.text,
-                                            "Character01":
-                                            selectedParts[p].partNum,
-                                            "Character02":
-                                            selectedParts[p].partDesc,
-                                            "Character03":
-                                            toWarehouseController.text,
-                                            "Character04": toBinController.text,
-                                            "Number01": selectedParts[p].qty,
-                                            "ShortChar07": selectedParts[p].uom,
-                                            "CheckBox13": true,
-                                          }), tenantConfigP);
-                                        }
-                                        if (mounted) {
-                                          String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
-                                          showDialog(context: context, builder:
-                                              (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text('Result'),
-                                              content: Text(resultMessage),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.of(context).pop();
-                                                  },
-                                                  child: const Text('OK'),
-                                                ),
-                                              ],
-                                            );
-                                          }
-                                          );
-                                        }}
+                                const SizedBox(height: 20),
+                                if (widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                  ElevatedButton(
+                                    onPressed: () {
                                       setState(() {
-                                        SaveLinesLoading = false;
-                                         context.read<loadStateProvider>().setLinesLoaded(true);
+                                        _tabController.animateTo(_tabController.index+1);
                                       });
                                     },
-                                    child: SaveLinesLoading?
-                                    Padding(
+                                    child: const Text('Next'),
+                                  ),
+                                if (!widget.isUpdate && !context.watch<loadStateProvider>().loadCreated)
+                                  ElevatedButton(
+                                      onPressed: () async {
+                                        if(!CreateLoadLoading){
+                                          setState(() {
+                                            CreateLoadLoading = true;
+                                          });
+                                          if (truckIdController.text.isEmpty ||
+                                              resourceIdController
+                                                  .text.isEmpty ||
 
-                                      padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
-                                      child: Container(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          valueColor: AlwaysStoppedAnimation<Color>(
-                                              Theme.of(context).shadowColor),
+                                              loadTimeController.text.isEmpty ||
+                                              dateController.text.isEmpty
+                                          ) {
+                                            showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: const Text('Error'),
+                                                    content: const Text(
+                                                        'Please fill all the required fields'),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                        child: const Text('OK'),
+                                                      ),
+                                                    ],
+                                                  );
+                                                });
+                                          } else {
+                                            final newLoadId =
+                                                'I-${lastLoad + 1}';
+                                            final loadDateFormat =
+                                                '${_selectedDate}T00:00:00';
+                                            debugPrint(projectIdController.text);
+                                            await createNewLoad({
+                                              "Key1": newLoadId,
+                                              "Company":
+                                              "${tenantConfigP['company']}",
+                                              "ShortChar07":
+                                              plateNumberController.text,
+                                              "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                              "ShortChar01": loadTypeValue,
+                                              "ShortChar04": loadConditionValue,
+                                              "ShortChar08":
+                                              truckIdController.text,
+                                              "ShortChar03": "Open",
+
+                                              "Number01": loadedController
+                                                  .text.isNotEmpty
+                                                  ? loadedController.text
+                                                  : '0',
+                                              "Number02": "0",
+                                              "Number03": context.read<ArchitectureProvider>().SO.toString(),
+                                              "Number06": capacityController
+                                                  .text.isNotEmpty
+                                                  ? capacityController.text
+                                                  : '0',
+                                              "Number07": volumeController
+                                                  .text.isNotEmpty
+                                                  ? volumeController.text
+                                                  : '0',
+                                              "Number08": heightController
+                                                  .text.isNotEmpty
+                                                  ? heightController.text
+                                                  : '0',
+                                              "Number09": widthController
+                                                  .text.isNotEmpty
+                                                  ? widthController.text
+                                                  : '0',
+                                              "Number10": lengthController
+                                                  .text.isNotEmpty
+                                                  ? lengthController.text
+                                                  : '0',
+                                              "Number11":
+                                              (lastCustShip + 1).toString(),
+                                              "Number12": context.read<ArchitectureProvider>().custNum.toString(),
+                                              "Date01": loadDateFormat,
+
+                                              "Character02":
+                                              driverNameController.text,
+                                              "Character03":
+                                              driverNumberController.text,
+                                              "Character04": context.read<ArchitectureProvider>().CustomerId,
+
+                                              "Character07":context.read<ArchitectureProvider>().SO.toString(),
+                                              "Character08":context.read<ArchitectureProvider>().selectedShipment,
+
+
+                                              "Character09": resourceIdController.text,
+                                              "Character10": context.read<ArchitectureProvider>().Project.toString(),
+                                              "Character06": fromWarehouseController.text,
+                                              //  "Createdby_c": entryPersonController?.text.toString().trim(),
+                                              //  "Deviceid_c":  deviceIDController?.text.toString().trim(),
+                                            }, tenantConfigP);
+                                            debugPrint(
+                                               resourceIdController.text);
+                                            if (isLoaded) {
+                                              if (mounted) {
+                                                showDialog(
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Success'),
+                                                        content: Text(
+
+                                                            'Delivery ticket created successfully, LoadID: $newLoadId, customer shimpent: ${lastCustShip + 1}'),
+
+                                                        actions: [
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              Navigator.of(
+                                                                  context)
+                                                                  .pop();
+                                                              _tabController
+                                                                  .animateTo(1);
+                                                            },
+                                                            child: Text('OK',
+                                                                style: TextStyle(
+                                                                    color: Theme.of(
+                                                                        context)
+                                                                        .canvasColor)),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    });
+                                              }
+                                              setState(() {
+                                                loadIDController.text =
+                                                    newLoadId;
+                                              });
+                                            }
+                                          }
+                                          setState(() {
+                                            CreateLoadLoading = false;
+                                          });
+                                        }
+                                      },
+                                      child: CreateLoadLoading
+                                          ? Padding(
+                                        padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                        child: Container(
+                                          height: 20,
+                                          width: 20,
+                                          child: const CircularProgressIndicator(
+                                            valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                          ),
                                         ),
+                                      )
+
+                                          : const Text('Create Load')),
+                                                          const SizedBox(height: 20),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                //Tab 2 Content
+                                                if (isLoaded ||widget.LinesOriented|| widget.isUpdate)
+                                                  SingleChildScrollView(
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                      children: [
+                                                        Column(
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets.all(8.0),
+                                                              child: Text(
+                                                                'Part Search Form',
+                                                                style: TextStyle(
+                                                                    fontWeight: FontWeight.bold,
+                                                                    fontSize: 18,
+                                                                    color:
+                                                                    Theme.of(context).canvasColor),
+                                                              ),
+                                                            ),
+                                                            SizedBox(
+                                                              height: 10,
+                                                            ),
+                                                            Container(
+                                                              decoration: BoxDecoration(
+                                                                color: Theme.of(context).indicatorColor,
+                                                                borderRadius: BorderRadius.circular(10),
+                                                              ),
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.all(8.0),
+                                                                child: !widget.LinesOriented? ElementSearchForm(
+                                                                  onElementsSelected:
+                                                                  updateElementInformation,
+                                                                  arrivedElements:
+                                                                  selectedElements.isNotEmpty
+                                                                      ? selectedElements
+                                                                      : [],
+                                                                  isOffloading: false,
+                                                                  Warehouse: fromWarehouseController.text??'',
+                                                                  AddElement: _addElement,
+                                                                  Project: projectIdController.text,
+                                                                  tenantConfig: tenantConfigP,
+                                                                  isInstalling: false,
+                                                                ) : SizedBox(
+                                                                  height: 50,
+                                                                  child: Center(
+                                                                    child: Text('Lines Oriented',
+                                                                        style: TextStyle(
+                                                                          fontSize:
+                                                                          MediaQuery.of(context)
+                                                                              .size
+                                                                              .height *
+                                                                              0.022,
+                                                                        )),
+                                                                  ),
+
+
                                       ),
-                                    )
-                                        :const Text(
-                                      'Load Lines',
-                                    ))
-                                    // :SizedBox(),
-                              ],
-                            ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 20,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                'Selected Elements',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Theme.of(context).canvasColor),
+                              ),
+                              ElementTable(
+                                selectedElements: widget.LinesOriented? widget.passedElements: selectedElements,
+                                DeletededSaveElements: widget.isUpdate
+                                    ? deletedSavedElements
+                                    : null,
+                              ),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                              Text(
+                                'Selected Consumables',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Theme.of(context).canvasColor),
+                              ),
+                              PartTable(selectedParts: selectedParts),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _tabController.animateTo(_tabController.index+1);
+                                  });
+                                },
+                                child: const Text('Next'),
+                              )
+                            ],
                           ),
                         ),
-                      ]
+                      if (!widget.isUpdate&&!isLoaded && !widget.LinesOriented)
+                        const Center(
+                          child: Text(
+                              'Please create a load first or Select a load to update'),
+                        ),
+                      //Tab 3 Content
+                      SingleChildScrollView(
+                        controller: ScrollController(),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Project Details',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: loadIDController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Load ID"),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: TextFormField(
+                                  enabled: false,
+                                  initialValue: projectIdController.text,
+                                  decoration: const InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      labelText: "Project ID"),
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: TextFormField(
+                                        enabled: false,
+                                        initialValue: dateController.text,
+                                        decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            labelText: "Load Date"),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue: loadTimeController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "Load Time"),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue:
+                                          fromWarehouseController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "From"),
+                                        ),
+                                      )),
+                                  Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: TextFormField(
+                                          enabled: false,
+                                          initialValue:
+                                          toWarehouseController.text,
+                                          decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: "To"),
+                                        ),
+                                      )),
+                                ],
+                              ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Truck Details',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                              ),
+                              if (!widget.isUpdate)
+                                buildTruckDetailsFrom(false),
+                              if (widget.isUpdate)
+                                TruckDetailsForm(
+                                  isEdit: true,
+                                  truckDetails: offloadData,
+                                ),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Selected Elements',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                              ),
+                              ElementTable(
+                                  selectedElements: widget.LinesOriented?widget.passedElements: selectedElements),
+                              Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Selected Consumables',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Theme.of(context).canvasColor),
+                                ),
+                              ),
+                              PartTable(selectedParts: selectedParts),
+                              const SizedBox(
+                                height: 20,
+                              ),
+                               !context.watch<loadStateProvider>().linesLoaded?
+                              ElevatedButton(
 
+                                  onPressed: () async {
+                                    if(!SaveLinesLoading){
+                                      debugPrint(
+                                          selectedElements.length.toString());
+                                      setState(() {
+                                        SaveLinesLoading = true;
+                                      });
+                                      for (var e = 0;
+                                      e < selectedElements.length;
+                                      e++) {
+                                        debugPrint(
+                                            selectedElements[e].toString());
+                                        try {
+                                          await updateUD104A(ElementData.fromJson({
+                                            "Company":
+                                            "${tenantConfigP['company']}",
+
+                                            "ChildKey1":
+                                            (e+1).toString(),
+                                            "Key1": loadIDController.text,
+                                            "Character01":
+                                            selectedElements[e].partId,
+                                            "Character02":
+                                            selectedElements[e].elementId,
+                                            "Character03":
+                                            fromWarehouseController.text,
+                                            "Character04":
+                                            selectedElements[e].fromBin,
+                                            "Character07":
+                                            toWarehouseController.text,
+                                            "Character05": toBinController.text,
+                                            "Number01": selectedElements[e]
+                                                .selectedQty
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e]
+                                                .selectedQty
+                                                .toString()
+                                                : '0',
+                                            "Number03": selectedElements[e]
+                                                .weight
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].weight.toString()
+                                                : '0',
+                                            "Number04": selectedElements[e]
+                                                .area
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].area.toString()
+                                                : '0',
+                                            "Number05": selectedElements[e]
+                                                .volume
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e].volume.toString()
+                                                : '0',
+                                            "Number06": selectedElements[e]
+                                                .erectionSeq
+                                                .toString()
+                                                .isNotEmpty
+                                                ? selectedElements[e]
+                                                .erectionSeq.toString()
+                                                : '0',
+                                            "ShortChar07":
+                                            selectedElements[e].UOM,
+                                            "CheckBox05": false,
+                                            "CheckBox01": true,
+                                            "CheckBox02": false,
+                                            "CheckBox03": false,
+                                            "CheckBox07": false,
+                                            "CheckBox13": false,
+                                            "Character08":
+                                            selectedElements[e].Revision,
+                                            "Character09":
+                                            selectedElements[e].UOMClass
+                                          }), tenantConfigP ,last: e==selectedElements.length-1);
+                                          updateInTransit(
+                                              selectedElements[e].partId,
+                                              selectedElements[e].elementId,
+                                              tenantConfigP);
+                                          childCount++;
+                                          LineStatus[selectedElements[e].elementId]='Success';
+
+                                        } on HttpException  catch (error) {
+
+                                          setState(() {
+                                            LineStatus[selectedElements[e].elementId]= "Error: ${(e+1).toString()}. "+error.message;
+                                          });
+
+                                        }
+                                      }
+                                      for (int i = 0;
+                                      i < deletedSavedElements.length;
+                                      i++) {
+                                        try {
+                                          await deleteUD104A(
+                                              deletedSavedElements[i],
+                                              tenantConfigP);
+                                          LineStatus[deletedSavedElements[i].elementId]='deleted Successfully';
+                                        } catch (e) {
+                                          setState(() {
+                                            LineStatus[deletedSavedElements[i].elementId]= "Error: ${(i+1).toString()}. "+ e.toString()+" \n";
+                                          });
+                                        }
+                                      }
+                                      for (var p = 0;
+                                      p < selectedParts.length;
+                                      p++) {
+                                        debugPrint(selectedParts[p].toString());
+                                        await updateUD104A(ElementData.fromJson({
+                                          "ChildKey1":
+                                          (p + 1).toString(),
+                                          "Company":
+                                          "${tenantConfigP['company']}",
+                                          "Key1": loadIDController.text,
+                                          "Character01":
+                                          selectedParts[p].partNum,
+                                          "Character02":
+                                          selectedParts[p].partDesc,
+                                          "Character03":
+                                          toWarehouseController.text,
+                                          "Character04": toBinController.text,
+                                          "Number01": selectedParts[p].qty,
+                                          "ShortChar07": selectedParts[p].uom,
+                                          "CheckBox13": true,
+                                        }), tenantConfigP);
+                                      }
+                                      if (mounted) {
+                                        String resultMessage=LineStatus.map((key, value) => MapEntry(key, value)).values.join('\n');
+                                        showDialog(context: context, builder:
+                                            (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Result'),
+                                            content: Text(resultMessage),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          );
+                                        }
+                                        );
+                                      }}
+                                    setState(() {
+                                      SaveLinesLoading = false;
+                                       context.read<loadStateProvider>().setLinesLoaded(true);
+                                    });
+                                  },
+                                  child: SaveLinesLoading?
+                                  Padding(
+
+                                    padding: const EdgeInsets.fromLTRB(22.0,0,22.0,0),
+                                    child: Container(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                            Theme.of(context).shadowColor),
+                                      ),
+                                    ),
+                                  )
+                                      :const Text(
+                                    'Load Lines',
+                                  )):SizedBox(),
+                            ],
+                          ),
+                        ),
                       ),
-                    );
-                  }),
+                    ]
+
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }),
         ),
       ),
     );
@@ -2516,14 +2516,21 @@ class _StockLoadingState extends State<StockLoading>
   void _addElement(ElementData element) {
     setState(() {
       selectedElements.add(element);
+      updateLoadedController();
     });
   }
 
   // ADD: central helper to register current load in parent session list
   void _pushCurrentLoadToSession() {
-    if (currentLoad != null && widget.addLoadData != null) {
+    if (currentLoad != null) {
       try {
-        widget.addLoadData(currentLoad);
+        // Use the global LoadHistoryProvider
+        context.read<LoadHistoryProvider>().addLoad(currentLoad!);
+
+        // Also call the widget callback if provided for backward compatibility
+        if (widget.addLoadData != null) {
+          widget.addLoadData(currentLoad);
+        }
       } catch (_) {}
     }
   }
@@ -2755,6 +2762,7 @@ class _StockLoadingState extends State<StockLoading>
     setState(() {
       selectedElements = selectedElementsFromForm;
       selectedParts = selectedPartsFromForm;
+      updateLoadedController();
     });
   }
 
@@ -2967,6 +2975,8 @@ class _StockLoadingState extends State<StockLoading>
       return jsonResponse;
     } catch (e) {
       debugPrint(e.toString());
+      // You may want to handle errors here or return some indication of failure
+      // For now, I'll return null to indicate failure
       return null;
     }
   }
@@ -3025,23 +3035,44 @@ class _StockLoadingState extends State<StockLoading>
             HttpHeaders.contentTypeHeader: 'application/json',
           });
       if (response.statusCode == 200) {
-       // widget.addLoadData(currentLoad);
+        widget.addLoadData(currentLoad);
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
     }
   }
 
+
+
+    int specifytheOrderLine(String partNum){
+    List<dynamic> orderLines = context.read<ArchitectureProvider>().Lines;
+      List<dynamic> linesQty = context.read<ArchitectureProvider>().linesQty;
+      for (var orderLine in orderLines) {
+        if (orderLine["OrderDtl_PartNum"] == partNum) {
+          var matches = linesQty.where((lineQty) => lineQty['LineNum'] == orderLine['OrderDtl_OrderLine']).toList();
+          if (matches.isEmpty) continue;
+          var qtyLine = matches.first;
+          if (qtyLine['QtyToShip'] <= 0) {
+            continue;
+          }
+          context.read<ArchitectureProvider>().DecrementLineQty(qtyLine['LineNum']);
+          return int.parse(qtyLine['LineNum'].toString());
+
+        }
+      }
+      throw Exception("All order lines for part $partNum are fully shipped.");
+    }
+
   Future<void> updateUD104A(
       ElementData UD104AData, dynamic tenantConfigP ,{bool last=false}) async {
     try {
       CustomerShipment customerShipment = new CustomerShipment(
         PackNum: lastCustShip+1,
-
         Company: UD104AData.Company,
         CustNum: context.read<ArchitectureProvider>().custNum,
         LineDesc: UD104AData.elementDesc,
-        OrderLine: int.parse(UD104AData.ChildKey1),
+        OrderLine: specifytheOrderLine(UD104AData.partId), // changing the order line to map to the first line that matches the sales Order ,,
+
         OrderNum: context.read<ArchitectureProvider>().SO,
         OrderRelNum: 1,
        RevisionNum: UD104AData.Revision,
@@ -3109,7 +3140,8 @@ class _StockLoadingState extends State<StockLoading>
             && CustShipHeadresponse.statusCode >= 200 &&
             CustShipHeadresponse.statusCode < 300
         ) {
-          setState(() {
+          debugPrint(response.body);
+          if(mounted)setState(() {
             context.read<loadStateProvider>().setLinesLoaded(true);
 
           });
@@ -3204,6 +3236,13 @@ class _StockLoadingState extends State<StockLoading>
   }
 
   Widget buildTruckDetailsFrom(bool isEditable) {
+    updateLoadedController();
+
+    // Parse capacity and loaded values for comparison
+    double capacity = double.tryParse(capacityController.text) ?? 0;
+    double loaded = double.tryParse(loadedController.text) ?? 0;
+    bool isOverloaded = loaded > capacity && capacity > 0;
+
     return Column(
       children: [
         Row(
@@ -3444,18 +3483,40 @@ class _StockLoadingState extends State<StockLoading>
                     child: TextFormField(
                       controller: loadedController,
                       enabled: false,
-                      decoration: const InputDecoration(
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: OutlineInputBorder(),
-                          labelText: "Loaded"),
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        filled: true,
+                        border: const OutlineInputBorder(),
+                        labelText: "Loaded",
+                        suffixIcon: isOverloaded
+                            ? Tooltip(
+                                message: "Overloaded",
+                                child: Icon(Icons.warning, color: Colors.red),
+                              )
+                            : null,
+                      ),
+                      style: isOverloaded
+                          ? const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)
+                          : null,
                     ),
                   ),
                 ),
               ],
             ),
-
-
+            if (isOverloaded)
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning, color: Colors.red, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Warning: Truck is overloaded!",
+                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 20),

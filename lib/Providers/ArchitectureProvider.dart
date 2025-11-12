@@ -12,6 +12,7 @@ class ArchitectureProvider extends ChangeNotifier {
     selectedLine=0;
     selectedShipment="";
     CustomerId="";
+    linesQty=[];
     notifyListeners();
   }
   String _architecure='Project';
@@ -35,8 +36,24 @@ class ArchitectureProvider extends ChangeNotifier {
     notifyListeners();
   }
  dynamic Lines=null;
+
 dynamic get lines => Lines;
-setLines(dynamic value) {
+List<dynamic> linesQty=[];
+  set linesQuantity (List<dynamic> value){
+    linesQty=value;
+    notifyListeners();
+  }
+
+  List<dynamic> get getLinesQuantity => linesQty;
+  setLines(List<dynamic>? value) {
+
+    if (value != null) {
+      List<dynamic> tempLines = value.map((e) => {
+        'LineNum': e['OrderDtl_OrderLine'],
+        'QtyToShip': double.parse(e['OrderDtl_OrderQty'] ?? '0')
+      }).toList();
+      linesQty = tempLines;
+    }
     Lines = value;
     notifyListeners();
   }
@@ -64,6 +81,7 @@ setLines(dynamic value) {
   int get line => selectedLine;
   updateLine(int value) {
     selectedLine = value;
+
     notifyListeners();
   }
   String selectedShipment="";
@@ -76,6 +94,24 @@ setLines(dynamic value) {
   String get customerId => CustomerId;
   updateCustId(String value) {
     CustomerId = value;
+    notifyListeners();
+  }
+  IncrementLineQty(int lineNumber) {
+    for (var line in linesQty) {
+      if (line['LineNum'] == lineNumber) {
+        line['QtyToShip'] += 1;
+        break;
+      }
+    }
+    notifyListeners();
+  }
+  DecrementLineQty(int lineNumber) {
+    for (var line in linesQty) {
+      if (line['LineNum'] == lineNumber && line['QtyToShip'] > 0) {
+        line['QtyToShip'] -= 1;
+        break;
+      }
+    }
     notifyListeners();
   }
 }

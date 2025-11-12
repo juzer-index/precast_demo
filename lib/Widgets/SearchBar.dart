@@ -17,12 +17,25 @@ class IndexSearchBar extends StatefulWidget {
 class _IndexSearchBarState extends State<IndexSearchBar> {
   final TextEditingController _controller = TextEditingController();
   bool isSearching = false;
+ @override
+  void initState() {
+    super.initState();
+
+    _controller.text = widget.value;
+
+  }
 
   @override
-  Widget build(BuildContext context) {
-    if(widget.value.isNotEmpty){
+  void didUpdateWidget(covariant IndexSearchBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync text field when external value changes (e.g., user selects a Sales Order)
+    if (oldWidget.value != widget.value && !isSearching) {
       _controller.text = widget.value;
     }
+  }
+  @override
+  Widget build(BuildContext context) {
+
     return Container(
       padding: EdgeInsets.all(10),
       child: Row(
@@ -55,14 +68,18 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
                 return;
               }
            try {
-             setState(() {
-                isSearching = true;
-             });
-             await widget.onSearch(_controller.text);
+                if(mounted) {
+                  setState
+                    (() {
+                    isSearching = true;
+                  });
+                  await widget.onSearch(_controller.text);
 
-             setState(() {
-                isSearching = false;
-             });
+                  setState(() {
+
+                    isSearching = false;
+                  });
+                }
             }
             on NotFoundException catch (e) {
                 setState(() {
@@ -85,12 +102,13 @@ class _IndexSearchBarState extends State<IndexSearchBar> {
 
                  }
             catch (e) {
+                if(mounted)
               setState(() {
                 isSearching = false;
                 _controller.clear();
               });
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString()),));
-
+              debugPrint(e.toString());
             }
             },
           ): CircularProgressIndicator(),

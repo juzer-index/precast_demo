@@ -54,13 +54,13 @@ final ThemeData myTheme = ThemeData(
       color: Color(0xFF00AEEF),
     ),
   ),
-  // tabBarTheme: TabBarTheme(
-  //   // Set the indicator color to change the active tab color globally
-  //   indicatorColor: Color(0xFF00AEEF),
-  //   labelStyle: TextStyle(
-  //     color: Color(0xFFFFFFFF),
-  //   ),
-  // ),
+  tabBarTheme: TabBarThemeData(
+    // Set the indicator color to change the active tab color globally
+    indicatorColor: Color(0xFF00AEEF),
+    labelStyle: TextStyle(
+      color: Color(0xFFFFFFFF),
+    ),
+  ),
   secondaryHeaderColor: Color(0xFF00AEEF),
 
 

@@ -27,7 +27,7 @@ class _ElementTableState extends State<ElementTable> {
         child: DataTable(
           columns:  [
             if(widget.isOffloading)DataColumn(label: Text('Received')),
-            DataColumn(label: Text('Element ID')),
+            DataColumn(label: Text('Structure ID')),
             DataColumn(label: Text('Part Number')),
             DataColumn(label: Text('Erection Seq')),
             if(!widget.isOffloading)DataColumn(label: Text('Actions')),
@@ -41,8 +41,9 @@ class _ElementTableState extends State<ElementTable> {
                 onChanged: (bool? newValue) {
                   setState(() {
                     widget.selectedElements[widget.selectedElements.indexOf(row)].isRecieved = newValue ?? false;
-
-                    widget.onElementsChanged!(widget.selectedElements);
+                    if (widget.onElementsChanged != null) {
+                      widget.onElementsChanged!(widget.selectedElements);
+                    }
                   });
                 },
               ),
@@ -56,7 +57,9 @@ class _ElementTableState extends State<ElementTable> {
                 onPressed: () {
                   setState(() {
                     widget.selectedElements.remove(row);
-                    widget.onElementsChanged!(widget.selectedElements);
+                    if (widget.onElementsChanged != null) {
+                      widget.onElementsChanged!(widget.selectedElements);
+                    }
                   });
                 },
               ),

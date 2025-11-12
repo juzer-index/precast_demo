@@ -36,13 +36,28 @@ class _PartSearchFormState extends State<PartSearchForm> {
     final jsonString = await rootBundle.loadString('assets/data_parts.json');
     setState(() {
       fetchedPartData = json.decode(jsonString);
-      fetchedPartValue = fetchedPartData['value'];
+      List<dynamic> raw = fetchedPartData['value'] ?? [];
+      // Determine if any status-like field exists in the dataset
+      bool hasStatusField = raw.any((e) => e is Map && (e.containsKey('Status') || e.containsKey('ElementStatus_c') || e.containsKey('Part_Status_c')));
+      if (hasStatusField) {
+        // Keep only parts where any status field equals 'Casted'
+        fetchedPartValue = raw.where((e) {
+          if (e is! Map) return false;
+          final status = (e['Status'] ?? e['ElementStatus_c'] ?? e['Part_Status_c'])?.toString();
+          return status == 'Casted';
+        }).toList();
+      } else {
+        // No status field in the source; leave results as-is to avoid empty list in dev data
+        fetchedPartValue = raw;
+      }
     });
   }
 
   PartData? getPartObjectfromJson(String partNum){
     if(fetchedPartValue.isNotEmpty){
-      PartData partData = PartData.fromJson(fetchedPartValue.where((element) => element['Part_PartNum'] == partNum).first);
+      final match = fetchedPartValue.where((element) => element['Part_PartNum'] == partNum);
+      if (match.isEmpty) return null;
+      PartData partData = PartData.fromJson(match.first);
       return partData;
     }
     return null;
@@ -221,7 +236,23 @@ class _PartSearchFormState extends State<PartSearchForm> {
   }
 
   void setPartData() {
-    PartData parts = PartData.fromJson(fetchedPartValue.where((element) => element['Part_PartNum'] == partNumberController.text).first);
+    // Search only within the filtered dataset
+    final match = fetchedPartValue.where((element) => element['Part_PartNum'] == partNumberController.text);
+    if (match.isEmpty) {
+      // Show a friendly message if not found or filtered out due to status
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Not Found'),
+          content: const Text('No part found with status Casted for this Part ID.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
+    PartData parts = PartData.fromJson(match.first);
     setState(() {
       partDescriptionController.text = parts.partDesc;
       onHandQtyController.text = parts.qty;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Widgets/Notifications.dart';
 
 class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -8,10 +9,10 @@ class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return AppBar(
       backgroundColor: Theme.of(context).primaryColor,
-      title: Center(
-        child: Row(
+      title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(title, style: const TextStyle(color: Colors.white)),
@@ -24,7 +25,20 @@ class IndexAppBar extends StatelessWidget implements PreferredSizeWidget {
             // )
           ],
         ),
-      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+          tooltip: 'Notifications',
+          onPressed: () {Navigator.push(context, MaterialPageRoute(builder: (context) => NotificationsPage()));},
+        ),
+        IconButton(
+          icon: const Icon(Icons.home, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+          },
+        ),
+      ],
+      centerTitle: true,
     );
   }
 
