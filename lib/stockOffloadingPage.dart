@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:GoCastTrack/Providers/tenantConfig.dart';
 import 'package:GoCastTrack/truckDetails.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -906,7 +907,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                             ),
                                             TruckDetailsForm(
                                               isEdit: false,
-                                              truckDetails: offloadData,
+                                              truckDetails: offloadData, tenantConfigP: tenantConfigProvider(),
                                             ),
                                             const SizedBox(
                                               height: 20,
@@ -1140,7 +1141,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                           ),
                                           TruckDetailsForm(
                                             isEdit: false,
-                                            truckDetails: offloadData,
+                                            truckDetails: offloadData, tenantConfigP: tenantConfigProvider(),
                                           ),
                                           const SizedBox(
                                             height: 20,
