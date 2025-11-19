@@ -161,7 +161,7 @@ class _StockLoadingState extends State<StockLoading>
       _tabController = TabController(length: 3, vsync: this); // Change 3 to the number of tabs
       _tabController.index = widget.initialTabIndex;
       setState(() {
-        context.read<ArchitectureProvider>().init();
+
         context.read<ArchitectureProvider>().setArchitecure('SO');
       });
 
@@ -173,6 +173,9 @@ class _StockLoadingState extends State<StockLoading>
         setState(() {
           context.read<ArchitectureProvider>().custNum = widget.custNum;
         });
+        specifytheOrderLine(widget.passedElements[0].SO.toString());
+      }else{
+        context.read<ArchitectureProvider>().init();
       }
       if (!widget.isUpdate) {
         context.read<LoadProvider>().clearLoad();
@@ -3038,7 +3041,7 @@ class _StockLoadingState extends State<StockLoading>
 
 
     int specifytheOrderLine(String partNum){
-    List<dynamic> orderLines = context.read<ArchitectureProvider>().Lines;
+    List<dynamic> orderLines = context.read<ArchitectureProvider>().Lines??[];
       List<dynamic> linesQty = context.read<ArchitectureProvider>().linesQty;
       for (var orderLine in orderLines) {
         if (orderLine["OrderDtl_PartNum"] == partNum) {
@@ -3053,7 +3056,14 @@ class _StockLoadingState extends State<StockLoading>
 
         }
       }
-      throw Exception("All order lines for part $partNum are fully shipped.");
+
+    setState(() {
+      SaveLinesLoading = false;
+
+    });
+
+      debugPrint("All order lines for part $partNum are fully shipped.");
+      return -1;
     }
 
   Future<void> updateUD104A(

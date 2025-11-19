@@ -15,8 +15,13 @@ import '../Models/NotFoundException.dart';
 class SalesOrderSearch extends StatefulWidget {
   final bool isUpdate;
   final bool enabled;
+  final bool showShipTo;
+  final void Function(dynamic SalesOrder)? onSalesOrderSelected;
   const SalesOrderSearch({super.key, required this.isUpdate,
-  this.enabled = true
+  this.enabled = true,
+  this.showShipTo = true,
+  this.onSalesOrderSelected
+
   });
 
   @override
@@ -109,6 +114,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
      context.read<ArchitectureProvider>().setShipments(data[0]);
      context.read<ArchitectureProvider>().setLines(data[1]);
    }
+   if(widget.onSalesOrderSelected!=null){
+     widget.onSalesOrderSelected!(item);
+   }
   }
     return
       Column(
@@ -163,7 +171,8 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
             },
 
               ),
-          Row(
+
+          widget.showShipTo?Row(
             children: [
 
 
@@ -217,7 +226,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
 
             ],
-          ),
+          ):Container(),
         ],
       );
   }

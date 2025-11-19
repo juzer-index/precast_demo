@@ -127,6 +127,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
     });
   }
 
+
   @override
   void initState() {
     super.initState();
@@ -219,76 +220,15 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                 child: Column(
 
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Expanded(
-                  child: IndexSearchBar(
-                    entity: "S.O",
-                    onSearch:  (String term) async {
-                      setState(() {
-                        isLoading = true;
-                        _salesOrderController.text= term;
-                      });
-                      try {
-                        var data = await APIV2Helper.getResults(
-                            '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-                                '/v1/BaqSvc/IIT_DispatchSchedule/?OrderNum=${term}',
-
-                            {"username": context
-                                .read<tenantConfigProvider>()
-                                .tenantConfig['userID'],
-                              "password": context
-                                  .read<tenantConfigProvider>()
-                                  .tenantConfig['password']}
-                            , entity: "Sales Order");
-                        if(data.isNotEmpty){
-                          setState(() {
-                            dynamicStructures = data;
-                            isLoading = false;
-                            page=1;
-                            totalRecords=dynamicStructures[0]['Calculated_total_count'];
-                            totalPages = (totalRecords / 10).ceil();
-                          });
-                        }else{
-                          setState(() {
-                            isLoading = false;
-                          });
-                          showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-                            title: const Text("Error"),
-                            content: const Text("No data found"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text("OK"),
-                              ),],
-                          ),);
-                        }
-
-
-
-                      }on NotFoundException catch(e){
-                        setState(() {
-                          isLoading = false;
-                        });
-                        showDialog(context: context, builder: (BuildContext context) => AlertDialog(
-                          title: Text("Error"),
-                          content: Text(e.toString()),
-                        ));
-                      };
-                    },
-                    advanceSearch: true,
-                    value: _salesOrderController.text,
-                    onAdvanceSearch: (){
-                      showDialog(context: context, builder: (BuildContext context)=>SalesOrderPopUP( onSalesOrderSelected: onSalesOrderSelected,)
-
-                      );
-                    },
-
+                  child: SalesOrderSearch(isUpdate: false,showShipTo: false,
+                  onSalesOrderSelected: onSalesOrderSelected,
                   ),
+
                                      )
 
                       ],
@@ -296,7 +236,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                     GestureDetector(
                       child: SizedBox(
                         height: height * 0.9,
-                        width: width * 0.78,
+                        width: width * 0.9,
                         child: Column(
                           children: [
                             SingleChildScrollView(
