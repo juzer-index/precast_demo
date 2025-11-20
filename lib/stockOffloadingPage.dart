@@ -928,7 +928,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                       child: Column(
                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                           children: [
-                                         
+
                                             Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: Text(
@@ -1289,8 +1289,13 @@ class _StockOffloadingState extends State<StockOffloading>
                                       "Company": widget.tenantConfig['company'],
                                       "ShortChar03": loadStatus,
                                     });
+
+
                                   }
                                   if (loaded /*&& elementsAndPartsLoaded*/) {
+                                    setState(() {
+                                      offloaded= true;
+                                    });
                                     if (mounted) {
                                       showDialog(
                                         context: context,

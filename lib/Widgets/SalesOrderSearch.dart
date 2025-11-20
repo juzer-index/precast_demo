@@ -12,6 +12,7 @@ import "../Providers/ArchitectureProvider.dart";
 import '../Models/OrderLine.dart';
 import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
+import '../utils/SOHelper.dart';
 class SalesOrderSearch extends StatefulWidget {
   final bool isUpdate;
   final bool enabled;
@@ -34,23 +35,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   dynamic SOLines = null;
   Future<List<dynamic>?> getSalesOrderLines(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
-    try {
-      var data = await APIV2Helper.getResults(
-          '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v1/'
-              'BaqSvc/IIT_OrderDtl/?OrderNum=$OrderNum'
-              ' ',
-          {
-            'username': tenantConfig['userID'],
-            'password': tenantConfig['password']
-          }
-      );
-      return data;
-    }
-    on NotFoundException catch (e) {
-      return [];
-    }
-    catch (e) {
+    try{
+      return await SOHelper.getSalesOrderLines(OrderNum,tenantConfig);
+    }catch (e) {
       showDialog(context: context, builder: (BuildContext context) => AlertDialog(
         title: Text("Error"),
         content: Text(e.toString()),
