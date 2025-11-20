@@ -151,6 +151,11 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
                context.read<ArchitectureProvider>().setShipments(res[0]);
                context.read<ArchitectureProvider>().setLines(res[1]);
              }
+             if(widget.onSalesOrderSelected!=null){
+               widget.onSalesOrderSelected!({
+                 'OrderNum':term
+               });
+             }
 
 
            }on NotFoundException catch(e){

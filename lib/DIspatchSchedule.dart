@@ -236,21 +236,21 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                     GestureDetector(
                       child: SizedBox(
                         height: height * 0.9,
-                        width: width * 0.9,
-                        child: Column(
-                          children: [
-                            SingleChildScrollView(
-                              clipBehavior: Clip.hardEdge,
-                              scrollDirection: Axis.vertical,
-                              child: Column(
-                                children: [
-                                  SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
+
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              SingleChildScrollView(
+                            s    clipBehavior: Clip.hardEdge,
+                                scrollDirection: Axis.vertical,
+                                child: Column(
+                                  children: [
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
                                       child: Center(
                                         child: Container(
-                                          padding: const EdgeInsets.all(8.0),
+
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).indicatorColor,
                                             borderRadius: BorderRadius.circular(8.0),
@@ -309,63 +309,63 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                           ),
                                              ],
                                       ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [ Center(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8.0),
+                                    decoration: BoxDecoration(
+
+                                      borderRadius: BorderRadius.circular(8.0),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        IconButton(onPressed:(){
+                                          if(page>1){
+                                            setState(() {
+                                              page--;
+                                            });
+                                          }
+
+
+                                        } , icon: const Icon(Icons.arrow_back_ios_new)),
+                                        Text(('Page $page of $totalPages').toString()),
+                                        page<totalPages?IconButton(onPressed:()async{
+                                          if(page*10<dynamicStructures.length){
+                                            setState(() {
+                                              page++;
+                                            });
+                                          }
+                                          else{
+                                            setState(() {
+                                              isLoading=true;
+                                            });
+
+
+                                            await getData(_salesOrderController.text,true);
+
+
+                                          }
+                                        } , icon: const Icon(Icons.arrow_forward_ios)):IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey,)
+
+
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
+                            ],
                               ),
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [ Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      IconButton(onPressed:(){
-                                        if(page>1){
-                                          setState(() {
-                                            page--;
-                                          });
-                                        }
-
-
-                                      } , icon: const Icon(Icons.arrow_back_ios_new)),
-                                      Text(('Page $page of $totalPages').toString()),
-                                      page<totalPages?IconButton(onPressed:()async{
-                                        if(page*10<dynamicStructures.length){
-                                          setState(() {
-                                            page++;
-                                          });
-                                        }
-                                        else{
-                                          setState(() {
-                                            isLoading=true;
-                                          });
-
-
-                                          await getData(_salesOrderController.text,true);
-
-
-                                        }
-                                      } , icon: const Icon(Icons.arrow_forward_ios)):IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_forward_ios, color: Colors.grey,)
-
-
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                            ),
-                          ],
+                            ],
+                          ),
+                                                ),
+                                              ],
+                                            ),
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
 
