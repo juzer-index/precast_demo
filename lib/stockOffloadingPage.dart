@@ -928,44 +928,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                       child: Column(
                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                           children: [
-                                            Column(
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    'Verify Elements',
-                                                    style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 18,
-                                                        color: Theme.of(context).canvasColor),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Theme.of(context).indicatorColor,
-                                                    borderRadius: BorderRadius.circular(10),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.all(8.0),
-                                                    child: ElementSearchForm(
-                                                      onElementsSelected:
-                                                          updateElementInformation,
-                                                      arrivedElements: arrivedElements,
-                                                      isOffloading: true,
-                                                      AddElement: (ElementData) => {},
-                                                      tenantConfig: widget.tenantConfig,
-                                                      isInstalling: false,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 20,
-                                                ),
-                                              ],
-                                            ),
+                                         
                                             Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: Text(
@@ -976,14 +939,15 @@ class _StockOffloadingState extends State<StockOffloading>
                                                     color: Theme.of(context).canvasColor),
                                               ),
                                             ),
-    ElementTable(selectedElements: selectedElements,
-    isOffloading: true,
-    onElementsChanged: (List<ElementData> passedElements)=>{
-    setState(() {
-    selectedElements = passedElements;
-    })
-    },
-    ),                                            const SizedBox(
+                                          ElementTable(selectedElements: selectedElements,
+                                          isOffloading: true,
+                                          onElementsChanged: (List<ElementData> passedElements)=>{
+                                          setState(() {
+                                          selectedElements = passedElements;
+                                          })
+                                          },
+                                          ),
+                                            const SizedBox(
                                               height: 20,
                                             ),
                                             Text(

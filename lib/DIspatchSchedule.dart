@@ -242,7 +242,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                           child: Column(
                             children: [
                               SingleChildScrollView(
-                            s    clipBehavior: Clip.hardEdge,
+                               clipBehavior: Clip.hardEdge,
                                 scrollDirection: Axis.vertical,
                                 child: Column(
                                   children: [
