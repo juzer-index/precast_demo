@@ -1019,6 +1019,7 @@ class _StockLoadingState extends State<StockLoading>
                                                                     "ShortChar07":
                                                                     plateNumberController.text,
                                                                     "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                                                    "ShortChar06":context.watch<UserManagementProvider>().userManagement?.userFileDcdUserID,
                                                                     "ShortChar01": loadTypeValue,
                                                                     "ShortChar04": loadConditionValue,
                                                                     "ShortChar08":
@@ -1948,6 +1949,7 @@ class _StockLoadingState extends State<StockLoading>
                                               "ShortChar07":
                                               plateNumberController.text,
                                               "ShortChar05":context.read<ArchitectureProvider>().architecure,
+                                              "ShortChar06":context.watch<UserManagementProvider>().userManagement?.userFileDcdUserID,
                                               "ShortChar01": loadTypeValue,
                                               "ShortChar04": loadConditionValue,
                                               "ShortChar08":

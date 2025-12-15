@@ -303,9 +303,7 @@ class _DispatchScheduleState extends State<DispatchSchedule> {
                                               DataColumn(label: Text('Status')),
                                               DataColumn(label: Text('Erection Sequence')),
                                             ],
-                                            onRowTap: (index) {
 
-                                            },
                                           ),
                                              ],
                                       ),

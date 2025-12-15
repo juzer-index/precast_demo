@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Models/NotFoundException.dart';
 import '../Providers/tenantConfig.dart';
-
+import 'dart:math';
 class APIV2Helper extends ChangeNotifier {
   APIV2Helper();
 
@@ -15,7 +15,7 @@ class APIV2Helper extends ChangeNotifier {
 
   static Future<List<dynamic>>getPaginatedResults(String url  ,int page , int pageSize,Map<String,String>auth,{bool hasVars=false,String entity=""}) async {
     int top = pageSize;
-    int skip = (page - 1) * pageSize;
+    int skip =  max(((page - 1) * pageSize),0);
     String query = "\$top=$top&\$skip=$skip";
     final basicAuth = 'Basic ' + base64Encode(utf8.encode('${auth['username']}:${auth['password']}'));
     var response = await http.get(Uri.parse(hasVars ? "$url&$query":"$url?$query"  ),
