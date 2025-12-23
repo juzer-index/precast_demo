@@ -1,21 +1,37 @@
+
+
 import 'package:flutter/material.dart';
 
 
 class IndexTable extends StatelessWidget {
-  final List<DataRow> data;
+   List<DataRow> data;
   final List<DataColumn> columns;
-  final Function(int) onRowTap;
+   Function(int)? onRowTap;
 
-   IndexTable({super.key, required this.data, required this.columns, required this.onRowTap});
+   IndexTable({super.key, required this.data, required this.columns, onRowTap=null    });
 
   @override
   Widget build(BuildContext context) {
+    if(onRowTap != null){
+    data=data.asMap().entries.map((entry) {
+      int idx = entry.key;
+      DataRow row = entry.value;
+      return DataRow(
+        cells: row.cells,
+
+      );
+    }).toList();
+
+    }
     return Container(
+
       child: Column(
+
         children: [
           DataTable(
                 columns: columns,
             rows: data
+
           ),
 
         ],

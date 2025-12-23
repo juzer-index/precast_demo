@@ -73,7 +73,7 @@ class _StockOffloadingState extends State<StockOffloading>
   bool elementsAndPartsLoaded = false;
   bool isPrinting = false;
   int pdfCount = 0;
-
+  bool loading = false;
 
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
@@ -929,44 +929,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                       child: Column(
                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                           children: [
-                                            Column(
-                                              children: [
-                                                Padding(
-                                                  padding: EdgeInsets.all(8.0),
-                                                  child: Text(
-                                                    'Verify Elements',
-                                                    style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 18,
-                                                        color: Theme.of(context).canvasColor),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Theme.of(context).indicatorColor,
-                                                    borderRadius: BorderRadius.circular(10),
-                                                  ),
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.all(8.0),
-                                                    child: ElementSearchForm(
-                                                      onElementsSelected:
-                                                          updateElementInformation,
-                                                      arrivedElements: arrivedElements,
-                                                      isOffloading: true,
-                                                      AddElement: (ElementData) => {},
-                                                      tenantConfig: widget.tenantConfig,
-                                                      isInstalling: false,
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 20,
-                                                ),
-                                              ],
-                                            ),
+
                                             Padding(
                                               padding: EdgeInsets.all(8.0),
                                               child: Text(
@@ -977,14 +940,15 @@ class _StockOffloadingState extends State<StockOffloading>
                                                     color: Theme.of(context).canvasColor),
                                               ),
                                             ),
-    ElementTable(selectedElements: selectedElements,
-    isOffloading: true,
-    onElementsChanged: (List<ElementData> passedElements)=>{
-    setState(() {
-    selectedElements = passedElements;
-    })
-    },
-    ),                                            const SizedBox(
+                                          ElementTable(selectedElements: selectedElements,
+                                          isOffloading: true,
+                                          onElementsChanged: (List<ElementData> passedElements)=>{
+                                          setState(() {
+                                          selectedElements = passedElements;
+                                          })
+                                          },
+                                          ),
+                                            const SizedBox(
                                               height: 20,
                                             ),
                                             Text(
@@ -1243,6 +1207,9 @@ class _StockOffloadingState extends State<StockOffloading>
                                                   child: const Text('Generate Delivery Note'))
                                               : ElevatedButton(
                                                   onPressed: () async {
+                                                    setState(() {
+                                                      loading= true;
+                                                    });
                                                     if (offloadData!.loadStatus == 'Closed') {
                                                       null;
                                                     }
@@ -1278,11 +1245,11 @@ class _StockOffloadingState extends State<StockOffloading>
                                                           DateFormat("yyyy-MM-dd'T'HH:mm:ss")
                                                               .format(DateTime.now());
                                                       debugPrint(selectedElements.toString());
-    List<ElementData> checkedElements =
-    selectedElements
-        .where((element) =>
-    element.isRecieved )
-        .toList();
+                                                              List<ElementData> checkedElements =
+                                                              selectedElements
+                                                                  .where((element) =>
+                                                              element.isRecieved )
+                                                                  .toList();
                                                       for (var v = 0;
                                                           v < checkedElements.length;
                                                           v++) {
@@ -1294,15 +1261,15 @@ class _StockOffloadingState extends State<StockOffloading>
                                                           "Date02": loadDateFormat,
                                                         }, checkedElements[v].ChildKey1);
                                                         await updateStatusOnSite(
-    checkedElements[v].partId,
-    checkedElements[v].elementId);
+                                                              checkedElements[v].partId,
+                                                              checkedElements[v].elementId);
                                                         debugPrint(checkedElements[v].elementId);
                                                       }
-    List<PartData> checkedParts =
-    arrivedParts
-        .where((part) => part.isRecieved)
-        .toList();
-                                                      for (var v = 0;
+                                                      List<PartData> checkedParts =
+                                                      arrivedParts
+                                                          .where((part) => part.isRecieved)
+                                                          .toList();
+                                                                  for (var v = 0;
                                                           v < checkedParts.length;
                                                           v++) {
                                                         await updateUD104A({
@@ -1323,8 +1290,13 @@ class _StockOffloadingState extends State<StockOffloading>
                                       "Company": widget.tenantConfig['company'],
                                       "ShortChar03": loadStatus,
                                     });
+
+
                                   }
                                   if (loaded /*&& elementsAndPartsLoaded*/) {
+                                    setState(() {
+                                      offloaded= true;
+                                    });
                                     if (mounted) {
                                       showDialog(
                                         context: context,
@@ -1399,8 +1371,27 @@ class _StockOffloadingState extends State<StockOffloading>
                                       );
                                     }
                                   }
+                                  setState(() {
+                                    loading= false;
+                                  });
                                 },
-                                child: const Text('Offload Items'),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8.0),
+                                  width: 130,
+                                  height: 40,
+                                  child: loading
+                                      ? Center(
+                                    child: SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+
+                                        color: Theme.of(context).shadowColor,
+                                      ),
+                                    ),
+                                  )
+                                      : const Text('Offload Items'),
+                                ),
                               )
                                         ],
                                       ),

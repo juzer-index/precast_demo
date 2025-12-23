@@ -12,11 +12,17 @@ import "../Providers/ArchitectureProvider.dart";
 import '../Models/OrderLine.dart';
 import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
+import '../utils/SOHelper.dart';
 class SalesOrderSearch extends StatefulWidget {
   final bool isUpdate;
   final bool enabled;
+  final bool showShipTo;
+  final void Function(dynamic SalesOrder)? onSalesOrderSelected;
   const SalesOrderSearch({super.key, required this.isUpdate,
-  this.enabled = true
+  this.enabled = true,
+  this.showShipTo = true,
+  this.onSalesOrderSelected
+
   });
 
   @override
@@ -29,23 +35,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
   dynamic SOLines = null;
   Future<List<dynamic>?> getSalesOrderLines(int OrderNum) async {
     final tenantConfig = context.read<tenantConfigProvider>().tenantConfig;
-    try {
-      var data = await APIV2Helper.getResults(
-          '${tenantConfig['httpVerbKey']}://${tenantConfig['appPoolHost']}/${tenantConfig['appPoolInstance']}/api'
-              '/v1/'
-              'BaqSvc/IIT_OrderDtl/?OrderNum=$OrderNum'
-              ' ',
-          {
-            'username': tenantConfig['userID'],
-            'password': tenantConfig['password']
-          }
-      );
-      return data;
-    }
-    on NotFoundException catch (e) {
-      return [];
-    }
-    catch (e) {
+    try{
+      return await SOHelper.getSalesOrderLines(OrderNum,tenantConfig);
+    }catch (e) {
       showDialog(context: context, builder: (BuildContext context) => AlertDialog(
         title: Text("Error"),
         content: Text(e.toString()),
@@ -109,6 +101,9 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
      context.read<ArchitectureProvider>().setShipments(data[0]);
      context.read<ArchitectureProvider>().setLines(data[1]);
    }
+   if(widget.onSalesOrderSelected!=null){
+     widget.onSalesOrderSelected!(item);
+   }
   }
     return
       Column(
@@ -143,6 +138,11 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
                context.read<ArchitectureProvider>().setShipments(res[0]);
                context.read<ArchitectureProvider>().setLines(res[1]);
              }
+             if(widget.onSalesOrderSelected!=null){
+               widget.onSalesOrderSelected!({
+                 'OrderNum':term
+               });
+             }
 
 
            }on NotFoundException catch(e){
@@ -163,7 +163,8 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
             },
 
               ),
-          Row(
+
+          widget.showShipTo?Row(
             children: [
 
 
@@ -217,7 +218,7 @@ class _SalesOrderSearchState extends  State<SalesOrderSearch>{
 
 
             ],
-          ),
+          ):Container(),
         ],
       );
   }

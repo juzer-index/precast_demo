@@ -5,92 +5,36 @@ import 'stockLoadingPage.dart';
 import 'sideBarMenu.dart';
 import 'package:provider/provider.dart';
 import 'load_model.dart';
-import 'Providers/LoadHistoryProvider.dart';
-
+import 'utils/APIProviderV2.dart';
+import 'dart:math';
+import './Widgets/IndexTable.dart';
+import './Models/NotFoundException.dart';
+import './Widgets/fromToCalendar.dart';
+import './utils/DateHelper.dart';
 class ElementDataSource extends ChangeNotifier {
   List<LoadData> loads = [];
-
-
-
 }
+
 class LoadHistory extends StatefulWidget {
-   final List<LoadData> loads;
-   final dynamic addLoad;
-   final dynamic tenantConfig;
-   const LoadHistory({super.key, required this.loads, required this.addLoad, required this.tenantConfig}) ;
+  final List<LoadData> loads;
+  final dynamic addLoad;
+  final dynamic tenantConfig;
+  const LoadHistory({super.key, required this.loads, required this.addLoad, required this.tenantConfig});
 
   @override
   State<LoadHistory> createState() => _LoadHistoryState();
-
 }
-class LoadTableSource extends DataTableSource{
-  List<LoadData> loads=[];
-  final BuildContext context;
-  dynamic addLoadData;
-  dynamic tenantConfig;
-  LoadTableSource({Key? key, required this.loads, required this.context,required this.addLoadData,required this.tenantConfig }) ;
-
-  @override
-  DataRow? getRow(int index) {
-    if (index < 0 || index >= loads.length) return null; // guard
-    final l = loads[index];
-    return DataRow.byIndex(
-       index: index,
-       cells: [
-         DataCell(
-           GestureDetector(
-             onTap: ()
-                 {
-                   Navigator.push(context, MaterialPageRoute(builder: (context) =>
-                       StockLoading(initialTabIndex: 0,
-                         isUpdate: true,
-                         loadDataList: loads,
-                         addLoadData: addLoadData,
-                         historyLoadID: loads[index].loadID,
-                    )));
-                 },
-             child: Text(loads[index].loadID),
-
-           ),
-         ),
-         DataCell(Text(loads[index].projectId)),
-          DataCell(Text(loads[index].loadDate)),
-          DataCell(Text(loads[index].fromWarehouse)),
-          DataCell(Text(loads[index].toWarehouse)),
-          DataCell(Text(loads[index].toBin)),
-          DataCell(Text(loads[index].loadType)),
-          DataCell(Text(loads[index].loadCondition)),
-          DataCell(Text(loads[index].loadStatus)),
-          DataCell(Text(loads[index].truckId)),
-          DataCell(Text(loads[index].resourceId)),
-          DataCell(Text(loads[index].plateNumber)),
-          DataCell(Text(loads[index].driverName)),
-          DataCell(Text(loads[index].driverNumber)),
-          DataCell(Text(loads[index].resourceCapacity.toString() ?? '')),
-          DataCell(Text(loads[index].resourceLoaded.toString() ?? '')),
-          DataCell(Text(loads[index].resourceLength.toString() ?? '')),
-          DataCell(Text(loads[index].resourceWidth.toString() ?? '')),
-          DataCell(Text(loads[index].resourceHeight.toString() ?? '')),
-          DataCell(Text(loads[index].resourceVolume.toString() ?? '')),
-          DataCell(Text(loads[index].foremanId.toString() ?? '')),
 
 
 
-       ]
-   );
-  }
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get rowCount => loads.length;
-  @override
-  int get selectedRowCount => loads.length;
-
-}
 class _LoadHistoryState extends State<LoadHistory> {
-
   List<LoadData> loads = [];
+  bool loading = true;
+  int page=1;
+  int totalPages=1;
+  Map<int,List<LoadData>> cache={};
+  DateTime fromDate= DateTime.now().subtract(const Duration(days: 60));
+  DateTime toDate= DateTime.now();
   void addLoadData(LoadData load) {
     setState(() {
       for (int i = 0; i < loads.length; i++) {
@@ -99,93 +43,252 @@ class _LoadHistoryState extends State<LoadHistory> {
           break;
         }
       }
-    });
-    setState(() {
       loads.add(load);
     });
   }
 
-  _LoadHistoryState() ;
+  _LoadHistoryState();
   final GlobalKey<PaginatedDataTableState> dataTableKey = GlobalKey();
+
+  Future<List<LoadData>> fetchLoadsByUserName(String userName,String fromDate,String toDate,int page,{rows=10}) async {
+    try {
+      List<dynamic> loads = await APIV2Helper.getPaginatedResults(
+        '${widget.tenantConfig['httpVerbKey']}://${widget.tenantConfig['appPoolHost']}/${widget.tenantConfig['appPoolInstance']}/api'
+            '/v1/'
+            'BaqSvc/IIT_Load_History/?userName=$userName&formDate=${fromDate}&toDate=${toDate}',
+
+        page,
+        rows,
+
+
+        {
+          'username': widget.tenantConfig['userID'],
+          'password': widget.tenantConfig['password']
+        },hasVars: true,entity: "loads"
+      );
+      return loads.map((load) => LoadData.fromJson(load, prefix: "UD104_")).toList();
+    } catch (e) {
+      throw Exception('Error fetching loads: $e');
+    }
+  }
+ void fetchData (){
+    fetchLoadsByUserName(widget.tenantConfig['userID'],DateHelper.formatForEpicor(fromDate),
+        DateHelper.formatForEpicor(toDate)
+        ,1,rows: 10).then((fetchedLoads) {
+
+      if (mounted) {
+        setState(() {
+          cache[page]=fetchedLoads;
+          loads = fetchedLoads;
+
+        });
+
+      }
+
+    }).catchError((error) {
+      // Handle error here
+      print('Error fetching loads: $error');
+    }).whenComplete(() {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+
+    );
+  }
+  
+
   @override
-  // TODO: implement widget
-  Widget build(BuildContext context){
-    // Fetch loads from the global provider instead of just using widget.loads
-    final sessionLoads = context.watch<LoadHistoryProvider>().sessionLoads;
-    final hasLoads = sessionLoads.isNotEmpty;
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
     final width = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: Theme.of(context).shadowColor,
       appBar: const IndexAppBar(title: 'Load History'),
-        drawer: width>600?null:SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
-        body: Row(
-            children: [
-        width > 600
-        ? SizedBox(
-        width: MediaQuery.of(context).size.width * 0.2,
-        child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig))
-        : const SizedBox(),
-        Expanded(
-        child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: hasLoads
-            ? Column(
-              children: [
-                Card(
+      drawer: width > 600 ? null : SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+      body: Row(
+        children: [
+          width > 600
+              ? SizedBox(
+            width: MediaQuery.of(context).size.width * 0.2,
+            child: SideBarMenu(context, loads, addLoadData, widget.tenantConfig),
+          )
+              : const SizedBox(),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: loading||loads.isNotEmpty
+                  ? Column(
+                children:[
+                  DateRangeBar(initialFrom: fromDate, initialTo: toDate,
+                      onSelect: (fromDate,toDate){
+                    setState(() {
+                      this.fromDate=fromDate;
+                      this.toDate=toDate;
+                      page=1;
+                      cache={};
+                      setState(() {
+                        loading=true;
+                      });
+                      fetchData();
+                    });
+                    print('Date range selected: $fromDate - $toDate');
+                  },
+                  disabled: loading,
+                  ),
+                  Card(
                     color: Theme.of(context).indicatorColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: PaginatedDataTable(
-                        key : dataTableKey,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.65,
+                      child: loading?Center(
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).canvasColor,
+                        ),
+                      ):SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: IndexTable(data: loads.map((load)=>DataRow(
+                              cells: [
+                                DataCell(
+                                  GestureDetector(
+                                    onTap: ()
+                                    {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                                          StockLoading(initialTabIndex: 0,
+                                            isUpdate: true,
+                                            loadDataList: loads,
+                                            addLoadData: addLoadData,
+                                            historyLoadID: load.loadID,
+                                          )));
+                                    },
+                                    child: Text(load.loadID),
+
+                                  ),
+                                ),
 
 
-                        columnSpacing: 30,
-                        columns: const [
-                          DataColumn(label: Text('Load ID')),
-                          DataColumn(label: Text('Project ID')),
-                          DataColumn(label: Text('Load Date')),
-                          DataColumn(label: Text('From Warehouse')),
-                          DataColumn(label: Text('To Warehouse')),
-                          DataColumn(label: Text('To Bin')),
-                          DataColumn(label: Text('Load Type')),
-                          DataColumn(label: Text('Load Condition')),
-                          DataColumn(label: Text('Load Status')),
-                          DataColumn(label: Text('Truck ID')),
-                          DataColumn(label: Text('Resource ID')),
-                          DataColumn(label: Text('Plate Number')),
-                          DataColumn(label: Text('Driver Name')),
-                          DataColumn(label: Text('Driver Number')),
-                          DataColumn(label: Text('Resource Capacity')),
-                          DataColumn(label: Text('Resource Loaded')),
-                          DataColumn(label: Text('Resource Length')),
-                          DataColumn(label: Text('Resource Width')),
-                          DataColumn(label: Text('Resource Height')),
-                          DataColumn(label: Text('Resource Volume')),
-                          DataColumn(label: Text('Foreman ID')),
-                        ],
-                        source: LoadTableSource(
-                          loads: sessionLoads.reversed.toList(),
-                          context: context,
-                          addLoadData: widget.addLoad,
-                          tenantConfig: widget.tenantConfig,
+                            DataCell(Text(load.loadDate)),
+                            DataCell(Text(load.CustomerId)),
+                            DataCell(Text(load.projectId)),
+                            DataCell(Text(load.CustNum)),
+                          ]
+
+                          )).toList(), columns:[
+
+                            DataColumn(label: Text('Load ID', style: TextStyle(color: Theme.of(context).canvasColor)),),
+                            DataColumn(label: Text('Load Date', style: TextStyle(color: Theme.of(context).canvasColor)),),
+                            DataColumn(label: Text('Customer ID', style: TextStyle(color: Theme.of(context).canvasColor)),),
+                            DataColumn(label: Text('Project ID', style: TextStyle(color: Theme.of(context).canvasColor)),),
+                            DataColumn(label: Text('Customer Number', style: TextStyle(color: Theme.of(context).canvasColor)),),
+                          ] , ),
                         ),
                       ),
                     ),
                   ),
-              ],
-            )
-            : Center(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [ Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Row(
+                          children: [
+                            page<=1?IconButton(onPressed: (){}, icon: const Icon(Icons.arrow_back_ios_new, color: Colors.grey,)):
+          IconButton(onPressed:(){
+
+                                setState(() {
+
+                                  loads=cache[page-1]!;
+                                  page--;
+                                });
+
+
+
+                            } , icon: const Icon(Icons.arrow_back_ios_new)),
+                            Text(('Page $page ').toString()),
+
+                            IconButton(onPressed:()async{
+                              if(cache[page+1]!=null&&cache[page+1]!.isNotEmpty){
+                                setState(() {
+                                  loads=cache[++page]??[];
+
+
+                                });
+
+                              }
+                              else{
+                                setState(() {
+                                  loading=true;
+                                });
+                                try{
+
+                                List<LoadData>temp = await   fetchLoadsByUserName(widget.tenantConfig['userID'],
+                                    DateHelper.formatForEpicor(fromDate),
+                                    DateHelper.formatForEpicor(toDate)
+                                    ,page+1,rows: 10);
+                                if(temp.isEmpty){
+                                  throw new NotFoundException(entity: 'history loads');
+                                }
+                                setState(() {
+                                  loads=temp;
+                                  cache[++page]=loads;
+
+                                  totalPages++;
+                                });
+                              }on NotFoundException catch(error){
+
+                                  showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                                    title: Text("Error"),
+                                    content: Text(error.toString()),
+                                  ));
+                                }catch(error){
+                                  showDialog(context: context, builder: (BuildContext context) => AlertDialog(
+                                    title: Text("Error"),
+                                    content: Text("something wrong happend"),
+                                  ));
+                                }
+                                finally{
+                                  setState(() {
+                                    loading=false;
+                                  });
+                                }
+                              }
+                            } , icon: const Icon(Icons.arrow_forward_ios)
+
+
+
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    ],
+                  ),
+                ],
+              )
+                  : Center(
                 child: Text(
                   'No loads created in this session.',
-                  style: TextStyle(
-                      fontSize: 16, color: Theme.of(context).canvasColor),
+                  style: TextStyle(fontSize: 16, color: Theme.of(context).canvasColor),
                 ),
               ),
+            ),
+          ),
+        ],
       ),
-    ),
-      ],
-    ),
     );
   }
 }

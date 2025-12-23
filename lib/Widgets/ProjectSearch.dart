@@ -10,6 +10,7 @@ import '../Providers/tenantConfig.dart';
 import '../Widgets/DropDown.dart';
 import '../utils/APIProviderV2.dart';
 import '../Models/NotFoundException.dart';
+import '../utils/SOHelper.dart';
 class ProjectSearch extends StatefulWidget {
   final bool isUpdate;
   final bool enabled ;
@@ -220,8 +221,9 @@ class _ProjectSearchState extends State<ProjectSearch> {
                     context.read<ArchitectureProvider>().updateCustId(element['Customer_CustID']);
                     SalesOrderController.text = element['OrderDtl_OrderNum'].toString();
                   });
-                  final Shipments = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt())]);
-                  context.read<ArchitectureProvider>().setShipments(Shipments[0]);
+                  final res = await Future.wait([getCustomerShipments(element['OrderDtl_OrderNum'].toInt()),SOHelper.getSalesOrderLines(element['OrderDtl_OrderNum'].toInt(), tenantConfigP)]);
+                  context.read<ArchitectureProvider>().setShipments(res[0]);
+                  context.read<ArchitectureProvider>().setLines(res[1]);
                 },
               ),
             ),
