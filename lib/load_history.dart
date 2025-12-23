@@ -281,7 +281,7 @@ class _LoadHistoryState extends State<LoadHistory> {
               )
                   : Center(
                 child: Text(
-                  'No loads created in this session.',
+                  'No loads created in this period.',
                   style: TextStyle(fontSize: 16, color: Theme.of(context).canvasColor),
                 ),
               ),
