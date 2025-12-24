@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:GoCastTrack/Providers/tenantConfig.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'truck_model.dart';
@@ -15,7 +16,10 @@ class TruckDetailsForm extends StatefulWidget {
   TruckDetails? truckMasterDetails;
   final Function(LoadData)? onTruckDetailsSelected;
   final dynamic tenantConfigP ;
-  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails, this.truckMasterDetails, this.onTruckDetailsSelected, required this.tenantConfigP});
+  final bool isOffload;
+  TruckDetailsForm({super.key, required this.isEdit, this.truckDetails, this.truckMasterDetails, this.onTruckDetailsSelected, required this.tenantConfigP
+
+  , this.isOffload = false});
 
   @override
   State<TruckDetailsForm> createState() => _TruckDetailsFormState();
@@ -70,6 +74,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   }
 
   Future<void> getTrucksFromURL() async {
+
     final String basicAuth = 'Basic ${utf8.encode('${widget.tenantConfigP['userID']}:${widget.tenantConfigP['password']}')}';
     try {
       final response = await http.get(
@@ -92,7 +97,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
 
   Future<void> getResourceForTrucks(String resourceID) async {
     final String basicAuth = 'Basic ${base64Encode(utf8.encode('manager:Adp@2023'))}';
-    var urL = Uri.parse("https://abudhabiprecast-pilot.epicorsaas.com/server/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
+    var urL = Uri.parse("${widget.tenantConfigP['httpVerbKey']}://${widget.tenantConfigP['appPoolHost']}/${widget.tenantConfigP['appPoolInstance']}/api/v1/Ice.BO.UD102Svc/UD102As?\$filter=Key1 eq '$resourceID'");
     try {
       final response = await http.get(
           urL,
@@ -134,7 +139,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
         });
         debugPrint(fetchedDriverValue.toString());
       } else {
-        throw Exception('Failed to load album');
+        throw Exception('Failed to load data');
       }
     } on Exception catch (e) {
       debugPrint(e.toString());
@@ -162,6 +167,7 @@ class _TruckDetailsFormState extends State<TruckDetailsForm> {
   @override
   void initState() {
     super.initState();
+    if(widget.isOffload) return;
     getDriverList();
     getTrucksFromURL();
   }
