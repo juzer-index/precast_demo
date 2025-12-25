@@ -1105,6 +1105,7 @@ class _StockOffloadingState extends State<StockOffloading>
                                     ),
                                     TruckDetailsForm(
                                       isEdit: false,
+                                      isOffload: true,
                                       truckDetails: offloadData, tenantConfigP: tenantConfigProvider(),
                                     ),
                                     const SizedBox(
